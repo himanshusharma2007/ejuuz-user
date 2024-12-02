@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const { encrypt, decrypt } = require("../utils/cryptoFunc");
+const { encrypt, decrypt } = require("../../utils/cryptoFunc");
 
 // Schema for Merchant Information
 const merchantSchema = new mongoose.Schema({
