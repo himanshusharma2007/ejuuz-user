@@ -24,9 +24,9 @@ exports.sendOtp = async (req, res) => {
       .verifications
       .create({ to: phoneNumber, channel: 'sms' });
 
-    res.status(200).json({ message: 'OTP sent successfully', response });
+    return res.status(200).json({ message: 'OTP sent successfully', response });
   } catch (error) {
     console.error('Error sending OTP:', error);
-    res.status(500).json({ error: 'Failed to send OTP', details: error.message });
+    return res.status(500).json({ error: 'Failed to send OTP', details: error.message });
   }
 };
