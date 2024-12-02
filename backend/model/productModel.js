@@ -86,6 +86,12 @@ const productSchema = new mongoose.Schema({
       },
     },
   ],
+  avgRating: {
+    type: Number,
+    default: 0,
+    min: [0, 'Average rating cannot be negative.'],
+    max: [5, 'Average rating cannot exceed 5.'],
+  },
   salesCount: {
     type: Number,
     default: 0,
@@ -93,6 +99,17 @@ const productSchema = new mongoose.Schema({
   },
 }, {
   timestamps: true,
+});
+
+// Pre-save hook to calculate the average rating
+productSchema.pre('save', function (next) {
+  if (this.ratings.length > 0) {
+    const totalRatings = this.ratings.reduce((sum, rating) => sum + rating.rating, 0);
+    this.avgRating = totalRatings / this.ratings.length;
+  } else {
+    this.avgRating = 0;
+  }
+  next();
 });
 
 const Product = mongoose.model('Product', productSchema);
