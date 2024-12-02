@@ -1,25 +1,31 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
+// Customer Schema
 const customerSchema = new mongoose.Schema({
   name: {
     type: String,
-    trim: true
+    trim: true,
+    required: [true, 'Name is required']
   },
   email: {
     type: String,
-  
     unique: true,
-    lowercase: true
+    lowercase: true,
+    required: [true, 'Email is required'],
+    match: [/\S+@\S+\.\S+/, 'Email is invalid']
   },
   password: {
     type: String,
-    select: false
+    required: [true, 'Password is required'],
+    select: false,
+    minlength: [6, 'Password must be at least 6 characters long']
   },
   phoneNumber: {
-    type:String,
-    required: true,
-    trim:true
+    type: String,
+    required: [true, 'Phone number is required'],
+    trim: true,
+    match: [/^\+?[1-9]\d{1,14}$/, 'Please provide a valid phone number']
   },
   address: {
     street: String,
@@ -44,8 +50,8 @@ const customerSchema = new mongoose.Schema({
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Product'
     },
-    quantity: Number,
-    price: Number
+    quantity: { type: Number, default: 1 },
+    price: { type: Number, required: true }
   }],
   loyaltyPoints: {
     type: Number,
@@ -66,6 +72,27 @@ const customerSchema = new mongoose.Schema({
 }, {
   timestamps: true
 });
+
+// Hash the password before saving
+customerSchema.pre('save', async function (next) {
+  // Only hash the password if it was modified or is a new document
+  if (this.isModified('password')) {
+    try {
+      const salt = await bcrypt.genSalt(10);
+      this.password = await bcrypt.hash(this.password, salt);
+      next();
+    } catch (error) {
+      next(error);
+    }
+  } else {
+    next();
+  }
+});
+
+// Instance method to check if password is correct
+customerSchema.methods.isPasswordCorrect = async function (password) {
+  return await bcrypt.compare(password, this.password);
+};
 
 const Customer = mongoose.model('Customer', customerSchema);
 module.exports = Customer;
