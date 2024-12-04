@@ -6,13 +6,12 @@ const customerSchema = new mongoose.Schema({
   name: {
     type: String,
     trim: true,
-    required: [true, 'Name is required']
+    default: ""
   },
   email: {
     type: String,
     unique: true,
     lowercase: true,
-    required: [true, 'Email is required'],
     match: [/\S+@\S+\.\S+/, 'Email is invalid']
   },
   password: {
@@ -24,6 +23,7 @@ const customerSchema = new mongoose.Schema({
   phoneNumber: {
     type: String,
     required: [true, 'Phone number is required'],
+    unique: true,
     trim: true,
     match: [/^\+?[1-9]\d{1,14}$/, 'Please provide a valid phone number']
   },
@@ -32,6 +32,14 @@ const customerSchema = new mongoose.Schema({
     city: String,
     postalCode: String,
     country: String
+  },
+  profile:{
+    url: {type : String, require: true},
+    publicId: {type : String, require: true},
+  },
+  govId:{
+    url: {type : String, require: true},
+    publicId: {type : String, require: true},
   },
   walletBalance: {
     type: Number,
