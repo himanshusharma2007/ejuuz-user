@@ -57,7 +57,8 @@ exports.sendOtp = async (req, res) => {
     console.log('Twilio response:', response);
 
     console.log('=== sendOtp function completed successfully ===');
-    return res.status(200).json({ message: 'OTP sent successfully', otp: otp }); // Optional: Expose OTP for testing in development
+    const token = await generateToken({hashedOtp, phoneNumber})
+    return res.status(200).json({ message: 'OTP sent successfully', data:token }); // Optional: Expose OTP for testing in development
   } catch (error) {
     console.error('=== Error in sendOtp function ===');
     console.error('Error details:', error);
@@ -69,8 +70,20 @@ exports.sendOtp = async (req, res) => {
 exports.verifyOtp = async (req, res) => {
   console.log('=== Starting verifyOtp function ===');
   const { otp } = req.body;
-  const hashedOtp = req.cookies.hashedOtp;
-  const phoneNumber = req.cookies.phoneNumber;
+
+  let hashedOtp = req.cookies.hashedOtp;
+  let phoneNumber = req.cookies.phoneNumber;
+
+  if(!hashedOtp || !phoneNumber){
+    const cookiesToken = req.headers['authorization'].split(' ')[1];
+    const token = jwt.verify(cookiesToken, process.env.JWT_SECRET);
+    hashedOtp = token.hashedOtp;
+    phoneNumber = token.phoneNumber;
+
+    if(!hashedOtp) return res.status(400).json({error: "Cookie not set"});
+    if(!phoneNumber) return res.status(400).json({error: "Cookie not set"});
+
+  }
   
   console.log('Received OTP:', otp);
   console.log('Cookie check - hashedOtp exists:', !!hashedOtp);

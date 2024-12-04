@@ -5,7 +5,7 @@ const authUser = async (req, res, next) => {
     try {
         console.log('Starting authentication middleware...');
         
-        const token = req.cookies.token;
+        const token = req.cookies.token || req.headers['authorization'].split(' ')[1];
         console.log('Token from cookie:', token ? 'Token exists' : 'No token found');
 
         if (!token) {
