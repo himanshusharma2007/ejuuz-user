@@ -1,3 +1,4 @@
+import React, { useState, useRef, useEffect } from "react";
 import {
   View,
   Text,
@@ -5,12 +6,9 @@ import {
   TouchableOpacity,
   Image,
   TextInput,
-  Keyboard,
   Modal,
   Dimensions,
-  Animated,
 } from "react-native";
-import React, { useState, useRef, useEffect } from "react";
 import { useNavigation } from "@react-navigation/native";
 
 const { width } = Dimensions.get("window");
@@ -22,8 +20,8 @@ export default function OtpPage() {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showErrorModal, setShowErrorModal] = useState(false);
   const inputs = useRef([]);
-  const scaleValue = useRef(new Animated.Value(0)).current;
   const navigation = useNavigation();
+  const errorModalTimeout = useRef(null);
 
   useEffect(() => {
     let interval = null;
@@ -36,6 +34,14 @@ export default function OtpPage() {
     }
     return () => clearInterval(interval);
   }, [timer]);
+
+  useEffect(() => {
+    return () => {
+      if (errorModalTimeout.current) {
+        clearTimeout(errorModalTimeout.current);
+      }
+    };
+  }, []);
 
   const handleInputChange = (text, index) => {
     const newCode = [...code];
@@ -55,16 +61,11 @@ export default function OtpPage() {
 
   const showSuccessAlert = () => {
     setShowSuccessModal(true);
-    Animated.spring(scaleValue, {
-      toValue: 1,
-      duration: 300,
-      useNativeDriver: true,
-    }).start();
   };
 
   const showErrorAlert = () => {
     setShowErrorModal(true);
-    setTimeout(() => {
+    errorModalTimeout.current = setTimeout(() => {
       setShowErrorModal(false);
     }, 2000);
   };
@@ -90,41 +91,28 @@ export default function OtpPage() {
     setCanResend(false);
   };
 
-  // Success Modal Component
   const SuccessModal = () => (
     <Modal transparent visible={showSuccessModal} animationType="fade">
       <View style={styles.modalOverlay}>
-        <Animated.View
-          style={[
-            styles.successModalContainer,
-            {
-              transform: [
-                {
-                  scale: scaleValue,
-                },
-              ],
-            },
-          ]}
-        >
+        <View style={styles.successModalContainer}>
           <View style={styles.successIconContainer}>
-            <Image
-              source={require("../../src/images/success.png")} // Add your success icon
+            {/* <Image
+              source={require("../../src/images/success-icon.png")}
               style={styles.successIcon}
-            />
+            /> */}
           </View>
-          <Text style={styles.successTitle}>Verification Successful!</Text>
+          <Text style={styles.successTitle}>OTP Verified!</Text>
           <Text style={styles.successMessage}>
-            Your verification has been completed successfully
+            Your OTP has been successfully verified.
           </Text>
           <TouchableOpacity style={styles.startButton} onPress={handleStart}>
-            <Text style={styles.startButtonText}>START</Text>
+            <Text style={styles.startButtonText}>Start</Text>
           </TouchableOpacity>
-        </Animated.View>
+        </View>
       </View>
     </Modal>
   );
 
-  // Error Modal Component
   const ErrorModal = () => (
     <Modal transparent visible={showErrorModal} animationType="fade">
       <View style={styles.modalOverlay}>
@@ -140,7 +128,7 @@ export default function OtpPage() {
       <View style={styles.content}>
         <Text style={styles.title}>Enter Code</Text>
         <Text style={styles.subtitle}>
-          Enter the 4-digit verification sent to{"\n"}+01234567890
+          Enter the 4-digit verification code sent to{"\n"}+01234567890
         </Text>
 
         <View style={styles.imageContainer}>
@@ -157,13 +145,12 @@ export default function OtpPage() {
             <TextInput
               key={index}
               ref={(ref) => (inputs.current[index] = ref)}
-              style={[styles.codeBox]}
+              style={styles.codeBox}
               maxLength={1}
               keyboardType="number-pad"
               value={digit}
               onChangeText={(text) => handleInputChange(text, index)}
               onKeyPress={(e) => handleKeyPress(e, index)}
-              onFocus={() => inputs.current[index].setNativeProps({ text: "" })}
             />
           ))}
         </View>
@@ -171,7 +158,7 @@ export default function OtpPage() {
         <TouchableOpacity onPress={handleResend} disabled={!canResend}>
           <Text style={styles.resendText}>
             Resend code in{" "}
-            <Text style={styles.highlightText}>{timer}second</Text>
+            <Text style={styles.highlightText}>{timer} second</Text>
           </Text>
         </TouchableOpacity>
 
@@ -185,6 +172,7 @@ export default function OtpPage() {
     </View>
   );
 }
+
 
 const styles = StyleSheet.create({
   container: {
@@ -324,11 +312,9 @@ const styles = StyleSheet.create({
   },
   startButton: {
     backgroundColor: "#002B5B",
-    width: "100%",
-    height: 56,
-    borderRadius: 12,
-    justifyContent: "center",
-    alignItems: "center",
+    paddingVertical: 12,
+    paddingHorizontal: 40,
+    borderRadius: 30,
   },
   startButtonText: {
     color: "white",
@@ -336,14 +322,14 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   errorModalContainer: {
-    backgroundColor: "#FF3B30",
-    padding: 15,
+    backgroundColor: "white",
+    padding: 20,
     borderRadius: 12,
-    width: width * 0.9,
+    margin: 20,
   },
   errorText: {
-    color: "white",
     fontSize: 16,
+    color: "red",
     textAlign: "center",
   },
 });

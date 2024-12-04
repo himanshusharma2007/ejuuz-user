@@ -297,6 +297,10 @@ export default function Home() {
     return Array.from(categoryMap.values());
   }, []);
 
+  const handleNavigate = () => {
+    navigation.navigate("SearchTab", { foucesInput: true });
+  };
+
   const handleProductPress = useCallback((product) => {
     // router.push({
     //   pathname: `/home/productdetails`,
@@ -420,6 +424,7 @@ export default function Home() {
                 onChangeText={setSearchText}
                 returnKeyType="search"
                 clearButtonMode="while-editing"
+                onFocus={handleNavigate}
               />
               {searchText ? (
                 <TouchableOpacity
@@ -438,12 +443,12 @@ export default function Home() {
                 <Ionicons name="cart-outline" size={24} color="#FFF" />
               </TouchableOpacity>
 
-              <TouchableOpacity
+              {/* <TouchableOpacity
                 style={styles.iconButton}
                 onPress={() => navigation.navigate("Notifications")}
               >
                 <Ionicons name="notifications-outline" size={24} color="#FFF" />
-              </TouchableOpacity>
+              </TouchableOpacity> */}
             </View>
           </View>
 
