@@ -17,10 +17,21 @@ const productSchema = new mongoose.Schema({
     required: [true, 'Description is required.'],
     trim: true,
   },
+  mrp: {
+    type: Number,
+    required: [true, 'Maximum Retail Price (MRP) is required.'],
+    min: [0, 'MRP cannot be negative.'],
+  },
   price: {
     type: Number,
-    required: [true, 'Product price is required.'],
+    required: [true, 'Selling price is required.'],
     min: [0, 'Product price cannot be negative.'],
+  },
+  discount: {
+    type: Number,
+    default: 0,
+    min: [0, 'Discount cannot be negative.'],
+    max: [100, 'Discount cannot exceed 100%.'],
   },
   category: {
     type: String,
@@ -101,8 +112,16 @@ const productSchema = new mongoose.Schema({
   timestamps: true,
 });
 
-// Pre-save hook to calculate the average rating
+// Pre-save hook to calculate the discount
 productSchema.pre('save', function (next) {
+  // Calculate discount percentage
+  if (this.mrp && this.price) {
+    this.discount = Math.round(((this.mrp - this.price) / this.mrp) * 100);
+  } else {
+    this.discount = 0;
+  }
+
+  // Calculate average rating
   if (this.ratings.length > 0) {
     const totalRatings = this.ratings.reduce((sum, rating) => sum + rating.rating, 0);
     this.avgRating = totalRatings / this.ratings.length;

@@ -31,7 +31,7 @@ exports.addToCart = async (req, res) => {
     );
     if (existingCartItem) {
       // Update quantity if product exists
-      existingCartItem.qua                ntity += quantity;
+      existingCartItem.quantity += quantity;
     } else {
       // Add new product to cart
       customer.cart.push({
@@ -55,9 +55,6 @@ exports.addToCart = async (req, res) => {
     });
   }
 };
-
-
-
 // Remove Product from Cart
 exports.removeFromCart = async (req, res) => {
   try {
@@ -88,6 +85,43 @@ exports.removeFromCart = async (req, res) => {
     return res.status(500).json({  
       message: 'Error removing product from cart',
       error: error.message 
+    });
+  }
+};
+
+// Get Cart
+exports.getCart = async (req, res) => {
+  try {
+    const { customerId } = req.user;
+
+    const customer = await Customer.findById(customerId)
+      .populate('cart.productId', 'name price description images'); // Populate product details
+
+    if (!customer) {
+      return res.status(404).json({
+        success: false,
+        message: 'Customer not found'
+      });
+    }
+
+    // Calculate total cart value
+    const cartTotal = customer.cart.reduce((total, item) => {
+      return total + (item.price * item.quantity);
+    }, 0);
+
+    return res.status(200).json({
+      success: true,
+      message: 'Cart retrieved successfully',
+      cart: customer.cart,
+      cartTotal: cartTotal
+    });
+
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      success: false,
+      message: 'Error retrieving cart',
+      error: error.message
     });
   }
 };
