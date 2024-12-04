@@ -55,9 +55,6 @@ exports.addToCart = async (req, res) => {
     });
   }
 };
-
-
-
 // Remove Product from Cart
 exports.removeFromCart = async (req, res) => {
   try {
