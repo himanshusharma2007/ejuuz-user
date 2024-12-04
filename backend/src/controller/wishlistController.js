@@ -69,3 +69,34 @@ exports.removeFromWishlist = async (req, res) => {
     });
   }
 };
+
+// Get Wishlist
+exports.getWishlist = async (req, res) => {
+  try {
+    const { customerId } = req.user;
+
+    const customer = await Customer.findById(customerId)
+      .populate('wishlist.productId', 'name price description images'); // Populate product details
+
+    if (!customer) {
+      return res.status(404).json({
+        success: false,
+        message: 'Customer not found'
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: 'Wishlist retrieved successfully',
+      wishlist: customer.wishlist
+    });
+
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      success: false,
+      message: 'Error retrieving wishlist',
+      error: error.message
+    });
+  }
+};
