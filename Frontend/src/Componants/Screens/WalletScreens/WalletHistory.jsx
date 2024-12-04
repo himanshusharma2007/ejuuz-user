@@ -80,7 +80,7 @@ export default function WalletHistory() {
   return (
     <SafeAreaView style={styles.container}>
       <Appbar.Header style={styles.appbar}>
-        <Appbar.BackAction onPress={() => navigation.navigate("wallet")} />
+        <Appbar.BackAction onPress={() => navigation.navigate("Wallet")} />
         <Appbar.Content title="History" />
         <TouchableOpacity onPress={() => navigation.navigate("cart")}>
           <Ionicons name="cart-outline" size={24} color="black" />

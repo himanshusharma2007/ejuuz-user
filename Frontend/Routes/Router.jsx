@@ -1,7 +1,6 @@
 import { Image, Pressable, StyleSheet, View } from "react-native";
 import React, { useState } from "react";
 
-
 import {
   Ionicons,
   MaterialIcons,
@@ -368,6 +367,7 @@ const AuthStack = () => {
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="GetStarted" component={GetStarted} />
       <Stack.Screen name="OtpPage" component={OtpPage} />
+      <Stack.Screen name="/" component={TabNavigator} />
     </Stack.Navigator>
   );
 };
@@ -500,7 +500,7 @@ export default function Router() {
   return (
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
-        {isAuthenticated ? (
+        {!isAuthenticated ? (
           <Stack.Screen name="Auth" component={AuthStack} />
         ) : (
           <Stack.Screen name="MainStack" component={TabNavigator} />
