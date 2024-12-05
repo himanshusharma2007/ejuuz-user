@@ -12,6 +12,11 @@ const orderSchema = new mongoose.Schema({
     ref: "Merchant",
     required: [true, "Merchant ID is required"],
   },
+  orderId:{
+    type: String,
+    unique: true,
+    required: [true, "Order ID is required"],
+  },
   products: [
     {
       productId: {

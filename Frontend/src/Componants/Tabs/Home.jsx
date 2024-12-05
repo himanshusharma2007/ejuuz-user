@@ -303,11 +303,11 @@ export default function Home() {
     //   params: { item: JSON.stringify(product) },
     // });
 
-    navigation.navigate("productdetails", { item: JSON.stringify(product) });
+    navigation.navigate("ProductDetails", { item: JSON.stringify(product) });
   }, []);
 
   const handleDealPress = useCallback((deal) => {
-    navigation.navigate("productdetails", { item: JSON.stringify(deal) });
+    navigation.navigate("ProductDetails", { item: JSON.stringify(deal) });
   }, []);
 
   const startAutoScroll = useCallback(() => {

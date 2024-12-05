@@ -80,7 +80,7 @@ export default function OtpPage() {
 
   const handleStart = () => {
     setShowSuccessModal(false);
-    navigation.navigate("MainStack");
+    navigation.navigate("/");
   };
 
   const handleResend = () => {
