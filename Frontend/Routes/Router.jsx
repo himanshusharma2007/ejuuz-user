@@ -504,7 +504,7 @@ export default function Router() {
           <Stack.Screen name="Auth" component={AuthStack} />
         ) : (
           <Stack.Screen name="MainStack" component={TabNavigator} />
-        )}
+        )} 
       </Stack.Navigator>
     </NavigationContainer>
   );
@@ -542,3 +542,4 @@ const styles = StyleSheet.create({
     marginBottom: 0,
   },
 });
+ 
