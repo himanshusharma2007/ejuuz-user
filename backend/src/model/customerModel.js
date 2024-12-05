@@ -11,6 +11,7 @@ const customerSchema = new mongoose.Schema({
   email: {
     type: String,
     unique: true,
+    sparse: true,  // This allows multiple null values
     lowercase: true,
     match: [/\S+@\S+\.\S+/, 'Email is invalid']
   },
