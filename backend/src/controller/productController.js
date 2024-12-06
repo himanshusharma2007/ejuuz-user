@@ -128,7 +128,7 @@ exports.getProductsByCategory = async (req, res) => {
   }
 };
 
-exports.searchProducts = async (req, res) => {se
+exports.searchProducts = async (req, res) => {
   try {
     console.log('Searching products - searchProducts function called');
     console.log('Search keyword:', req.query.keyword);
@@ -159,6 +159,38 @@ exports.searchProducts = async (req, res) => {se
     res.status(500).json({
       success: false,
       message: 'Error searching products',
+      error: error.message
+    });
+  }
+};
+
+exports.getTopDiscountedProducts = async (req, res) => {
+  try {
+    console.log('Getting top discounted products - getTopDiscountedProducts function called');
+    
+    // Parse limit from query, default to 20 if not provided
+    const limit = parseInt(req.query.limit) || 20;
+    
+    const topDiscountedProducts = await Product.find({ 
+      status: "active",
+      discount: { $gt: 0 } // Only products with discount
+    })
+    .sort({ discount: -1 }) // Sort by discount in descending order
+    .limit(limit) // Limit the number of products
+    .populate('shopId'); // Populate shop details
+
+    console.log(`Found ${topDiscountedProducts.length} top discounted products`);
+    
+    res.status(200).json({
+      success: true,
+      count: topDiscountedProducts.length,
+      products: topDiscountedProducts,
+    });
+  } catch (error) {
+    console.error('Error in getTopDiscountedProducts:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching top discounted products',
       error: error.message
     });
   }
