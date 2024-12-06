@@ -147,7 +147,7 @@ exports.searchProducts = async (req, res) => {
     const products = await Product.find(searchQuery)
       .populate('shopId', 'name');
 
-    console.log(`Found ${products.length} products matching search criteria`);
+    console.log(`Found ${products.length} products matching search criteria`,products);
     
     res.status(200).json({
       success: true,

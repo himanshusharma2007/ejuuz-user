@@ -47,7 +47,12 @@ class AuthService {
 
   async getCurrentUser() {
     try {
-      const response = await api.get("/auth/me");
+      const accessToken = await AsyncStorage.getItem("accesstoken");
+      const response = await api.get("/auth/me", {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
       return response.data;
     } catch (error) {
       throw this.handleError(error);
