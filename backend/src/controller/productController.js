@@ -128,7 +128,7 @@ exports.getProductsByCategory = async (req, res) => {
   }
 };
 
-exports.searchProducts = async (req, res) => {
+exports.searchProducts = async (req, res) => {se
   try {
     console.log('Searching products - searchProducts function called');
     console.log('Search keyword:', req.query.keyword);

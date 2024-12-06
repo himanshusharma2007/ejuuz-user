@@ -1,5 +1,5 @@
 import { Image, Pressable, StyleSheet, View } from "react-native";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 import {
   Ionicons,
@@ -46,6 +46,7 @@ import { Badge } from "react-native-paper";
 import Help from "../src/Componants/Screens/ProfileScreens/help";
 import ContactUs from "../src/Componants/Screens/ProfileScreens/contactus";
 import About from "../src/Componants/Screens/ProfileScreens/about";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -495,15 +496,25 @@ const TabNavigator = () => {
 
 // Root Navigator
 export default function Router() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+async function getdata () {
+  const data = await AsyncStorage.getItem('isLoggedIn');
+  console.log(data, "at app.jsx");
+    setIsLoggedIn(data);
+}
+
+useEffect(() => {
+  getdata();
+}, []);
 
   return (
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
-        {!isAuthenticated ? (
-          <Stack.Screen name="Auth" component={AuthStack} />
-        ) : (
+        {isLoggedIn ? (
           <Stack.Screen name="MainStack" component={TabNavigator} />
+        ) : (
+        <Stack.Screen name="Auth" component={AuthStack} />
         )}
       </Stack.Navigator>
     </NavigationContainer>

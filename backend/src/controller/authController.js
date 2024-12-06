@@ -2,6 +2,7 @@ const twilio = require('twilio');
 const Customer = require('../model/customerModel');
 const { encrypt, decrypt } = require('../../utils/cryptoFunc');
 const generateToken = require('../../utils/generateToken');
+const jwt = require('jsonwebtoken');
 require("dotenv").config();
 
 // Twilio setup
@@ -86,8 +87,8 @@ exports.verifyOtp = async (req, res) => {
   }
   
   console.log('Received OTP:', otp);
-  console.log('Cookie check - hashedOtp exists:', !!hashedOtp);
-  console.log('Cookie check - phoneNumber exists:', !!phoneNumber);
+  console.log('Cookie check - hashedOtp exists:', hashedOtp);
+  console.log('Cookie check - phoneNumber exists:', phoneNumber);
 
   if (!otp || !hashedOtp || !phoneNumber) {
     console.log('Error: Missing required parameters');

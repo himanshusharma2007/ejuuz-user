@@ -12,6 +12,7 @@ import {
 import { Button, Badge } from "react-native-paper";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
+import authService from "../../service/authService";
 
 const menuOptions = [
   {
