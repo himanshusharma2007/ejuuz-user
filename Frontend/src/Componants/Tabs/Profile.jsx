@@ -13,6 +13,7 @@ import { Button, Badge } from "react-native-paper";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import authService from "../../service/authService";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const menuOptions = [
   {
@@ -120,9 +121,12 @@ const recentActivities = [
 export default function Profile() {
   const navigation = useNavigation();
 
-  const handlelogout = () => {
+  function handlelogout() {
+    AsyncStorage.setItem("accesstoken", "");
+    AsyncStorage.setItem("isLoggedIn", "");
+    console.log("user logged out");
     navigation.navigate("Auth");
-  };
+  }
   const renderMenuItem = (item) => (
     <TouchableOpacity
       style={styles.option}

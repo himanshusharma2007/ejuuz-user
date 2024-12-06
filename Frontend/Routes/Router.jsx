@@ -164,6 +164,12 @@ const HomeStack = () => {
         }}
       />
       <Stack.Screen name="UniqueQR" component={UniqueQR} />
+
+      <Stack.Screen
+        name="Auth"
+        component={GetStarted}
+        options={{ headerShown: false }}
+      />
     </Stack.Navigator>
   );
 };
@@ -389,7 +395,8 @@ function getTabbarVisibility(route) {
     routeName === "WalletTransferDone" ||
     routeName === "TransactionDetails" ||
     routeName === "WalletTransactionPin" ||
-    routeName === "PaymentDone"
+    routeName === "PaymentDone" ||
+    routeName === "Auth"
   ) {
     return "none";
   }
@@ -498,15 +505,15 @@ const TabNavigator = () => {
 export default function Router() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-async function getdata () {
-  const data = await AsyncStorage.getItem('isLoggedIn');
-  console.log(data, "at app.jsx");
+  async function getdata() {
+    const data = await AsyncStorage.getItem("isLoggedIn");
+    console.log(data, "at app.jsx");
     setIsLoggedIn(data);
-}
+  }
 
-useEffect(() => {
-  getdata();
-}, []);
+  useEffect(() => {
+    getdata();
+  }, []);
 
   return (
     <NavigationContainer>
@@ -514,7 +521,7 @@ useEffect(() => {
         {isLoggedIn ? (
           <Stack.Screen name="MainStack" component={TabNavigator} />
         ) : (
-        <Stack.Screen name="Auth" component={AuthStack} />
+          <Stack.Screen name="Auths" component={AuthStack} />
         )}
       </Stack.Navigator>
     </NavigationContainer>
