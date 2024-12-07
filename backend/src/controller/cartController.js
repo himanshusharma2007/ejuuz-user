@@ -96,7 +96,7 @@ exports.addToCart = async (req, res) => {
 exports.removeFromCart = async (req, res) => {
   try {
     console.log("removeFromCart called");
-    const { customerId } = req.user;
+    const customerId  = req.user._id;
     const { productId } = req.params;
 
     console.log(`Received input: customerId=${customerId}, productId=${productId}`);

@@ -45,7 +45,7 @@ export default function Cart() {
     dispatch(removeFromCartAsync(id));
     Toast.show({
       type: "success",
-      text1: "item added to cart successfully",
+      text1: "item removed from cart successfully",
       visibilityTime: 3000,
       position: "top",
     });
@@ -100,17 +100,17 @@ export default function Cart() {
         keyExtractor={(item) => item._id}
         data={cartdata}
         renderItem={({ item }) => (
-          <Card style={styles.cartItem} key={item._id}>
+          <Card style={styles.cartItem} key={item.productId._id}>
             <View style={styles.itemContainer}>
               <Image
-                source={{ uri: item.images[0]?.url }}
+                source={{ uri: item.productId.images[0]?.url }}
                 style={styles.itemImage}
               />
               <View style={styles.itemDetails}>
                 <View style={styles.headerRow}>
-                  <Text style={styles.itemName}>{item.name}</Text>
+                  <Text style={styles.itemName}>{item.productId.name}</Text>
                   <TouchableOpacity
-                    onPress={() => removefromcart(item._id)}
+                    onPress={() => removefromcart(item.productId._id)}
                     style={styles.deleteButton}
                   >
                     <Icon name="delete-outline" size={24} color="#FF5252" />
@@ -120,12 +120,12 @@ export default function Cart() {
                   <Text style={styles.ratingText}>{item.rating || "N/A"}</Text>
                 </View>
                 <View style={styles.priceContainer}>
-                  <Text style={styles.price}>{item.price}</Text>
+                  <Text style={styles.price}>{item.productId.price}</Text>
                   <Text style={styles.discount}>upto 33% off</Text>
                 </View>
                 <View style={styles.quantityContainer}>
                   <TouchableOpacity
-                    onPress={() => decreaseItemQuantity(item._id)}
+                    onPress={() => decreaseItemQuantity(item.productId._id)}
                     style={styles.quantityButton}
                   >
                     <Icon name="minus" size={20} color="#333" />

@@ -32,8 +32,8 @@ export const addToCartAsync = createAsyncThunk(
         quantity,
         price: item.price,
       });
-      console.log("Cart item sent to backend",response.addedItem);
-       dispatch(cartSlice.actions.addToCart(response.addedItem));
+      console.log("Cart item sent to backend",response.updatedCart);
+       dispatch(cartSlice.actions.addToCart(response.updatedCart));
       console.log("Dispatched addToCart action to Redux store");
 
       return cartItem;
@@ -136,20 +136,10 @@ export const fetchCartAsync = createAsyncThunk(
 
       dispatch(cartSlice.actions.clearCart());
       console.log("Cleared current cart in Redux store");
-
-      cartData.forEach((item) => {
-        const quantity = item.quantity || 1;
-        const totalPrice = item.price * quantity;
-
-        dispatch(
-          cartSlice.actions.addToCart({
-            ...item,
-            quantity,
-            totalPrice,
-          })
-        );
-        console.log("Added item to Redux store:", item);
-      });
+      dispatch(
+        cartSlice.actions.addToCart(cartData)
+      );
+      console.log("Added cart data to Redux store");
 
       return cartData;
     } catch (error) {
@@ -202,30 +192,48 @@ const cartSlice = createSlice({
   reducers: {
     addToCart: (state, action) => {
       console.log("addToCart reducer called with:", action.payload);
-
-      const existingItemIndex = state.items.findIndex(
-        (item) => item._id === action.payload._id
-      );
-
-      if (existingItemIndex >= 0) {
-        state.items[existingItemIndex].quantity += 1;
-        state.items[existingItemIndex].totalPrice =
-          state.items[existingItemIndex].price *
-          state.items[existingItemIndex].quantity;
-      } else {
-        const totalPrice = action.payload.price * 1;
-
-        state.items.push({
-          ...action.payload,
-          quantity: 1,
-          totalPrice,
-        });
-      }
+    
+      // Replace the entire cart with the new payload
+      state.items = action.payload.map((item) => ({
+        ...item,
+        quantity: item.quantity || 1, // Ensure quantity is set
+        totalPrice: item.price * (item.quantity || 1), // Calculate total price
+      }));
+    
+      console.log("Cart updated successfully with new items:", state.items);
     },
+    
     removeFromCart: (state, action) => {
       console.log("removeFromCart reducer called with:", action.payload);
-      state.items = state.items.filter((item) => item._id !== action.payload);
+      state.items = state.items.filter((item) => item.productId._id !== action.payload);
     },
+    incrament: (state, action) => {
+      const ItemIndex_inc = state.items.findIndex(
+        (item) => item.id === action.payload.id
+      );
+      if (ItemIndex_inc >= 0) {
+        state.items[ItemIndex_inc].quantity += 1; // Properly updating quantity
+      }
+    },
+    decrement: (state, action) => {
+      const ItemIndex_dec = state.items.findIndex(
+        (item) => item.id === action.payload.id
+      );
+      // if (ItemIndex_dec >= 0 && state.items[ItemIndex_dec].quantity > 1) {
+      //   state.items[ItemIndex_dec].quantity -= 1; // Properly updating quantity
+      // }
+
+      if (ItemIndex_dec >= 0) {
+        if (state.items[ItemIndex_dec].quantity > 1) {
+          state.items[ItemIndex_dec].quantity -= 1;
+        } else {
+          state.items = state.items.filter(
+            (item) => item.id !== action.payload.id
+          );
+        }
+      }
+    },
+
     clearCart: (state) => {
       console.log("clearCart reducer called");
       state.items = [];
@@ -289,6 +297,8 @@ const cartSlice = createSlice({
 // Export actions
 export const {
   addToCart,
+  incrament,
+  decrement,
   removeFromCart,
   clearCart,
   addItemToWishlist,
