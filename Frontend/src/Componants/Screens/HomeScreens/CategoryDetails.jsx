@@ -9,53 +9,28 @@ import {
   TouchableOpacity,
   SafeAreaView,
   Platform,
+  Dimensions,
 } from "react-native";
 import { Appbar } from "react-native-paper";
 import Icon from "react-native-vector-icons/Ionicons";
 
-// Sample vegetable data - replace with your actual backend/database data
-const vegetableData = [
-  {
-    id: "1",
-    name: "Organic Tomatoes",
-    price: 2.99,
-    image:
-      "https://plus.unsplash.com/premium_photo-1671395501275-630ae5ea02c4?q=80&w=1354&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    unit: "lb",
-    discount: 10,
-    shop: "thela of fresh veggies",
-  },
-  {
-    id: "2",
-    name: "Fresh Spinach",
-    price: 3.49,
-    image:
-      "https://images.unsplash.com/photo-1515363578674-99f41329ab4c?q=80&w=1467&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    unit: "bunch",
-    discount: 5,
-    shop: "sabji mandi",
-  },
-  {
-    id: "3",
-    name: "Carrots",
-    price: 1.99,
-    image:
-      "https://plus.unsplash.com/premium_photo-1661870839207-d668a9857cb4?q=80&w=1287&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    unit: "lb",
-    discount: 0,
-    shop: "Fresh Veggie Market",
-  },
-  {
-    id: "4",
-    name: "Bell Peppers",
-    price: 2.49,
-    image:
-      "https://images.unsplash.com/photo-1714385563794-8f015c266a0f?q=80&w=1287&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    unit: "lb",
-    discount: 15,
-    shop: "Fresh Veggie Market",
-  },
-];
+// Get screen width and height
+const { width, height } = Dimensions.get("window");
+
+// // Sample vegetable data - replace with your actual backend/database data
+// const vegetableData = [
+//   {
+//     id: "1",
+//     name: "Organic Tomatoes",
+//     price: 2.99,
+//     image:
+//       "https://plus.unsplash.com/premium_photo-1671395501275-630ae5ea02c4?q=80&w=1354&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+//     unit: "lb",
+//     discount: 10,
+//     shop: "thela of fresh veggies",
+//   },
+//   // Add more items if necessary
+// ];
 
 export default function CategoryDetails() {
   const [favorites, setFavorites] = useState([]);
@@ -64,10 +39,10 @@ export default function CategoryDetails() {
   const route = useRoute();
 
   const { category } = route.params;
-
   const categorydata = JSON.parse(category);
+  const categoryItem = categorydata.items;
+  console.log(categoryItem);
 
-  console.log(categorydata);
   const toggleFavorite = (itemId) => {
     setFavorites((current) =>
       current.includes(itemId)
@@ -90,7 +65,6 @@ export default function CategoryDetails() {
           <View style={styles.priceRow}>
             <View>
               <Text style={styles.shopNameOnProduct}>{item.shop}</Text>
-
               <Text style={styles.itemName}>{item.name}</Text>
             </View>
             <TouchableOpacity
@@ -126,17 +100,78 @@ export default function CategoryDetails() {
     );
   };
 
+  const renderCategoryItem = ({ item }) => {
+    const isFavorite = favorites.includes(item._id);
+    const imageUri = item.images[0]?.url || "https://via.placeholder.com/150";
+
+    return (
+      <TouchableOpacity
+        onPress={() =>
+          navigation.navigate("ProductDetails", { item: JSON.stringify(item) })
+        }
+        style={styles.itemContainer}
+      >
+        <Image source={{ uri: imageUri }} style={styles.itemImage} />
+        <View style={styles.itemDetails}>
+          <View style={styles.priceRow}>
+            <View>
+              <Text style={styles.itemName}>{item.name}</Text>
+              <Text style={styles.itemPrice}>${item.price.toFixed(2)}</Text>
+            </View>
+            <TouchableOpacity
+              style={styles.favoriteButton}
+              onPress={() => toggleFavorite(item._id)}
+            >
+              <Icon
+                name={isFavorite ? "heart" : "heart-outline"}
+                size={24}
+                color={isFavorite ? "red" : "gray"}
+              />
+            </TouchableOpacity>
+          </View>
+          <View style={styles.priceRow}>
+            <Text style={styles.shopNameOnProduct}>
+              {item.avgRating === 0 ? "No Rating " : item.avgRating}
+            </Text>
+            {item.discount > 0 ? (
+              <Text style={styles.discountBadge}>{item.discount}% OFF</Text>
+            ) : null}
+          </View>
+          <View style={styles.actionButtons}>
+            <TouchableOpacity
+              style={styles.cartButton}
+              onPress={() => addToCart(item)}
+            >
+              <Icon name="cart" color="white" size={20} />
+              <Text style={styles.cartButtonText}>Add to Cart</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </TouchableOpacity>
+    );
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <Appbar.Header>
         <Appbar.BackAction onPress={() => navigation.goBack()} />
-        <Appbar.Content title={categorydata.categoryname} />
+        <Appbar.Content title={categorydata.category} />
         <Appbar.Action icon="cart" onPress={() => {}} />
       </Appbar.Header>
-      <FlatList
+
+      {/* Vegetable list */}
+      {/* <FlatList
         data={vegetableData}
         renderItem={renderVegetableItem}
         keyExtractor={(item) => item.id}
+        contentContainerStyle={styles.listContainer}
+      /> */}
+
+      {/* Category item list */}
+      <FlatList
+        data={categoryItem}
+        renderItem={renderCategoryItem}
+        keyExtractor={(item) => item._id}
         contentContainerStyle={styles.listContainer}
       />
     </SafeAreaView>
@@ -163,8 +198,9 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   itemImage: {
-    width: 100,
-    height: 100,
+    width: width * 0.25, // 25% of screen width
+    height: width * 0.3, // Maintain aspect ratio
+    resizeMode: "cover",
     borderRadius: 10,
     marginRight: 10,
   },
@@ -178,22 +214,18 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   shopNameOnProduct: {
-    fontSize: 12,
+    fontSize: width * 0.03, // Dynamic font size
     color: "#666",
     marginBottom: 5,
   },
   itemName: {
-    fontSize: 16,
+    fontSize: width * 0.04, // Dynamic font size
     fontWeight: "bold",
     color: "#333",
   },
-  priceRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
   itemPrice: {
-    fontSize: 15,
+    marginTop: 3,
+    fontSize: width * 0.035, // Dynamic font size
     color: "#666",
   },
   discountBadge: {
@@ -202,7 +234,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 5,
-    fontSize: 12,
+    fontSize: width * 0.03, // Dynamic font size
   },
   actionButtons: {
     flexDirection: "row",

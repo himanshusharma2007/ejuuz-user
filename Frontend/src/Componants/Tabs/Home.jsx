@@ -24,6 +24,7 @@ import React, {
 import { Ionicons } from "@expo/vector-icons";
 import { styles } from "../Screens/HomeScreens/Homecss";
 import { useNavigation } from "@react-navigation/native";
+import { getAllProducts } from "../../service/productService";
 
 const { width } = Dimensions.get("window");
 
@@ -53,105 +54,6 @@ const banners = [
     color: "#E3F2FD",
   },
   // ... other banner items
-];
-
-const productdata = [
-  {
-    id: "1",
-    name: "Spinach",
-    price: "R 59.99 / kg",
-    rating: "⭐⭐⭐⭐⭐",
-    image:
-      "https://images.unsplash.com/photo-1576045057995-568f588f82fb?q=80&w=1480&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    description: "Fresh organic spinach leaves",
-    categoryname: "Vegies",
-    categoryicon: "🥬",
-    categorycolor: "#E8F5E9",
-  },
-  {
-    id: "2",
-    name: "Apple",
-    price: "R 79.99 / kg",
-    rating: "⭐⭐⭐⭐⭐",
-    image:
-      "https://plus.unsplash.com/premium_photo-1668772704261-b11d89a92bad?q=80&w=1287&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    description: "Fresh red apples",
-    categoryname: "Fruits",
-    categoryicon: "🍎",
-    categorycolor: "#FBE9E7",
-  },
-  {
-    id: "3",
-    name: "Strawberry",
-    price: "R 59.99 / kg",
-    rating: "⭐⭐⭐⭐⭐",
-    image:
-      "https://images.unsplash.com/photo-1591271300850-22d6784e0a7f?q=80&w=1374&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    description: "Fresh chicken",
-    categoryname: "Meat & Eggs",
-    categoryicon: "🥩",
-    categorycolor: "#FFEBEE",
-  },
-  {
-    id: "4",
-    name: "Cola",
-    price: "R 59.99 / kg",
-    rating: "⭐⭐⭐⭐⭐",
-    image:
-      "https://images.unsplash.com/photo-1592232583482-ec6367cfb786?q=80&w=1287&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    description: "Refreshing cola",
-    categoryname: "Drinks",
-    categoryicon: "🥤",
-    categorycolor: "#E3F2FD",
-  },
-  {
-    id: "5",
-    name: "Bread",
-    price: "R 59.99 / kg",
-    rating: "⭐⭐⭐⭐⭐",
-    image:
-      "https://images.unsplash.com/photo-1507638940746-7b17d6b55b8f?q=80&w=1316&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    description: "Fresh bread",
-    categoryname: "Baker",
-    categoryicon: "🥖",
-    categorycolor: "#FFF3E0",
-  },
-  {
-    id: "6",
-    name: "Orange Juice",
-    price: "R 59.99 / kg",
-    rating: "⭐⭐⭐⭐⭐",
-    image:
-      "https://plus.unsplash.com/premium_photo-1720071055021-54aacea5b719?q=80&w=1286&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    description: "Fresh orange juice",
-    categoryname: "Drinks",
-    categoryicon: "🥤",
-    categorycolor: "#E3F2FD",
-  },
-  {
-    id: "7",
-    name: "Banana Smoothie",
-    price: "R 59.99 / kg",
-    rating: "⭐⭐⭐⭐⭐",
-    image:
-      "https://images.unsplash.com/photo-1473115209096-e0375dd6b3b3?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    description: "Fresh orange juice",
-    categoryname: "Drinks",
-    categoryicon: "🥤",
-    categorycolor: "#E3F2FD",
-  },
-  {
-    id: "8",
-    name: "Strawberry",
-    price: "R 59.99 / kg",
-    rating: "⭐⭐⭐⭐⭐",
-    image:
-      "https://images.unsplash.com/photo-1591271300850-22d6784e0a7f?q=80&w=1374&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    description: "Fresh chicken",
-    categoryname: "Meat",
-    categoryicon: "🥩",
-    categorycolor: "#FFEBEE",
-  },
 ];
 
 const recommendedProducts = [
@@ -277,25 +179,38 @@ export default function Home() {
   const [searchText, setSearchText] = useState("");
   const autoScrollTimer = useRef(null);
   const navigation = useNavigation();
+  const [productdata, setAllProducts] = useState([]);
 
-  // Group products by category
+  useEffect(() => {
+    const fetchallproducts = async () => {
+      try {
+        const response = await getAllProducts();
+        setAllProducts(response.products);
+      } catch (error) {
+        console.error("Error fetching all products", error);
+      }
+    };
+    fetchallproducts();
+  }, []);
+
+  // console.log("productdata", productdata);
+  // console.log("allProducts", productdata.map((product) => product.category));
+
   const categories = useMemo(() => {
     const categoryMap = new Map();
 
     productdata.forEach((product) => {
-      if (!categoryMap.has(product.categoryname)) {
-        categoryMap.set(product.categoryname, {
-          categoryname: product.categoryname,
-          categoryicon: product.categoryicon,
-          categorycolor: product.categorycolor,
+      if (!categoryMap.has(product.category)) {
+        categoryMap.set(product.category, {
+          category: product.category,
           items: [],
         });
       }
-      categoryMap.get(product.categoryname).items.push(product);
+      categoryMap.get(product.category).items.push(product);
     });
 
     return Array.from(categoryMap.values());
-  }, []);
+  }, [productdata]);
 
   const handleNavigate = () => {
     navigation.navigate("SearchTab", { foucesInput: true });
@@ -376,9 +291,7 @@ export default function Home() {
 
     return categories.filter(
       (category) =>
-        category.categoryname
-          .toLowerCase()
-          .includes(searchText.toLowerCase()) ||
+        category.category.toLowerCase().includes(searchText.toLowerCase()) ||
         category.items.some((item) =>
           item.name.toLowerCase().includes(searchText.toLowerCase())
         )
@@ -506,7 +419,7 @@ export default function Home() {
               style={{gap:10, marginHorizontal:10}}
               keyExtractor={(category) => category.id}
              renderItem={({ item }) => (
-               <TouchableOpacity  key={item.categoryname}
+               <TouchableOpacity  key={item.category}
                style={[
                  styles.categoryItem,
                  { backgroundColor: item.categorycolor },
@@ -515,7 +428,7 @@ export default function Home() {
                activeOpacity={0.7}
              >
                   <Text style={styles.categoryIcon}>{item.categoryicon}</Text>
-                  <Text style={styles.categoryName}>{item.categoryname}</Text>
+                  <Text style={styles.category}>{item.category}</Text>
 
              </TouchableOpacity>
              )} 
@@ -527,20 +440,18 @@ export default function Home() {
             >
               {filteredCategories.map((category) => (
                 <TouchableOpacity
-                  key={category.categoryname}
+                  key={category.category}
                   style={[
                     styles.categoryItem,
-                    { backgroundColor: category.categorycolor },
+                    // { backgroundColor: category.categorycolor },
                   ]}
                   onPress={() => handleCategoryPress(category)}
                   activeOpacity={0.7}
                 >
-                  <Text style={styles.categoryIcon}>
+                  {/* <Text style={styles.categoryIcon}>
                     {category.categoryicon}
-                  </Text>
-                  <Text style={styles.categoryName}>
-                    {category.categoryname}
-                  </Text>
+                  </Text> */}
+                  <Text style={styles.category}>{category.category}</Text>
                 </TouchableOpacity>
               ))}
             </ScrollView>
@@ -560,7 +471,7 @@ export default function Home() {
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.storesScrollContent}
           >
-            {productdata.map((item, index) => (
+            {/* {productdata.map((item, index) => (
               <TouchableOpacity
                 key={index}
                 style={styles.storeCard}
@@ -574,7 +485,7 @@ export default function Home() {
                   </View>
                 </View>
               </TouchableOpacity>
-            ))}
+            ))} */}
           </ScrollView>
         </View>
 
@@ -668,7 +579,7 @@ export default function Home() {
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.recentlyViewedContent}
           >
-            {productdata.slice(0, 5).map((item) => (
+            {/* {productdata.slice(0, 5).map((item) => (
               <TouchableOpacity
                 key={item.id}
                 style={styles.recentlyViewedItem}
@@ -682,7 +593,7 @@ export default function Home() {
                   {item.name}
                 </Text>
               </TouchableOpacity>
-            ))}
+            ))} */}
           </ScrollView>
         </View>
       </ScrollView>
