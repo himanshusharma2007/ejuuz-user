@@ -15,6 +15,8 @@ import { useDispatch, useSelector } from "react-redux";
 import {
   addToCart,
   AddItemtoWishlist,
+  addToWishlistAsync,
+  addToCartAsync,
 } from "../../../redux/features/cartSlice";
 import { useFocusEffect, useNavigation, useRoute } from "@react-navigation/native";
 import Toast from "react-native-toast-message";
@@ -33,8 +35,20 @@ export default function Search() {
   );
 
   const additemtowishlist = (item) => {
-    dispatch(AddItemtoWishlist(item));
+    // Use the async thunk for adding to wishlist
+    dispatch(addToWishlistAsync(item));
     navigation.navigate("wishlist");
+  };
+
+  const handleaddtocart = (item) => {
+    // Use the async thunk for adding to cart
+    dispatch(addToCartAsync(item));
+    Toast.show({
+      type: "success",
+      text1: "item added to cart successfully",
+      visibilityTime: 3000,
+      position: "top",
+    });
   };
 
   const cartdata = useSelector((state) => state.cart.items);
@@ -45,16 +59,6 @@ export default function Search() {
       return words.slice(0, 3).join(" ") + " ...";
     }
     return text;
-  };
-
-  const handleaddtocart = (item) => {
-    dispatch(addToCart(item));
-    Toast.show({
-      type: "success",
-      text1: "item add in cart successfully",
-      visibilityTime: 3000,
-      position: "top",
-    });
   };
 
   const horizontalitems = [

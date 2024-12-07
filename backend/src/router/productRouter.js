@@ -5,7 +5,8 @@ const {
   getProductById,
   getShopByProductId,
   getProductsByCategory,
-  searchProducts
+  searchProducts,
+  getTopDiscountedProducts
 } = require('../controller/productController');
 
 const router = express.Router();
@@ -14,9 +15,9 @@ router.use(authUser)
 router.get('/', getAllProducts);
 router.get('/search', searchProducts);
 router.get('/category/:category', getProductsByCategory);
+router.get('/top-discounted',getTopDiscountedProducts);
 router.get('/:id', getProductById);
 router.get('/:id/shop', getShopByProductId);
-
 
 
 module.exports = router; 

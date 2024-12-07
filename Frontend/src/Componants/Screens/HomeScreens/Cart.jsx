@@ -20,7 +20,7 @@ import { useNavigation } from "@react-navigation/native";
 export default function Cart() {
   const dispatch = useDispatch();
   const [totalitemQuantity, setTotalitemQuantity] = useState(0);
-  const [totalitemPrice, setTotalitemPrice] = useState(0);
+  const [totalitemPrice, setTotalitemPrice] = useState(0);``
   const cartdata = useSelector((state) => state.cart.items);
   const navigation = useNavigation();
 

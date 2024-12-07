@@ -47,6 +47,9 @@ import Help from "../src/Componants/Screens/ProfileScreens/help";
 import ContactUs from "../src/Componants/Screens/ProfileScreens/contactus";
 import About from "../src/Componants/Screens/ProfileScreens/about";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useDispatch } from "react-redux";
+import { fetchUser } from "../redux/features/userSlice";
+import { fetchCartAsync, fetchWishlistAsync } from "../redux/features/cartSlice";
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -514,7 +517,12 @@ export default function Router() {
   useEffect(() => {
     getdata();
   }, []);
-
+  const dispatch = useDispatch();
+  useEffect(() => {
+    dispatch(fetchUser());
+    dispatch(fetchCartAsync());
+    dispatch(fetchWishlistAsync());
+  }, [dispatch]);
   return (
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
