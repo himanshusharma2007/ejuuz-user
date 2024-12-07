@@ -173,6 +173,11 @@ const HomeStack = () => {
         component={GetStarted}
         options={{ headerShown: false }}
       />
+      <Stack.Screen
+        name="OtpPage"
+        component={OtpPage}
+        options={{ headerShown: false }}
+      />
     </Stack.Navigator>
   );
 };

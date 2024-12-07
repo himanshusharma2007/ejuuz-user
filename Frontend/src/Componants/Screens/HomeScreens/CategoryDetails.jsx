@@ -13,6 +13,9 @@ import {
 } from "react-native";
 import { Appbar } from "react-native-paper";
 import Icon from "react-native-vector-icons/Ionicons";
+import { addToCartAsync, addToWishlistAsync, removeFromCartAsync } from "../../../../redux/features/cartSlice";
+import { useDispatch } from "react-redux";
+import Toast from "react-native-toast-message";
 
 // Get screen width and height
 const { width, height } = Dimensions.get("window");
@@ -37,22 +40,36 @@ export default function CategoryDetails() {
   const [cart, setCart] = useState([]);
   const navigation = useNavigation();
   const route = useRoute();
+  const dispatch = useDispatch();
 
   const { category } = route.params;
   const categorydata = JSON.parse(category);
   const categoryItem = categorydata.items;
   console.log(categoryItem);
-
-  const toggleFavorite = (itemId) => {
-    setFavorites((current) =>
-      current.includes(itemId)
-        ? current.filter((id) => id !== itemId)
-        : [...current, itemId]
-    );
+  const toggleFavorite = (item) => {
+    console.log("toggleFavorite called",item);
+    setFavorites((current) => {
+      if (current.includes(item)) {
+        removeFromCartAsync(item); // Call remove from wishlist
+        return current.filter((id) => id !== item._id);
+      } else {
+        addToWishlistAsync(item); // Call add to wishlist
+        return [...current, item];
+      }
+    });
   };
+  
 
   const addToCart = (item) => {
+    console.log("add to cart called ",item)
     setCart((current) => [...current, item]);
+    dispatch(addToCartAsync(item));
+    Toast.show({
+      type: "success",
+      text1: "item added to cart successfully",
+      visibilityTime: 3000,
+      position: "top",
+    });
   };
 
   const renderVegetableItem = ({ item }) => {
@@ -69,7 +86,7 @@ export default function CategoryDetails() {
             </View>
             <TouchableOpacity
               style={styles.favoriteButton}
-              onPress={() => toggleFavorite(item.id)}
+              onPress={() => toggleFavorite(item)}
             >
               <Icon
                 name={isFavorite ? "heart" : "heart-outline"}
@@ -120,7 +137,7 @@ export default function CategoryDetails() {
             </View>
             <TouchableOpacity
               style={styles.favoriteButton}
-              onPress={() => toggleFavorite(item._id)}
+              onPress={() => toggleFavorite(item)}
             >
               <Icon
                 name={isFavorite ? "heart" : "heart-outline"}

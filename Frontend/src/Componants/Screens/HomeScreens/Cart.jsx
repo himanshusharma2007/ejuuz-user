@@ -13,18 +13,21 @@ import {
   decrement,
   incrament,
   removeFromCart,
+  removeFromCartAsync,
 } from "../../../../redux/features/cartSlice";
 // import { addItem } from "../../../redux/feature/CheckoutSlice";
 import { useNavigation } from "@react-navigation/native";
+import Toast from "react-native-toast-message";
 
 export default function Cart() {
   const dispatch = useDispatch();
   const [totalitemQuantity, setTotalitemQuantity] = useState(0);
-  const [totalitemPrice, setTotalitemPrice] = useState(0);``
+  const [totalitemPrice, setTotalitemPrice] = useState(0);
+  ``;
   const cartdata = useSelector((state) => state.cart.items);
   const navigation = useNavigation();
 
-  console.log(cartdata);
+  console.log("cartdata in cart page ", cartdata);
 
   // React.useEffect(() => {
   //   navigation.getParent()?.setOptions({
@@ -39,7 +42,13 @@ export default function Cart() {
   // }, [navigation]);
 
   const removefromcart = (id) => {
-    dispatch(removeFromCart(id));
+    dispatch(removeFromCartAsync(id));
+    Toast.show({
+      type: "success",
+      text1: "item added to cart successfully",
+      visibilityTime: 3000,
+      position: "top",
+    });
   };
 
   const decreaseItemQuantity = (id) => {
@@ -63,8 +72,7 @@ export default function Cart() {
     let totalitemPrice = 0;
 
     cartdata.map((item) => {
-      totalitemPrice +=
-        item.quantity * parseFloat(item.price.replace("R ", ""));
+      totalitemPrice += item.quantity * parseFloat(item.price);
     });
     setTotalitemPrice(totalitemPrice);
   };
@@ -87,101 +95,62 @@ export default function Cart() {
         </Text>
       </View>
 
-      {cartdata.length === 0 ? (
-        <Text style={styles.emptyCartText}>Your cart is empty</Text>
-      ) : (
-        <>
-          <FlatList
-            style={styles.cartList}
-            keyExtractor={(item) => item.id}
-            data={cartdata}
-            renderItem={({ item }) => (
-              <Card style={styles.cartItem} key={item.id}>
-                <View style={styles.itemContainer}>
-                  <Image
-                    source={{ uri: item.image }}
-                    style={styles.itemImage}
-                  />
-                  <View style={styles.itemDetails}>
-                    <View style={styles.headerRow}>
-                      <Text style={styles.itemName}>{item.name}</Text>
-                      <TouchableOpacity
-                        onPress={() => removefromcart(item.id)}
-                        style={styles.deleteButton}
-                      >
-                        <Icon name="delete-outline" size={24} color="#FF5252" />
-                      </TouchableOpacity>
-                    </View>
-                    {/* <Text style={styles.storeText}>Store: {item.store}</Text> */}
-                    <View style={styles.ratingContainer}>
-                      <Text style={styles.ratingText}>{item.rating}</Text>
-                    </View>
-                    <View style={styles.priceContainer}>
-                      <Text style={styles.price}> {item.price}</Text>
-                      {/* <Text style={styles.originalPrice}>
-                      R {item.originalPrice.toFixed(2)}
-                    </Text> */}
-                      <Text style={styles.discount}>upto 33% off</Text>
-                    </View>
-                    <View style={styles.quantityContainer}>
-                      <TouchableOpacity
-                        onPress={() => decreaseItemQuantity(item.id)}
-                        style={styles.quantityButton}
-                      >
-                        <Icon name="minus" size={20} color="#333" />
-                      </TouchableOpacity>
-                      <Text style={styles.quantityText}>{item.quantity}</Text>
-                      <TouchableOpacity
-                        onPress={() => increaseItemQuantity(item.id)}
-                        style={styles.quantityButton}
-                      >
-                        <Icon name="plus" size={20} color="#333" />
-                      </TouchableOpacity>
-                    </View>
-                    <View style={styles.orderTotalContainer}>
-                      <Text style={styles.orderTotalLabel}>
-                        Total Order (1kg) :
-                      </Text>
-                      <Text style={styles.orderTotalAmount}>
-                        {/* {item.price} */}R
-                        {(
-                          item.quantity *
-                          parseFloat(item.price.replace("R ", ""))
-                        ).toFixed(2)}
-                      </Text>
-                    </View>
-                  </View>
-                </View>
-              </Card>
-            )}
-          />
-
-          <View style={styles.cartList}></View>
-          <Surface style={styles.bottomBar}>
-            <View style={{ flex: 1, flexDirection: "column", gap: 5 }}>
-              <Text style={styles.totalLabel}>
-                Total Items: {totalitemQuantity}
-              </Text>
-              <Text style={styles.totalLabel}>
-                Total: R {totalitemPrice.toFixed(2)}
-              </Text>
-            </View>
-
-            <TouchableOpacity
-              style={styles.checkoutButton}
-              onPress={Processtocheckout}
-            >
-              <Text style={styles.checkoutButtonText}>Process to Checkout</Text>
-              <Icon
-                name="arrow-right"
-                size={20}
-                color="white"
-                style={styles.checkoutIcon}
+      <FlatList
+        style={styles.cartList}
+        keyExtractor={(item) => item._id}
+        data={cartdata}
+        renderItem={({ item }) => (
+          <Card style={styles.cartItem} key={item._id}>
+            <View style={styles.itemContainer}>
+              <Image
+                source={{ uri: item.images[0]?.url }}
+                style={styles.itemImage}
               />
-            </TouchableOpacity>
-          </Surface>
-        </>
-      )}
+              <View style={styles.itemDetails}>
+                <View style={styles.headerRow}>
+                  <Text style={styles.itemName}>{item.name}</Text>
+                  <TouchableOpacity
+                    onPress={() => removefromcart(item._id)}
+                    style={styles.deleteButton}
+                  >
+                    <Icon name="delete-outline" size={24} color="#FF5252" />
+                  </TouchableOpacity>
+                </View>
+                <View style={styles.ratingContainer}>
+                  <Text style={styles.ratingText}>{item.rating || "N/A"}</Text>
+                </View>
+                <View style={styles.priceContainer}>
+                  <Text style={styles.price}>{item.price}</Text>
+                  <Text style={styles.discount}>upto 33% off</Text>
+                </View>
+                <View style={styles.quantityContainer}>
+                  <TouchableOpacity
+                    onPress={() => decreaseItemQuantity(item._id)}
+                    style={styles.quantityButton}
+                  >
+                    <Icon name="minus" size={20} color="#333" />
+                  </TouchableOpacity>
+                  <Text style={styles.quantityText}>{item.quantity}</Text>
+                  <TouchableOpacity
+                    onPress={() => increaseItemQuantity(item._id)}
+                    style={styles.quantityButton}
+                  >
+                    <Icon name="plus" size={20} color="#333" />
+                  </TouchableOpacity>
+                </View>
+                <View style={styles.orderTotalContainer}>
+                  <Text style={styles.orderTotalLabel}>
+                    Total Order (1kg) :
+                  </Text>
+                  <Text style={styles.orderTotalAmount}>
+                    R {(item.quantity * parseFloat(item.price)).toFixed(2)}
+                  </Text>
+                </View>
+              </View>
+            </View>
+          </Card>
+        )}
+      />
     </View>
   );
 }

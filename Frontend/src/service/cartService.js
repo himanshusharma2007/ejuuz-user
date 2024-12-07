@@ -6,13 +6,13 @@ export const addToCart = async (item) => {
     console.log('add to cart called', item)
     const accessToken = await AsyncStorage.getItem("accesstoken");
 
-    const response = api.post("/cart/add", {
+    const response =await  api.post("/cart/add", {
       headers: {
         Authorization: `Bearer ${accessToken}`,
       },
       item
     });
-
+console.log('response.data in cart service', response.data)
     return response.data;
   } catch (error) {
     console.error("failed to add product to cart");

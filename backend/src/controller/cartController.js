@@ -4,17 +4,18 @@ const Product = require("../model/productModel"); // Assuming you have a product
 // Add Product to Cart
 exports.addToCart = async (req, res) => {
   try {
-    console.log("addToCart called",req.body);
-    const  item = req.body.item;
-    if(!item){
+    console.log("addToCart called req.body", req.body);
+    const productId = req.body.item.productId;
+    const quantity = req.body.item.quantity;
+
+    if (!productId) {
       return res.status(400).json({
         success: false,
         message: "item not found",
       });
     }
-    const productId = item._id, quantity = item.quantity; 
-    const customerId = req.user._id; // Assuming authentication middleware sets this
 
+    const customerId = req.user._id; // Assuming authentication middleware sets this
     console.log(`Received input: customerId=${customerId}, productId=${productId}, quantity=${quantity}`);
 
     if (!productId || !quantity || quantity < 1) {
@@ -43,6 +44,8 @@ exports.addToCart = async (req, res) => {
 
     console.log("Product details:", product);
 
+    let addedCartItem;
+
     const existingCartItem = customer.cart.find(
       (item) => item.productId.toString() === productId
     );
@@ -50,21 +53,33 @@ exports.addToCart = async (req, res) => {
     if (existingCartItem) {
       console.log(`Product already in cart. Increasing quantity by ${quantity}`);
       existingCartItem.quantity += quantity;
+      existingCartItem.price = product.price * existingCartItem.quantity;
+      addedCartItem = existingCartItem;
     } else {
       console.log("Adding new product to cart");
-      customer.cart.push({
+      const newCartItem = {
         productId: productId,
         quantity: quantity,
         price: product.price * quantity,
-      });
+      };
+      customer.cart.push(newCartItem);
+      addedCartItem = newCartItem;
     }
 
     await customer.save();
-    console.log("Cart updated successfully:", customer.cart);
+
+    // Populate the productId field manually in the cart
+    const populatedCustomer = await Customer.findById(customerId).populate({
+      path: "cart.productId",
+      model: "Product", // Make sure this matches your Product model's name
+    });
+
+    console.log("Cart updated successfully with populated product details:", populatedCustomer.cart);
 
     return res.status(200).json({
       message: "Product added to cart successfully",
-      cart: customer.cart,
+      addedItem: addedCartItem,
+      updatedCart: populatedCustomer.cart,
     });
   } catch (error) {
     console.log("Error in addToCart:", error);
@@ -74,6 +89,8 @@ exports.addToCart = async (req, res) => {
     });
   }
 };
+
+
 
 // Remove Product from Cart
 exports.removeFromCart = async (req, res) => {
@@ -151,7 +168,7 @@ exports.getCart = async (req, res) => {
       return total + item.price * item.quantity;
     }, 0);
 
-    console.log("Cart data fetched successfully, total value:", cartTotal);
+    console.log("Cart data fetched successfully, total value:", customer.cart);
 
     return res.status(200).json({
       success: true,
