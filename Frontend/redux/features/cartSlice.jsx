@@ -16,7 +16,7 @@ export const addToCartAsync = createAsyncThunk(
       return item;
     } catch (error) {
       // Revert local state if backend fails
-      dispatch(cartSlice.actions.removeFromCart(item.id));
+      dispatch(cartSlice.actions.removeFromCart(item._id));
       return rejectWithValue(error.response.data);
     }
   }
@@ -29,7 +29,7 @@ export const removeFromCartAsync = createAsyncThunk(
     try {
       // First, find the item to potentially restore if backend fails
       const currentState = store.getState().cart;
-      const removedItem = currentState.items.find(item => item.id === productId);
+      const removedItem = currentState.items.find(item => item._id === productId);
       
       // Update local Redux state
       dispatch(cartSlice.actions.removeFromCart(productId));
@@ -52,6 +52,7 @@ export const removeFromCartAsync = createAsyncThunk(
 export const addToWishlistAsync = createAsyncThunk(
   "cart/addToWishlist",
   async (item, { dispatch, rejectWithValue }) => {
+    console.log('item in add to wishlist ', item)
     try {
       // First, update local Redux state
       dispatch(cartSlice.actions.AddItemtoWishlist(item));
@@ -77,7 +78,7 @@ export const removeFromWishlistAsync = createAsyncThunk(
       dispatch(cartSlice.actions.removeItemFromWishlist(item));
       
       // Call backend service
-      await wishlistService.removeFromWishlist(item.id);
+      await wishlistService.removeFromWishlist(item._id);
       
       return item;
     } catch (error) {
@@ -146,8 +147,31 @@ const cartSlice = createSlice({
       state.items.push(action.payload);
     },
     removeFromCart: (state, action) => {
-      state.items = state.items.filter(item => item.id !== action.payload);
+      state.items = state.items.filter(item => item._id !== action.payload);
     },
+    incrament: (state, action) => {
+      const ItemIndex_inc = state.items.findIndex(
+        (item) => item._id === action.payload._id
+      );
+      if (ItemIndex_inc >= 0) {
+        state.items[ItemIndex_inc].quantity += 1; // Properly updating quantity
+      }
+    },
+    decrement: (state, action) => {
+      const ItemIndex_dec = state.items.findIndex(
+        (item) => item._id === action.payload._id
+      );
+      if (ItemIndex_dec >= 0) {
+        if (state.items[ItemIndex_dec].quantity > 1) {
+          state.items[ItemIndex_dec].quantity -= 1;
+        } else {
+          state.items = state.items.filter(
+            (item) => item._id !== action.payload._id
+          );
+        }
+      }
+    },
+
     clearCart: (state) => {
       state.items = []; // Ensure this exists
     },

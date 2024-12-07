@@ -3,12 +3,14 @@ import api from "./api";
 
 export const addToCart = async (item) => {
   try {
+    console.log('add to cart called', item)
     const accessToken = await AsyncStorage.getItem("accesstoken");
 
     const response = api.post("/cart/add", {
       headers: {
         Authorization: `Bearer ${accessToken}`,
       },
+      item
     });
 
     return response.data;
