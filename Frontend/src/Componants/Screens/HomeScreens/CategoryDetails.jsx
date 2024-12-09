@@ -120,6 +120,7 @@ export default function CategoryDetails() {
   const renderCategoryItem = ({ item }) => {
     const isFavorite = favorites.includes(item._id);
     const imageUri = item.images[0]?.url || "https://via.placeholder.com/150";
+    console.log("item", item);
 
     return (
       <TouchableOpacity

@@ -16,6 +16,7 @@ import { useDispatch } from "react-redux";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { addToCart } from "../../../../redux/features/cartSlice";
+import { getProductById } from "../../../service/productService";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
@@ -29,6 +30,7 @@ export default function ProductDetails() {
   const route = useRoute();
   const { item } = route.params;
   const dispatch = useDispatch();
+  const [productData, setProductData] = useState({});
 
   if (!item) {
     return (
@@ -39,21 +41,45 @@ export default function ProductDetails() {
   }
 
   const productdata = JSON.parse(item);
+  const productId = productdata._id;
 
-  React.useEffect(() => {
+  useEffect(() => {
+    const fetchProduct = async () => {
+      try {
+        const response = await getProductById(productId);
+        console.log("response", response);
+        setProductData(response.product);
+      } catch (error) {
+        console.error("Error fetching product data:", error);
+      }
+    };
+
+    fetchProduct();
+  }, [productId]);
+
+  useEffect(() => {
     setQuantity(productdata.quantity);
   }, [productdata.quantity]);
 
-  const handleaddtocart = () => {
-    dispatch(addToCart(productdata));
+  const handleAddToCart = () => {
+    dispatch(addToCart(productData));
   };
 
-  const carouselImages = productdata.images.map((image) => ({
-    id: String(image._id),
-    image: image.url || image,
-  }));
+  // Safely create carouselImages
+  const carouselImages = Array.isArray(productData.images)
+    ? productData.images.map((img) => ({
+        id: String(img._id),
+        image: img.url || img,
+      }))
+    : [];
 
-  const specifications = productdata.specifications;
+  // Log each id and image
+  carouselImages.forEach((imgObj) => {
+    console.log("id:", imgObj.id);
+    console.log("image:", imgObj.image);
+  });
+
+  const specifications = productData.specifications;
 
   const handleScroll = (event) => {
     const scrollPosition = event.nativeEvent.contentOffset.x;
@@ -79,19 +105,25 @@ export default function ProductDetails() {
       return (
         <View style={styles.tabContentContainer}>
           <Text style={styles.description}>{productdata.description}</Text>
-
-          <View style={styles.highlightsContainer}>
-            <Text style={styles.sectionTitle}>Highlights</Text>
-            {Object.entries(specifications)
-              .filter(([_, value]) => value !== "")
-              .map(([key, value]) => (
-                <View key={key} style={styles.highlightItem}>
-                  <Text style={styles.highlightKey}>
-                    {key.charAt(0).toUpperCase() + key.slice(1)}:
-                  </Text>
-                  <Text style={styles.highlightValue}>{value}</Text>
+          <View>
+            {specifications &&
+              Object.entries(specifications).some(
+                ([_, value]) => value !== ""
+              ) && (
+                <View style={styles.highlightsContainer}>
+                  <Text style={styles.sectionTitle}>Highlights</Text>
+                  {Object.entries(specifications)
+                    .filter(([_, value]) => value !== "")
+                    .map(([key, value]) => (
+                      <View key={key} style={styles.highlightItem}>
+                        <Text style={styles.highlightKey}>
+                          {key.charAt(0).toUpperCase() + key.slice(1)}:
+                        </Text>
+                        <Text style={styles.highlightValue}>{value}</Text>
+                      </View>
+                    ))}
                 </View>
-              ))}
+              )}
           </View>
 
           <View style={styles.tagsContainer}>
@@ -116,7 +148,6 @@ export default function ProductDetails() {
             <Text style={styles.seeAllButton}>See All</Text>
           </TouchableOpacity>
         </View>
-
         <Text style={styles.ratingsText}>
           {productdata.ratings.length === 0
             ? "No Ratings"
@@ -158,7 +189,6 @@ export default function ProductDetails() {
               />
             </TouchableOpacity>
           </View>
-
           <FlatList
             ref={flatListRef}
             data={carouselImages}
@@ -169,7 +199,6 @@ export default function ProductDetails() {
             onScroll={handleScroll}
             scrollEventThrottle={16}
           />
-
           <View style={styles.paginationContainer}>
             {carouselImages.map((_, index) => (
               <View
@@ -264,30 +293,11 @@ export default function ProductDetails() {
         <Button
           mode="contained"
           style={styles.addToCartButton}
-          onPress={handleaddtocart}
+          onPress={handleAddToCart}
         >
           Add to Cart
         </Button>
       </Surface>
-
-      <Modal
-        visible={ImageModel}
-        onRequestClose={() => setImageModel(false)}
-        transparent={true}
-        animationType="fade"
-      >
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            {/* {carouselImages.map((image, index) => (
-              <Image
-                key={index}
-                source={{ uri: image.uri }}
-                style={styles.modalImage}
-              />
-            ))} */}
-          </View>
-        </View>
-      </Modal>
     </View>
   );
 }
@@ -326,13 +336,13 @@ const styles = StyleSheet.create({
   },
   backButton: {
     backgroundColor: "rgba(0,0,0,0.4)",
-    borderRadius: 25,
+    borderRadius: 10,
     padding: 8,
   },
   heartIcon: {
-    width: 30,
-    height: 30,
-    tintColor: "#fff",
+    width: 40,
+    height: 40,
+    tintColor: "rgba(0,0,0,0.4)",
   },
   carouselImageContainer: {
     width: SCREEN_WIDTH,

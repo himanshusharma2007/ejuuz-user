@@ -83,3 +83,18 @@ export const searchProducts = async (keyword) => {
     throw error;
   }
 };
+
+export const getAllDiscountedProducts = async () => {
+  try {
+    const accessToken = await AsyncStorage.getItem("accesstoken");
+    const response = await api.get("/products/top-discounted", {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching discounted products", error);
+    throw error;
+  }
+};

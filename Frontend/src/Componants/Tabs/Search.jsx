@@ -18,11 +18,17 @@ import {
   addToWishlistAsync,
   addToCartAsync,
 } from "../../../redux/features/cartSlice";
-import { useFocusEffect, useNavigation, useRoute } from "@react-navigation/native";
+import {
+  useFocusEffect,
+  useNavigation,
+  useRoute,
+} from "@react-navigation/native";
 import Toast from "react-native-toast-message";
+import { getAllShops } from "../../service/shopservice";
 
 export default function Search() {
   const [searchQuery, setSearchQuery] = useState("");
+  const [shopdata, setShopdata] = useState([]);
   const navigation = useNavigation();
   const dispatch = useDispatch();
   const route = useRoute();
@@ -34,11 +40,30 @@ export default function Search() {
     }, [])
   );
 
+  console.log("all shop", shopdata);
+
+  useEffect(() => {
+    const fetchAllShopdata = async () => {
+      try {
+        const response = await getAllShops();
+        setShopdata(response.data);
+        // console.log("Get All Shops", response.data);
+      } catch (error) {}
+    };
+    fetchAllShopdata();
+  }, []);
+
   const additemtowishlist = (item) => {
     // Use the async thunk for adding to wishlist
     dispatch(addToWishlistAsync(item));
-    navigation.navigate("wishlist");
+    navigation.navigate("Wishlist");
   };
+
+  // shopdata[0].products.map((item) => {
+  //   console.log("item in map", item);
+  // });
+
+  // console.log("console shop", shopdata[0].products[0][0].name);
 
   const handleaddtocart = (item) => {
     // Use the async thunk for adding to cart
@@ -102,33 +127,6 @@ export default function Search() {
       quantity: 0,
     },
   ];
-  const verticalitems = [
-    {
-      id: "1",
-      name: "Rebbit Store",
-      description:
-        "401 East Benton Place, Chicago, Cook County, Illinois, 60601, USA",
-      rating: "⭐⭐⭐⭐⭐",
-      image:
-        "https://plus.unsplash.com/premium_photo-1661376954615-26609d61d924?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    },
-    {
-      id: "2",
-      name: "Vegitable Store",
-      description:
-        "401 East Benton Place, Chicago, Cook County, Illinois, 60601, USA",
-      rating: "⭐⭐⭐⭐⭐",
-      image: "https://via.placeholder.com/150",
-    },
-    {
-      id: "3",
-      name: "Rebbit Store",
-      description:
-        "401 East Benton Place, Chicago, Cook County, Illinois, 60601, USA",
-      rating: "⭐⭐⭐⭐⭐",
-      image: "https://via.placeholder.com/150",
-    },
-  ];
 
   const horizontalrenderItem = ({ item }) => (
     <Card
@@ -168,23 +166,21 @@ export default function Search() {
       </View>
     </Card>
   );
-  const verticalrenderItem = ({ item }) => (
+
+  const shoprenderItem = ({ item }) => (
     <Card
       style={styles.itemCard}
       onPress={() =>
         navigation.navigate("StoreDetails", {
-          item: JSON.stringify({
-            id: item.id,
-            name: item.name,
-            description: item.description,
-            rating: item.rating,
-            image: item.image,
-          }),
+          item: JSON.stringify(item._id),
         })
       }
     >
       <View style={styles.itemContent}>
-        <Image source={{ uri: item.image }} style={styles.itemImage} />
+        <Image
+          source={{ uri: "https://via.placeholder.com/150" }}
+          style={styles.itemImage}
+        />
         <View style={styles.itemDetails}>
           <Text style={styles.itemName}>{item.name}</Text>
           <Text style={styles.itemPrice}>
@@ -257,15 +253,20 @@ export default function Search() {
             {index == 1 && (
               <>
                 <Text
-                  style={{ fontSize: 24, fontWeight: "600", marginTop: 20 }}
+                  style={{
+                    fontSize: 24,
+                    fontWeight: "600",
+                    marginVertical: 20,
+                  }}
                 >
-                  Stores
+                  Shops
                 </Text>
+
                 <FlatList
                   showsVerticalScrollIndicator={false}
-                  data={verticalitems}
-                  keyExtractor={(item) => item.id}
-                  renderItem={verticalrenderItem}
+                  data={shopdata}
+                  keyExtractor={(item) => item._id}
+                  renderItem={shoprenderItem}
                   contentContainerStyle={styles.content}
                 />
               </>
