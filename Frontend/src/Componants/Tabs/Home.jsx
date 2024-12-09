@@ -12,6 +12,7 @@ import {
   FlatList,
   Animated,
   RefreshControl,
+  Pressable,
 } from "react-native";
 import React, {
   useRef,
@@ -24,7 +25,10 @@ import React, {
 import { Ionicons } from "@expo/vector-icons";
 import { styles } from "../Screens/HomeScreens/Homecss";
 import { useNavigation } from "@react-navigation/native";
-import { getAllProducts } from "../../service/productService";
+import {
+  getAllDiscountedProducts,
+  getAllProducts,
+} from "../../service/productService";
 
 const { width } = Dimensions.get("window");
 
@@ -152,25 +156,6 @@ const BannerDot = ({ index, scrollX }) => {
   );
 };
 
-const BannerItem = ({ item }) => (
-  <View style={styles.bannerContainer}>
-    <View style={styles.bannerContent}>
-      <View style={styles.bannerTextContainer}>
-        <Text style={styles.discountText}>{item.title}</Text>
-        <Text style={styles.discountAmount}>{item.discount}</Text>
-        <TouchableOpacity style={styles.seeDetailButton}>
-          <Text style={styles.seeDetailButtonText}>See Detail</Text>
-        </TouchableOpacity>
-      </View>
-      <View
-        style={[styles.bannerImageContainer, { backgroundColor: item.color }]}
-      >
-        <Image source={{ uri: item.image }} style={styles.bannerImage} />
-      </View>
-    </View>
-  </View>
-);
-
 export default function Home() {
   const scrollX = useRef(new Animated.Value(0)).current;
   const flatListRef = useRef(null);
@@ -180,6 +165,19 @@ export default function Home() {
   const autoScrollTimer = useRef(null);
   const navigation = useNavigation();
   const [productdata, setAllProducts] = useState([]);
+  const [discountedProducts, setDiscountedProducts] = useState([]);
+
+  useEffect(() => {
+    const fetchalltopDiscountProduct = async () => {
+      try {
+        const response = await getAllDiscountedProducts();
+        setDiscountedProducts(response.products);
+      } catch (error) {
+        console.error("Error fetching all products", error);
+      }
+    };
+    fetchalltopDiscountProduct();
+  }, []);
 
   useEffect(() => {
     const fetchallproducts = async () => {
@@ -298,6 +296,38 @@ export default function Home() {
     );
   }, [categories, searchText]);
 
+  const BannerItems = ({ item }) => {
+    const imageUri = item.images[0]?.url;
+    return (
+      <View style={styles.bannerContainer}>
+        <Pressable
+          onPress={() =>
+            navigation.navigate("ProductDetails", {
+              item: JSON.stringify(item),
+            })
+          }
+          style={styles.bannerContent}
+        >
+          <View style={styles.bannerTextContainer}>
+            <Text style={styles.discountText}>{item.name}</Text>
+            <Text style={styles.discountAmount}>{item.discount}% OFF</Text>
+            <TouchableOpacity style={styles.seeDetailButton}>
+              <Text style={styles.seeDetailButtonText}>See Detail</Text>
+            </TouchableOpacity>
+          </View>
+          <View
+            style={[
+              styles.bannerImageContainer,
+              { backgroundColor: item.color },
+            ]}
+          >
+            <Image source={{ uri: imageUri }} style={styles.bannerImage} />
+          </View>
+        </Pressable>
+      </View>
+    );
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar backgroundColor="#002E6E" barStyle="light-content" />
@@ -378,11 +408,11 @@ export default function Home() {
           <View>
             <FlatList
               ref={flatListRef}
-              data={banners}
+              data={discountedProducts}
               renderItem={({ item }) => (
-                <BannerItem item={item} onPress={handleBannerPress} />
+                <BannerItems item={item} onPress={handleBannerPress} />
               )}
-              keyExtractor={(item) => item.id}
+              keyExtractor={(item) => item._id}
               horizontal
               pagingEnabled
               showsHorizontalScrollIndicator={false}

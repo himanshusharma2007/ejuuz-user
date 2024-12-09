@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   StyleSheet,
   View,
@@ -20,86 +20,52 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useDispatch } from "react-redux";
 import { addToCart } from "../../../../redux/features/cartSlice";
 import { useNavigation, useRoute } from "@react-navigation/native";
+import { getShopById } from "../../../service/shopservice";
 
 const { width } = Dimensions.get("window");
 
 export default function StoreDeatils() {
   const route = useRoute();
+  const [storedata, setstoredata] = useState({});
   const { item } = route.params;
+  const storeId = JSON.parse(item);
   const storeData = JSON.parse(item);
+
+  // console.log("address", storedata.address.city);
+
+  // console.log("array", Array.isArray(storedata.products));
+  // if (Array.isArray(storedata.products)) {
+  //   storedata.products.map((product) => {
+  //     console.log(
+  //       // (product.avgRating = product.avgRating || 0),
+  //       // (product.discount = product.discount || 0)
+  //       "product",
+  //       product._id
+  //     );
+  //   });
+  // }
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await getShopById(storeId);
+        setstoredata(response.data);
+        // console.log("address", response.data.address[0]?.city);
+        // console.log("response", response.data);
+      } catch (error) {
+        console.error("Error fetching product data:", error);
+      }
+    };
+    fetchData();
+  }, [storeId]);
+
   const [activeTab, setActiveTab] = useState("products");
   const navigation = useNavigation();
   const dispatch = useDispatch();
 
-  // React.useEffect(() => {
-  //   navigation.getParent()?.setOptions({
-  //     tabBarStyle: {
-  //       display: "none",
-  //     },
-  //   });
-  //   return () =>
-  //     navigation.getParent()?.setOptions({
-  //       tabBarStyle: undefined,
-  //     });
-  // }, [navigation]);
-
   const handleaddtocart = (item) => {
     dispatch(addToCart(item));
   };
-
-  // Enhanced products data with more details
-  const products = [
-    {
-      id: "1",
-      name: "Fresh Red Chili",
-      price: "12,000",
-      rating: "⭐ 4.5",
-      image: "https://via.placeholder.com/150",
-      inStock: true,
-      discount: "15%",
-      sold: 234,
-    },
-    {
-      id: "2",
-      name: "Fresh Onion",
-      price: "21,000",
-      rating: "⭐ 4.0",
-      image: "https://via.placeholder.com/150",
-      inStock: true,
-      discount: null,
-      sold: 189,
-    },
-    {
-      id: "3",
-      name: "Fresh Carrot",
-      price: "18,000",
-      rating: "⭐ 4.0",
-      image: "https://via.placeholder.com/150",
-      inStock: false,
-      discount: "20%",
-      sold: 156,
-    },
-    {
-      id: "4",
-      name: "Fresh Carrot",
-      price: "18,000",
-      rating: "⭐4.0",
-      image: "https://via.placeholder.com/150",
-      inStock: false,
-      discount: "20%",
-      sold: 156,
-    },
-    {
-      id: "5",
-      name: "Fresh Carrot",
-      price: "18,000",
-      rating: "⭐4.0",
-      image: "https://via.placeholder.com/150",
-      inStock: false,
-      discount: "20%",
-      sold: 156,
-    },
-  ];
 
   const StoreHeader = () => (
     <Card style={styles.bannerCard}>
@@ -179,41 +145,48 @@ export default function StoreDeatils() {
     </View>
   );
 
-  const renderProduct = ({ item }) => (
-    <Surface style={styles.productCard}>
-      <View style={styles.productImageContainer}>
-        <Image source={{ uri: item.image }} style={styles.productImage} />
-        {item.discount && (
-          <Badge style={styles.discountBadge}>{item.discount}</Badge>
-        )}
-      </View>
-      <View style={styles.productInfo}>
-        <View style={styles.productHeader}>
-          <Text style={styles.productName}>{item.name}</Text>
-          {!item.inStock && (
-            <Badge style={styles.outOfStockBadge}>Out of Stock</Badge>
+  const renderProducts = ({ item }) => {
+    const imageUri = item.images?.[0]?.url || "https://via.placeholder.com/150";
+    const discountText = item.discount ? `${item.discount}% OFF` : null;
+    const ratingText = item.avgRating
+      ? `Rating: ${item.avgRating}`
+      : "No rating";
+
+    return (
+      <TouchableOpacity
+        style={styles.productCard}
+        onPress={() =>
+          navigation.navigate("ProductDetails", { item: JSON.stringify(item) })
+        }
+      >
+        <View style={styles.productImageContainer}>
+          <Image source={{ uri: imageUri }} style={styles.productImage} />
+          {discountText && (
+            <Badge style={styles.discountBadge}>{discountText}</Badge>
           )}
         </View>
-        <Text style={styles.productPrice}>Rp {item.price} /kg</Text>
-        <View style={styles.productFooter}>
-          <View style={styles.ratingContainer}>
-            {/* <FontAwesome name="star" size={14} color="#FFD700" /> */}
-            <Text style={styles.ratingText}>
-              {item.rating} ({item.sold})
+        <View style={styles.productInfo}>
+          <View style={styles.productHeader}>
+            <Text style={styles.productName}>
+              {item.name || "Unnamed Product"}
             </Text>
           </View>
-          {item.inStock && (
+          <Text style={styles.productPrice}>R {item.price || "0.00"}</Text>
+          <View style={styles.productFooter}>
+            <View style={styles.ratingContainer}>
+              <Text style={styles.ratingText}>{ratingText}</Text>
+            </View>
             <TouchableOpacity
               style={styles.addButton}
               onPress={() => handleaddtocart(item)}
             >
               <MaterialCommunityIcons name="plus" size={20} color="#4CAF50" />
             </TouchableOpacity>
-          )}
+          </View>
         </View>
-      </View>
-    </Surface>
-  );
+      </TouchableOpacity>
+    );
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -224,24 +197,50 @@ export default function StoreDeatils() {
         {activeTab === "products" && (
           <View style={styles.productsSection}>
             <FlatList
-              data={products}
-              renderItem={renderProduct}
-              keyExtractor={(item) => item.id}
+              data={Array.isArray(storedata.products) ? storedata.products : []}
+              renderItem={renderProducts}
+              keyExtractor={(item) => item._id}
               scrollEnabled={false}
             />
+            {/* {Array.isArray(storedata.products) &&
+              storedata.products.map((item) => (
+                <Text key={item._id}>{item._id}</Text>
+              ))} */}
           </View>
         )}
 
         {activeTab === "reviews" && (
           <View style={styles.reviewsSection}>
-            <Text style={styles.comingSoon}>Reviews coming soon</Text>
+            <Text style={styles.reviewsHeader}>Reviews </Text>
+            <Text style={styles.noReviews}>No Reviews </Text>
           </View>
         )}
 
         {activeTab === "info" && (
           <View style={styles.infoSection}>
-            <Text style={styles.infoHeader}>About {storeData.name}</Text>
-            <Text style={styles.description}>{storeData.description}</Text>
+            <Text style={styles.infoHeader}>About </Text>
+            <Text style={styles.infoHeader}> {storedata.name}</Text>
+
+            <Text style={styles.description}>{storedata.description}</Text>
+
+            <Text style={styles.infoHeader}>Address</Text>
+            <View style={styles.addressContainer}>
+              <Text>{storedata.address.city} ,</Text>
+              <Text>{storedata.address.country} ,</Text>
+              <Text>{storedata.address.postalCode} ,</Text>
+              <Text>{storedata.address.street} ,</Text>
+            </View>
+
+            <Text style={styles.infoHeader}> Owner </Text>
+            <Text style={styles.owner}>{storedata.merchantId.name}</Text>
+
+            <Text style={styles.infoHeader}>Contact</Text>
+            <Text style={styles.contact}>
+              Email : {storedata.contact.email}
+            </Text>
+            <Text style={styles.contact}>
+              phoneNo : {storedata.contact.phoneNo}
+            </Text>
           </View>
         )}
       </ScrollView>
@@ -456,13 +455,35 @@ const styles = StyleSheet.create({
     padding: 16,
     alignItems: "center",
   },
+  reviewsHeader: {
+    fontSize: 18,
+    fontWeight: "600",
+    marginBottom: 20,
+    marginTop: 0,
+  },
+  noReviews: {
+    fontSize: 16,
+    color: "#666",
+  },
   infoSection: {
     padding: 16,
   },
   infoHeader: {
     fontSize: 18,
     fontWeight: "600",
-    marginBottom: 12,
+    marginBottom: 0,
+    marginTop: 15,
+  },
+  addressContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+  },
+  owner: {
+    fontSize: 16,
+    color: "#666",
+    fontWeight: "600",
+    marginBottom: 0,
   },
   description: {
     fontSize: 15,

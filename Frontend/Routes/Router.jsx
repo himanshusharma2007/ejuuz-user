@@ -49,7 +49,10 @@ import About from "../src/Componants/Screens/ProfileScreens/about";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useDispatch } from "react-redux";
 import { fetchUser } from "../redux/features/userSlice";
-import { fetchCartAsync, fetchWishlistAsync } from "../redux/features/cartSlice";
+import {
+  fetchCartAsync,
+  fetchWishlistAsync,
+} from "../redux/features/cartSlice";
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -171,6 +174,12 @@ const HomeStack = () => {
       <Stack.Screen
         name="Auth"
         component={GetStarted}
+        options={{ headerShown: false }}
+      />
+
+      <Stack.Screen
+        name="OtpPage"
+        component={OtpPage}
         options={{ headerShown: false }}
       />
     </Stack.Navigator>
@@ -399,7 +408,8 @@ function getTabbarVisibility(route) {
     routeName === "TransactionDetails" ||
     routeName === "WalletTransactionPin" ||
     routeName === "PaymentDone" ||
-    routeName === "Auth"
+    routeName === "Auth" ||
+    routeName === "OtpPage"
   ) {
     return "none";
   }
