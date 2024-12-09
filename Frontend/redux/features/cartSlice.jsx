@@ -79,47 +79,68 @@ export const removeFromCartAsync = createAsyncThunk(
 // Async Thunk for adding to wishlist
 export const addToWishlistAsync = createAsyncThunk(
   "cart/addToWishlist",
-  async (item, { dispatch, rejectWithValue }) => {
+  async (item, { dispatch, getState, rejectWithValue }) => {
     console.log("addToWishlistAsync called with item:", item);
 
     try {
+      // Check if item is already in wishlist
+      const currentWishlist = getState().cart.wishlist;
+      const existingItem = currentWishlist.find(
+        (wishlistItem) => wishlistItem._id === item._id
+      );
+
+      if (existingItem) {
+        // Item already in wishlist, return early
+        return null;
+      }
+
+      // Dispatch action to add to local wishlist state
       dispatch(cartSlice.actions.addItemToWishlist(item));
-      console.log("Dispatched addItemToWishlist action to Redux store");
 
+      // Call backend service to add to wishlist
       await wishlistService.addToWishlist(item);
-      console.log("Wishlist item added to backend");
-
+      
+      console.log("Wishlist item added successfully");
       return item;
     } catch (error) {
       console.error("Error in addToWishlistAsync:", error);
 
+      // Revert local state if backend call fails
       dispatch(cartSlice.actions.removeItemFromWishlist(item));
-      console.log("Reverted addItemToWishlist action in Redux store");
-      return rejectWithValue(error.response?.data || error.message);
+      
+      return rejectWithValue({
+        message: error.response?.data?.message || "Failed to add to wishlist",
+        item
+      });
     }
   }
 );
 
-// Async Thunk for removing from wishlist
+// Enhanced Async Thunk for removing from wishlist
 export const removeFromWishlistAsync = createAsyncThunk(
   "cart/removeFromWishlist",
   async (item, { dispatch, rejectWithValue }) => {
     console.log("removeFromWishlistAsync called with item:", item);
 
     try {
+      // Dispatch action to remove from local wishlist state
       dispatch(cartSlice.actions.removeItemFromWishlist(item));
-      console.log("Dispatched removeItemFromWishlist action to Redux store");
 
+      // Call backend service to remove from wishlist
       await wishlistService.removeFromWishlist(item._id);
-      console.log("Wishlist item removed from backend");
-
+      
+      console.log("Wishlist item removed successfully");
       return item;
     } catch (error) {
       console.error("Error in removeFromWishlistAsync:", error);
 
+      // Revert local state if backend call fails
       dispatch(cartSlice.actions.addItemToWishlist(item));
-      console.log("Reverted removeItemFromWishlist action in Redux store");
-      return rejectWithValue(error.response?.data || error.message);
+      
+      return rejectWithValue({
+        message: error.response?.data?.message || "Failed to remove from wishlist",
+        item
+      });
     }
   }
 );
@@ -149,7 +170,7 @@ export const fetchCartAsync = createAsyncThunk(
   }
 );
 
-// Async Thunk to fetch wishlist
+// Async Thunk to fetch wisrhlist
 export const fetchWishlistAsync = createAsyncThunk(
   "cart/fetchWishlist",
   async (_, { dispatch }) => {
@@ -330,6 +351,21 @@ const cartSlice = createSlice({
         );
         state.status.wishlist = "failed";
         state.error.wishlist = action.error.message;
+      })
+      .addCase(addToWishlistAsync.rejected, (state, action) => {
+        state.status.wishlist = "failed";
+        state.error.wishlist = action.payload?.message || "Failed to add to wishlist";
+      })
+      .addCase(removeFromWishlistAsync.pending, (state) => {
+        state.status.wishlist = "loading";
+      })
+      .addCase(removeFromWishlistAsync.fulfilled, (state, action) => {
+        state.status.wishlist = "succeeded";
+        // Optional: Additional logic if needed
+      })
+      .addCase(removeFromWishlistAsync.rejected, (state, action) => {
+        state.status.wishlist = "failed";
+        state.error.wishlist = action.payload?.message || "Failed to remove from wishlist";
       });
   },
 });

@@ -61,6 +61,13 @@ export default function Cart() {
     dispatch(incrementCartItemAsync(productId));
   };
 
+   const handleAddToWishlist = (product) => {
+    dispatch(addToWishlistAsync(product));
+  };
+
+  const handleRemoveFromWishlist = (product) => {
+    dispatch(removeFromWishlistAsync(product));
+  };
 
   const totalitemquantity = () => {
     let totalitemQuantity = 0;

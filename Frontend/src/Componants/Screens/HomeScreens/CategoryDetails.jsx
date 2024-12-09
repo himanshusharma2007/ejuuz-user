@@ -13,114 +13,92 @@ import {
 } from "react-native";
 import { Appbar } from "react-native-paper";
 import Icon from "react-native-vector-icons/Ionicons";
-import { addToCartAsync, addToWishlistAsync, removeFromCartAsync } from "../../../../redux/features/cartSlice";
-import { useDispatch } from "react-redux";
+import { 
+  addToCartAsync, 
+  addToWishlistAsync, 
+  removeFromWishlistAsync 
+} from "../../../../redux/features/cartSlice";
+import { useDispatch, useSelector } from "react-redux";
 import Toast from "react-native-toast-message";
 
-// Get screen width and height
 const { width, height } = Dimensions.get("window");
 
-// // Sample vegetable data - replace with your actual backend/database data
-// const vegetableData = [
-//   {
-//     id: "1",
-//     name: "Organic Tomatoes",
-//     price: 2.99,
-//     image:
-//       "https://plus.unsplash.com/premium_photo-1671395501275-630ae5ea02c4?q=80&w=1354&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-//     unit: "lb",
-//     discount: 10,
-//     shop: "thela of fresh veggies",
-//   },
-//   // Add more items if necessary
-// ];
-
 export default function CategoryDetails() {
-  const [favorites, setFavorites] = useState([]);
-  const [cart, setCart] = useState([]);
   const navigation = useNavigation();
   const route = useRoute();
   const dispatch = useDispatch();
 
+  // Get wishlist from Redux store
+  const wishlist = useSelector((state) => state.cart.wishlist);
+console.log('wishlist', wishlist)
   const { category } = route.params;
   const categorydata = JSON.parse(category);
   const categoryItem = categorydata.items;
-  console.log(categoryItem);
+
   const toggleFavorite = (item) => {
-    console.log("toggleFavorite called",item);
-    setFavorites((current) => {
-      if (current.includes(item)) {
-        removeFromCartAsync(item); // Call remove from wishlist
-        return current.filter((id) => id !== item._id);
-      } else {
-        addToWishlistAsync(item); // Call add to wishlist
-        return [...current, item];
-      }
-    });
+    console.log("toggleFavorite called", item);
+    
+    // Check if item is already in wishlist
+    const isInWishlist = wishlist.some(wishlistItem => wishlistItem._id === item._id);
+
+    if (isInWishlist) {
+      // Remove from wishlist
+      dispatch(removeFromWishlistAsync(item))
+        .then(() => {
+          Toast.show({
+            type: "success",
+            text1: "Removed from wishlist",
+            visibilityTime: 3000,
+            position: "top",
+          });
+        })
+        .catch((error) => {
+          Toast.show({
+            type: "error",
+            text1: "Failed to remove from wishlist",
+            text2: error.message,
+            visibilityTime: 3000,
+            position: "top",
+          });
+        });
+    } else {
+      // Add to wishlist
+      dispatch(addToWishlistAsync(item))
+        .then(() => {
+          Toast.show({
+            type: "success",
+            text1: "Added to wishlist",
+            visibilityTime: 3000,
+            position: "top",
+          });
+        })
+        .catch((error) => {
+          Toast.show({
+            type: "error",
+            text1: "Failed to add to wishlist",
+            text2: error.message,
+            visibilityTime: 3000,
+            position: "top",
+          });
+        });
+    }
   };
-  
 
   const addToCart = (item) => {
-    console.log("add to cart called ",item)
-    setCart((current) => [...current, item]);
+    console.log("add to cart called ", item)
     dispatch(addToCartAsync(item));
     Toast.show({
       type: "success",
-      text1: "item added to cart successfully",
+      text1: "Item added to cart successfully",
       visibilityTime: 3000,
       position: "top",
     });
   };
 
-  const renderVegetableItem = ({ item }) => {
-    const isFavorite = favorites.includes(item.id);
-
-    return (
-      <View style={styles.itemContainer}>
-        <Image source={{ uri: item.image }} style={styles.itemImage} />
-        <View style={styles.itemDetails}>
-          <View style={styles.priceRow}>
-            <View>
-              <Text style={styles.shopNameOnProduct}>{item.shop}</Text>
-              <Text style={styles.itemName}>{item.name}</Text>
-            </View>
-            <TouchableOpacity
-              style={styles.favoriteButton}
-              onPress={() => toggleFavorite(item)}
-            >
-              <Icon
-                name={isFavorite ? "heart" : "heart-outline"}
-                size={24}
-                color={isFavorite ? "red" : "gray"}
-              />
-            </TouchableOpacity>
-          </View>
-          <View style={styles.priceRow}>
-            <Text style={styles.itemPrice}>
-              ${item.price.toFixed(2)} / {item.unit}
-            </Text>
-            {item.discount > 0 && (
-              <Text style={styles.discountBadge}>{item.discount}% OFF</Text>
-            )}
-          </View>
-          <View style={styles.actionButtons}>
-            <TouchableOpacity
-              style={styles.cartButton}
-              onPress={() => addToCart(item)}
-            >
-              <Icon name="cart" color="white" size={20} />
-              <Text style={styles.cartButtonText}>Add to Cart</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </View>
-    );
-  };
-
   const renderCategoryItem = ({ item }) => {
-    const isFavorite = favorites.includes(item._id);
+    // Check if item is in wishlist using Redux state
+    const isInWishlist = wishlist.some(wishlistItem => wishlistItem._id === item._id);
     const imageUri = item.images[0]?.url || "https://via.placeholder.com/150";
-    console.log("item", item);
 
     return (
       <TouchableOpacity
@@ -141,9 +119,9 @@ export default function CategoryDetails() {
               onPress={() => toggleFavorite(item)}
             >
               <Icon
-                name={isFavorite ? "heart" : "heart-outline"}
+                name={isInWishlist ? "heart" : "heart-outline"}
                 size={24}
-                color={isFavorite ? "red" : "gray"}
+                color={isInWishlist ? "red" : "gray"}
               />
             </TouchableOpacity>
           </View>
@@ -174,18 +152,9 @@ export default function CategoryDetails() {
       <Appbar.Header>
         <Appbar.BackAction onPress={() => navigation.goBack()} />
         <Appbar.Content title={categorydata.category} />
-        <Appbar.Action icon="cart" onPress={() => {}} />
+        <Appbar.Action icon="cart" onPress={() => navigation.navigate('Cart')} />
       </Appbar.Header>
 
-      {/* Vegetable list */}
-      {/* <FlatList
-        data={vegetableData}
-        renderItem={renderVegetableItem}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.listContainer}
-      /> */}
-
-      {/* Category item list */}
       <FlatList
         data={categoryItem}
         renderItem={renderCategoryItem}
@@ -195,6 +164,7 @@ export default function CategoryDetails() {
     </SafeAreaView>
   );
 }
+
 
 const styles = StyleSheet.create({
   container: {
