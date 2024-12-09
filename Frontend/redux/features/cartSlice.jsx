@@ -174,6 +174,46 @@ export const fetchWishlistAsync = createAsyncThunk(
     }
   }
 );
+export const incrementCartItemAsync = createAsyncThunk(
+  "cart/incrementCartItem",
+  async (productId, { dispatch, getState, rejectWithValue }) => {
+    console.log("incrementCartItemAsync called with productId:", productId);
+
+    try {
+      const response = await cartService.incrementCartItem(productId);
+      console.log("Cart item incremented in backend:", response.updatedCart);
+
+      dispatch(cartSlice.actions.addToCart(response.updatedCart));
+      console.log("Dispatched addToCart action to Redux store");
+
+      return response.updatedCart;
+    } catch (error) {
+      console.error("Error in incrementCartItemAsync:", error);
+      return rejectWithValue(error.response?.data || error.message);
+    }
+  }
+);
+
+// Async Thunk for decrementing cart item
+export const decrementCartItemAsync = createAsyncThunk(
+  "cart/decrementCartItem",
+  async (productId, { dispatch, getState, rejectWithValue }) => {
+    console.log("decrementCartItemAsync called with productId:", productId);
+
+    try {
+      const response = await cartService.decrementCartItem(productId);
+      console.log("Cart item decremented in backend:", response.updatedCart);
+
+      dispatch(cartSlice.actions.addToCart(response.updatedCart));
+      console.log("Dispatched addToCart action to Redux store");
+
+      return response.updatedCart;
+    } catch (error) {
+      console.error("Error in decrementCartItemAsync:", error);
+      return rejectWithValue(error.response?.data || error.message);
+    }
+  }
+);
 
 const cartSlice = createSlice({
   name: "cart",
@@ -297,7 +337,7 @@ const cartSlice = createSlice({
 // Export actions
 export const {
   addToCart,
-  incrament,
+  increment,
   decrement,
   removeFromCart,
   clearCart,

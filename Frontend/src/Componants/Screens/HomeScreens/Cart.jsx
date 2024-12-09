@@ -11,7 +11,9 @@ import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import { useDispatch, useSelector } from "react-redux";
 import {
   decrement,
+  decrementCartItemAsync,
   incrament,
+  incrementCartItemAsync,
   removeFromCart,
   removeFromCartAsync,
 } from "../../../../redux/features/cartSlice";
@@ -51,13 +53,14 @@ export default function Cart() {
     });
   };
 
-  const decreaseItemQuantity = (id) => {
-    dispatch(decrement({ id }));
+  const decreaseItemQuantity = (productId) => {
+    dispatch(decrementCartItemAsync(productId));
   };
 
-  const increaseItemQuantity = (id) => {
-    dispatch(incrament({ id }));
+  const increaseItemQuantity = (productId) => {
+    dispatch(incrementCartItemAsync(productId));
   };
+
 
   const totalitemquantity = () => {
     let totalitemQuantity = 0;
