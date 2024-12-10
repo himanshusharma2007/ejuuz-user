@@ -364,6 +364,9 @@ const styles = StyleSheet.create({
   productsSection: {
     padding: 16,
   },
+  outOfStockBadge: {
+    backgroundColor: "#9E9E9E",
+  },
   productCard: {
     flexDirection: "row",
     marginBottom: 16,
@@ -379,18 +382,15 @@ const styles = StyleSheet.create({
     width: 120,
     height: 120,
   },
+  productInfo: {
+    flex: 1,
+    padding: 12,
+  },
   discountBadge: {
     position: "absolute",
     top: 8,
     left: 8,
     backgroundColor: "#FF5252",
-  },
-  outOfStockBadge: {
-    backgroundColor: "#9E9E9E",
-  },
-  productInfo: {
-    flex: 1,
-    padding: 12,
   },
   productHeader: {
     flexDirection: "row",

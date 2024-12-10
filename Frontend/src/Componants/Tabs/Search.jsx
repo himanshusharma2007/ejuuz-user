@@ -9,8 +9,20 @@ import {
   SafeAreaView,
   ImageBackground,
 } from "react-native";
-import { Appbar, Badge, Card, Text, IconButton } from "react-native-paper";
-import { Ionicons, Feather, MaterialIcons } from "@expo/vector-icons";
+import {
+  Appbar,
+  Badge,
+  Card,
+  Text,
+  IconButton,
+  ActivityIndicator,
+} from "react-native-paper";
+import {
+  Ionicons,
+  Feather,
+  MaterialIcons,
+  MaterialCommunityIcons,
+} from "@expo/vector-icons";
 import { useDispatch, useSelector } from "react-redux";
 import {
   addToCart,
@@ -25,14 +37,39 @@ import {
 } from "@react-navigation/native";
 import Toast from "react-native-toast-message";
 import { getAllShops } from "../../service/shopservice";
+import { searchProducts } from "../../service/productService";
+import ProductSearch from "./ProductSearch";
 
 export default function Search() {
   const [searchQuery, setSearchQuery] = useState("");
+  const [productResults, setProductResults] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [recentSearches, setRecentSearches] = useState([
+    "Smartphone",
+    "Laptop",
+    "Headphones",
+    "Smartwatch",
+  ]);
+
+  console.log("search project ", productResults.products);
+
   const [shopdata, setShopdata] = useState([]);
   const navigation = useNavigation();
   const dispatch = useDispatch();
   const route = useRoute();
   const inputRef = useRef(null);
+
+  useEffect(() => {
+    const delayDebounceFn = setTimeout(() => {
+      if (searchQuery.length > 0) {
+        performSearch();
+      } else {
+        setProductResults([]);
+      }
+    }, 500);
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [searchQuery]);
 
   useFocusEffect(
     useCallback(() => {
@@ -40,7 +77,30 @@ export default function Search() {
     }, [])
   );
 
-  console.log("all shop", shopdata);
+  const performSearch = async () => {
+    try {
+      setLoading(true);
+      const products = await searchProducts({ keyword: searchQuery });
+      console.log("Search results:", products); // Debugging
+      setProductResults(products.products);
+
+      if (!recentSearches.includes(searchQuery)) {
+        setRecentSearches((prev) => [searchQuery, ...prev].slice(0, 5));
+      }
+    } catch (error) {
+      Toast.show({
+        type: "error",
+        text1: "Search Error",
+        text2: error.message,
+        visibilityTime: 3000,
+        position: "top",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // console.log("all shop", shopdata);
 
   useEffect(() => {
     const fetchAllShopdata = async () => {
@@ -86,86 +146,105 @@ export default function Search() {
     return text;
   };
 
-  const horizontalitems = [
-    {
-      id: "1",
-      name: "Leather Jacket",
-      price: "R 59.99 / kg",
-      rating: "⭐⭐⭐⭐⭐",
-      image: "https://via.placeholder.com/150",
-      description:
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
-      quantity: 0,
-    },
-    {
-      id: "2",
-      name: "Running Shoes",
-      price: "R 79.99 / kg",
-      rating: "⭐⭐⭐⭐⭐",
-      image: "https://via.placeholder.com/150",
-      description:
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
-      quantity: 0,
-    },
-    // {
-    //   id: "3",
-    //   name: "Smartwatch",
-    //   price: "R 199.99 / kg",
-    //   rating: "⭐⭐⭐⭐⭐",
-    //   image: "https://via.placeholder.com/150",
-    //   description:
-    //     "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
-    // },
-    {
-      id: "3",
-      name: "Leather Jacket",
-      price: "R 59.99 / kg",
-      rating: "⭐⭐⭐⭐⭐",
-      image: "https://via.placeholder.com/150",
-      description:
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
-      quantity: 0,
-    },
-  ];
+  // const horizontalitems = [
+  //   {
+  //     id: "1",
+  //     name: "Leather Jacket",
+  //     price: "R 59.99 / kg",
+  //     rating: "⭐⭐⭐⭐⭐",
+  //     image: "https://via.placeholder.com/150",
+  //     description:
+  //       "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+  //     quantity: 0,
+  //   },
+  //   {
+  //     id: "2",
+  //     name: "Running Shoes",
+  //     price: "R 79.99 / kg",
+  //     rating: "⭐⭐⭐⭐⭐",
+  //     image: "https://via.placeholder.com/150",
+  //     description:
+  //       "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+  //     quantity: 0,
+  //   },
+  //   // {
+  //   //   id: "3",
+  //   //   name: "Smartwatch",
+  //   //   price: "R 199.99 / kg",
+  //   //   rating: "⭐⭐⭐⭐⭐",
+  //   //   image: "https://via.placeholder.com/150",
+  //   //   description:
+  //   //     "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+  //   // },
+  //   {
+  //     id: "3",
+  //     name: "Leather Jacket",
+  //     price: "R 59.99 / kg",
+  //     rating: "⭐⭐⭐⭐⭐",
+  //     image: "https://via.placeholder.com/150",
+  //     description:
+  //       "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+  //     quantity: 0,
+  //   },
+  // ];
 
-  const horizontalrenderItem = ({ item }) => (
-    <Card
-      style={styles.horizontalitemCard}
-      onPress={() =>
-        navigation.navigate("ProductDetails", { item: JSON.stringify(item) })
-      }
-    >
-      <View style={styles.horizontalitemContent}>
-        <View style={styles.imageWrapper}>
-          <ImageBackground
-            source={{ uri: item.image }}
-            style={styles.horizontalitemImage}
-          >
-            <Ionicons
-              name="heart"
-              size={30}
-              color="red"
-              onPress={() => additemtowishlist(item)}
-              style={styles.heartButton}
-            />
-          </ImageBackground>
-        </View>
+  const horizontalrenderItem = ({ item }) => {
+    const imageUri = item.images?.[0]?.url || "https://via.placeholder.com/150";
+    const discountText = item.discount ? `${item.discount}% OFF` : null;
+    const ratingText = item.avgRating
+      ? `Rating: ${item.avgRating}`
+      : "No rating";
 
-        <View style={styles.horizontalitemDetails}>
-          <Text style={styles.horizontalitemName}>{item.name}</Text>
-          <Text style={styles.horizontalitemPrice}>{item.price}</Text>
-          <Text style={styles.horizontalrating}>{item.rating}</Text>
-          <IconButton
-            icon="plus"
-            color="green"
-            size={24}
-            style={styles.horizontaladdButton}
-            onPress={() => handleaddtocart(item)}
+    return (
+      <TouchableOpacity
+        style={{
+          flexDirection: "row",
+          elevation: 2,
+          borderRadius: 10,
+          shadowColor: "#000",
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.1,
+          shadowRadius: 4,
+          overflow: "hidden",
+          backgroundColor: "#fff",
+          width: "100%",
+        }}
+      >
+        <View>
+          <Image
+            style={{ width: 100, height: 120 }}
+            source={{ uri: imageUri }}
           />
         </View>
-      </View>
-    </Card>
-  );
+        <View
+          style={{
+            width: "100%",
+            flexDirection: "row",
+            justifyContent: "space-between",
+            padding: 10,
+          }}
+        >
+          <View>
+            <Text style={{ fontSize: 20, fontWeight: "bold" }}>
+              {item.name}
+            </Text>
+            <Text style={{ fontSize: 16, marginBottom: 7 }}>{item.price} </Text>
+            <Text style={{ fontWeight: "bold" }}>
+              {item.avgRating === 0 ? "No Rating" : item.avgRating}
+            </Text>
+          </View>
+          <View>
+            <TouchableOpacity
+              style={styles.addButton}
+              onPress={() => handleaddtocart(item)}
+            >
+              <MaterialCommunityIcons name="plus" size={20} color="#4CAF50" />
+            </TouchableOpacity>
+          </View>
+        </View>
+      </TouchableOpacity>
+    );
+  };
 
   const shoprenderItem = ({ item }) => (
     <Card
@@ -188,14 +267,14 @@ export default function Search() {
           </Text>
           <Text style={styles.rating}>{item.rating}</Text>
         </View>
-        <Text style={styles.distance}>1Km</Text>
+        {/* <Text style={styles.distance}>1Km</Text> */}
       </View>
     </Card>
   );
 
-  const filteredItems = horizontalitems.filter((item) =>
-    item.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // const filteredItems = horizontalitems.filter((item) =>
+  //   item.name.toLowerCase().includes(searchQuery.toLowerCase())
+  // );
 
   return (
     <SafeAreaView style={styles.container}>
@@ -208,7 +287,8 @@ export default function Search() {
           <Ionicons name="search" size={20} color="#888" />
           <TextInput
             ref={inputRef}
-            placeholder="Search"
+            placeholder="Search products"
+            placeholderTextColor="#888"
             style={styles.searchInput}
             value={searchQuery}
             onChangeText={setSearchQuery}
@@ -233,22 +313,54 @@ export default function Search() {
         renderItem={({ index }) => (
           <View>
             {index == 0 && (
-              <>
+              <View style={styles.searchResultsContainer}>
                 <Text
-                  style={{ fontSize: 24, fontWeight: "600", marginTop: 10 }}
+                  style={{
+                    fontSize: 24,
+                    fontWeight: "600",
+                    marginVertical: 10,
+                    textAlign: "left",
+                  }}
                 >
                   Product
                 </Text>
 
-                <FlatList
-                  showsHorizontalScrollIndicator={false}
-                  horizontal
-                  data={filteredItems}
-                  keyExtractor={(item) => item.id}
-                  renderItem={horizontalrenderItem}
-                  contentContainerStyle={styles.horizontalcontent}
-                />
-              </>
+                {loading ? (
+                  <View style={styles.loadingContainer}>
+                    <ActivityIndicator size="large" color="#007AFF" />
+                  </View>
+                ) : (
+                  <FlatList
+                    showsHorizontalScrollIndicator={false}
+                    horizontal
+                    data={productResults}
+                    keyExtractor={(item) => item._id}
+                    renderItem={horizontalrenderItem}
+                    contentContainerStyle={styles.horizontalcontent}
+                    // ListHeaderComponent={
+                    //   searchQuery ? (
+                    //     <Text style={styles.resultHeaderText}>
+                    //       {`${productResults.length} results for "${searchQuery}"`}
+                    //     </Text>
+                    //   ) : null
+                    // }
+                    ListEmptyComponent={
+                      <View style={styles.emptyStateContainer}>
+                        <Ionicons
+                          name="search-outline"
+                          size={64}
+                          color="#E0E0E0"
+                        />
+                        <Text style={styles.emptyStateText}>
+                          {searchQuery
+                            ? "No products found"
+                            : "Start searching for products"}
+                        </Text>
+                      </View>
+                    }
+                  />
+                )}
+              </View>
             )}
             {index == 1 && (
               <>
@@ -330,12 +442,12 @@ const styles = StyleSheet.create({
     padding: 10,
     paddingBottom: 60,
   },
-  horizontalcontent: {
-    padding: 0,
-  },
-  content: {
+  searchResultsContainer: {
     padding: 10,
+    // alignItems: "center",
+    justifyContent: "center",
   },
+
   itemCard: {
     marginBottom: 15,
     borderRadius: 12,
@@ -352,66 +464,7 @@ const styles = StyleSheet.create({
     alignItems: "flex-start",
     // padding: 15,
   },
-  horizontalitemCard: {
-    width: 180,
-    marginBottom: 15,
-    borderRadius: 12,
-    elevation: 6,
-    backgroundColor: "#fff",
-    marginVertical: 6,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    marginRight: 15,
-    overflow: "hidden",
-  },
 
-  horizontalitemContent: {
-    flexDirection: "column",
-    alignItems: "flex-start",
-    width: 170,
-  },
-  imageWrapper: {
-    width: "100%",
-    height: 130,
-    borderRadius: 12, // Add border radius here
-    overflow: "hidden", // Ensure child elements respect the border radius
-  },
-
-  heartButton: {
-    backgroundColor: "transparent",
-    borderRadius: 20,
-    padding: 5,
-    alignSelf: "flex-end",
-  },
-  horizontalitemImage: {
-    width: "100%",
-    height: 140,
-    resizeMode: "cover",
-  },
-
-  horizontalitemDetails: {
-    padding: 10,
-    flex: 1,
-    justifyContent: "space-between",
-  },
-  horizontalitemName: {
-    fontSize: 16,
-    fontWeight: "600",
-    marginBottom: 4,
-    color: "#333",
-  },
-  horizontalitemPrice: {
-    fontSize: 14,
-    color: "#555",
-    marginBottom: 4,
-  },
-  horizontalrating: {
-    fontSize: 12,
-    color: "#f4b400",
-    marginBottom: 8,
-  },
   itemImage: {
     width: 130,
     height: 150,
@@ -449,22 +502,98 @@ const styles = StyleSheet.create({
     padding: 5,
     alignSelf: "flex-end",
   },
-  horizontaladdButton: {
+
+  resultHeaderText: {
+    fontSize: 16,
+    color: "#666",
+    marginBottom: 12,
+    fontWeight: "500",
+  },
+  emptyStateContainer: {
+    width: "100%",
+    alignSelf: "center",
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 30,
+  },
+  emptyStateText: {
+    fontSize: 18,
+    color: "#888",
+    marginTop: 16,
+    textAlign: "center",
+  },
+  productFooter: {
+    flexDirection: "row",
+  },
+  productCard: {
+    flexDirection: "row",
+    borderRadius: 8,
+    marginVertical: 8,
+    marginHorizontal: 16,
     backgroundColor: "#fff",
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: "#4caf50",
-    position: "relative",
-    left: 100,
+    elevation: 2,
+    overflow: "hidden",
+  },
+  cardContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: 10,
+  },
+  productInfo: {
+    flex: 1,
+    paddingHorizontal: 10,
+  },
+  productHeader: {
+    marginBottom: 8,
+  },
+  productName: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#333",
+  },
+  productPrice: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#007AFF",
+    marginVertical: 4,
+  },
+  productFooter: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  ratingContainer: {
+    backgroundColor: "#F1F1F1",
+    borderRadius: 5,
+    padding: 5,
+  },
+  ratingText: {
+    fontSize: 12,
+    color: "#888",
   },
   addButton: {
-    backgroundColor: "#fff",
-    borderRadius: 10,
-    padding: 5,
-    borderColor: "green",
-    borderWidth: 2,
+    padding: 8,
+    backgroundColor: "#E8F5E9",
+    borderRadius: 50,
+  },
+  productImageContainer: {
+    marginLeft: 10,
+    position: "relative",
+  },
+  productImage: {
+    width: 100,
+    height: 100,
+    borderRadius: 8,
+  },
+  discountBadge: {
     position: "absolute",
-    top: 30,
-    right: 10,
+    top: 8,
+    right: 8,
+    backgroundColor: "#FF5252",
+    color: "#fff",
+    fontSize: 10,
+    paddingHorizontal: 6,
+    paddingVertical: 3,
   },
 });

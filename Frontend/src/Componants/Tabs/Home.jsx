@@ -29,6 +29,7 @@ import {
   getAllDiscountedProducts,
   getAllProducts,
 } from "../../service/productService";
+import { getAllShops } from "../../service/shopservice";
 
 const { width } = Dimensions.get("window");
 
@@ -166,17 +167,19 @@ export default function Home() {
   const navigation = useNavigation();
   const [productdata, setAllProducts] = useState([]);
   const [discountedProducts, setDiscountedProducts] = useState([]);
+  const [shopdata, setShopdata] = useState([]);
 
   useEffect(() => {
-    const fetchalltopDiscountProduct = async () => {
+    const fetchAllTopDiscountProduct = async () => {
       try {
         const response = await getAllDiscountedProducts();
-        setDiscountedProducts(response.products);
+        // console.log("API Response:", response);
+        setDiscountedProducts(response.products || []);
       } catch (error) {
         console.error("Error fetching all products", error);
       }
     };
-    fetchalltopDiscountProduct();
+    fetchAllTopDiscountProduct();
   }, []);
 
   useEffect(() => {
@@ -193,6 +196,17 @@ export default function Home() {
 
   // console.log("productdata", productdata);
   // console.log("allProducts", productdata.map((product) => product.category));
+
+  useEffect(() => {
+    const fetchAllShopdata = async () => {
+      try {
+        const response = await getAllShops();
+        setShopdata(response.data);
+        // console.log("Get All Shops", response.data);
+      } catch (error) {}
+    };
+    fetchAllShopdata();
+  }, []);
 
   const categories = useMemo(() => {
     const categoryMap = new Map();
@@ -228,8 +242,9 @@ export default function Home() {
   }, []);
 
   const startAutoScroll = useCallback(() => {
+    if (discountedProducts.length === 0) return; // Prevent auto-scroll if no data
     autoScrollTimer.current = setInterval(() => {
-      if (currentIndex < banners.length - 1) {
+      if (currentIndex < discountedProducts.length - 1) {
         flatListRef.current?.scrollToIndex({
           index: currentIndex + 1,
           animated: true,
@@ -241,7 +256,7 @@ export default function Home() {
         });
       }
     }, 3000);
-  }, [currentIndex]);
+  }, [currentIndex, discountedProducts.length]);
 
   useEffect(() => {
     startAutoScroll();
@@ -264,7 +279,13 @@ export default function Home() {
 
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
-    setTimeout(() => setRefreshing(false), 1500);
+    try {
+      const response = await getAllDiscountedProducts();
+      setDiscountedProducts(response.products || []);
+    } catch (error) {
+      console.error("Error refreshing data", error);
+    }
+    setRefreshing(false);
   }, []);
 
   const handleBannerPress = useCallback((banner) => {
@@ -295,6 +316,14 @@ export default function Home() {
         )
     );
   }, [categories, searchText]);
+
+  const truncateText = (text, wordLimit) => {
+    const words = text.split(" ");
+    if (words.length > 3) {
+      return words.slice(0, 3).join(" ") + " ...";
+    }
+    return text;
+  };
 
   const BannerItems = ({ item }) => {
     const imageUri = item.images[0]?.url;
@@ -327,6 +356,8 @@ export default function Home() {
       </View>
     );
   };
+
+  // console.log("discountedProducts", discountedProducts);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -406,29 +437,37 @@ export default function Home() {
 
           {/* Banner Slider */}
           <View>
-            <FlatList
-              ref={flatListRef}
-              data={discountedProducts}
-              renderItem={({ item }) => (
-                <BannerItems item={item} onPress={handleBannerPress} />
-              )}
-              keyExtractor={(item) => item._id}
-              horizontal
-              pagingEnabled
-              showsHorizontalScrollIndicator={false}
-              onScroll={Animated.event(
-                [{ nativeEvent: { contentOffset: { x: scrollX } } }],
-                { useNativeDriver: false }
-              )}
-              onViewableItemsChanged={onViewableItemsChanged}
-              viewabilityConfig={viewabilityConfig}
-              onMomentumScrollBegin={() => {
-                if (autoScrollTimer.current) {
-                  clearInterval(autoScrollTimer.current);
-                }
-              }}
-              onMomentumScrollEnd={startAutoScroll}
-            />
+            {discountedProducts.length > 0 ? (
+              <FlatList
+                ref={flatListRef}
+                data={discountedProducts}
+                renderItem={({ item }) => (
+                  <BannerItems item={item} onPress={handleBannerPress} />
+                )}
+                keyExtractor={(item) => item._id}
+                horizontal
+                pagingEnabled
+                showsHorizontalScrollIndicator={false}
+                onScroll={Animated.event(
+                  [{ nativeEvent: { contentOffset: { x: scrollX } } }],
+                  { useNativeDriver: false }
+                )}
+                onViewableItemsChanged={onViewableItemsChanged}
+                viewabilityConfig={viewabilityConfig}
+                onMomentumScrollBegin={() => {
+                  if (autoScrollTimer.current) {
+                    clearInterval(autoScrollTimer.current);
+                  }
+                }}
+                onMomentumScrollEnd={startAutoScroll}
+              />
+            ) : (
+              <>
+                <Text style={{ textAlign: "center", marginTop: 20 }}>
+                  No deals available
+                </Text>
+              </>
+            )}
             <View style={styles.bannerDots}>
               {banners.map((_, index) => (
                 <BannerDot key={index} index={index} scrollX={scrollX} />
@@ -491,7 +530,7 @@ export default function Home() {
         {/* Stores Section */}
         <View style={styles.storesSection}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Popular Stores</Text>
+            <Text style={styles.sectionTitle}>Popular Shop</Text>
             <TouchableOpacity>
               <Text style={styles.seeAllText}>See all</Text>
             </TouchableOpacity>
@@ -501,6 +540,39 @@ export default function Home() {
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.storesScrollContent}
           >
+            {shopdata.map((item) => {
+              const imgageUri = "https://via.placeholder.com/150";
+              // console.log("productdata", productdata);
+              return (
+                <TouchableOpacity
+                  key={item._id}
+                  style={styles.recommendedCard}
+                  onPress={() =>
+                    navigation.navigate("StoreDetails", {
+                      item: JSON.stringify(item._id),
+                    })
+                  }
+                >
+                  <Image
+                    source={{ uri: imgageUri }}
+                    style={styles.recommendedImage}
+                  />
+                  {/* <View style={styles.discountBadge}>
+                    <Text style={styles.discountText}>{product.discount}</Text>
+                  </View> */}
+                  <View style={styles.recommendedInfo}>
+                    <Text style={styles.recommendedName} numberOfLines={1}>
+                      {item.name.length > 20 ? "..." : item.name}
+                    </Text>
+
+                    <Text>{truncateText(item.description, 5)}</Text>
+                    <Text style={styles.ratingText}>
+                      {item.avgRating === 0 ? "No rating" : item.avgRating}
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              );
+            })}
             {/* {productdata.map((item, index) => (
               <TouchableOpacity
                 key={index}

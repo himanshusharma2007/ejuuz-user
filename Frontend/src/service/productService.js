@@ -77,6 +77,8 @@ export const searchProducts = async (keyword) => {
       }
     );
 
+    console.log("search", response.data);
+
     return response.data;
   } catch (error) {
     console.error("Error searching products", error);

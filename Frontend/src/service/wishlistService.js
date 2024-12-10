@@ -45,11 +45,11 @@ export const getWishlist = async () => {
         Authorization: `Bearer ${accessToken}`,
       },
     });
-    console.log('response in get wishlist ', response.data)
+    // console.log('response in get wishlist ', response.data)
 
     return response.data.wishlist;
   } catch (error) {
-    console.error("failed to get wishlist products",error);
+    console.error("failed to get wishlist products", error);
     throw error;
   }
 };

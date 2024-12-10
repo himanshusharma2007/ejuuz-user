@@ -182,6 +182,23 @@ const HomeStack = () => {
         component={OtpPage}
         options={{ headerShown: false }}
       />
+      {/* <Stack.Screen
+        name="StoreDetails"
+        component={StoreDeatils}
+        options={{
+          headerShown: false,
+          headerTitle: "",
+          headerShadowVisible: false,
+          headerRight: () => (
+            <TouchableOpacity onPress={() => navigation.navigate("Wishlist")}>
+              <Image
+                source={require("../src/images/wishlist.png")}
+                style={{ width: 40, height: 40 }}
+              />
+            </TouchableOpacity>
+          ),
+        }}
+      /> */}
     </Stack.Navigator>
   );
 };
