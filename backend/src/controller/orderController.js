@@ -1,7 +1,7 @@
 const Customer = require('../model/customerModel');
 const Product = require('../model/productModel'); // Assuming you have a product model
-const Order = require('../models/orderModel');
-const Merchant = require('../models/merchantModel'); // Assuming you have a merchant model
+const Order = require('../model/orderModel');
+const Merchant = require('../model/merchantModel'); // Assuming you have a merchant model
 const mongoose = require('mongoose');
 
 // Helper function to generate unique order ID
@@ -15,16 +15,17 @@ exports.placeOrder = async (req, res) => {
     session.startTransaction();
 
     try {
-        const { customerId } = req.user;
-        const { cartItems } = req.body; // [{productId, quantity}, ...]
-
+        const customerId = req.user._id;
+        const cartItems  = req.body.cart; // [{productId, quantity}, ...]
+        console.log('place order called cartItems ', cartItems)
+        
         // Find customer
         const customer = await Customer.findById(customerId).session(session);
         if (!customer) {
             await session.abortTransaction();
             session.endSession();
             return res.status(404).json({
-                erorr: 'Customer not found'
+                error: 'Customer not found'
             });
         }
 
@@ -38,6 +39,15 @@ exports.placeOrder = async (req, res) => {
                 session.endSession();
                 return res.status(404).json({
                     error: `Product ${item.productId} not found`
+                });
+            }
+
+            // Stock validation check
+            if (product.stock < item.quantity) {
+                await session.abortTransaction();
+                session.endSession();
+                return res.status(400).json({
+                    error: `Insufficient stock for product ${product.name}. Available stock: ${product.stock}, Requested quantity: ${item.quantity}`
                 });
             }
 
@@ -56,7 +66,8 @@ exports.placeOrder = async (req, res) => {
             merchantGroups[merchantId].push({
                 productId: item.productId,
                 quantity: item.quantity,
-                price: product.price
+                price: product.price,
+                product: product  // Include the full product object for stock update
             });
         }
 
@@ -83,6 +94,13 @@ exports.placeOrder = async (req, res) => {
 
             await order.save({ session });
             orders.push(order);
+
+            // Update product stock and add order to customer's order history
+            for (const prod of products) {
+                // Reduce product stock
+                prod.product.stock -= prod.quantity;
+                await prod.product.save({ session });
+            }
 
             // Add order to customer's order history
             customer.orderHistory.push(order._id);

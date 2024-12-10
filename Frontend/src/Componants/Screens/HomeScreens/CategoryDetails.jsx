@@ -13,15 +13,16 @@ import {
 } from "react-native";
 import { Appbar } from "react-native-paper";
 import Icon from "react-native-vector-icons/Ionicons";
-import { 
-  addToCartAsync, 
-  addToWishlistAsync, 
-  removeFromWishlistAsync 
+import {
+  addToCartAsync,
+  addToWishlistAsync,
+  removeFromWishlistAsync,
 } from "../../../../redux/features/cartSlice";
 import { useDispatch, useSelector } from "react-redux";
 import Toast from "react-native-toast-message";
 
 const { width, height } = Dimensions.get("window");
+
 
 export default function CategoryDetails() {
   const navigation = useNavigation();
@@ -30,16 +31,18 @@ export default function CategoryDetails() {
 
   // Get wishlist from Redux store
   const wishlist = useSelector((state) => state.cart.wishlist);
-console.log('wishlist', wishlist)
+  console.log("wishlist", wishlist);
   const { category } = route.params;
   const categorydata = JSON.parse(category);
   const categoryItem = categorydata.items;
 
   const toggleFavorite = (item) => {
     console.log("toggleFavorite called", item);
-    
+
     // Check if item is already in wishlist
-    const isInWishlist = wishlist.some(wishlistItem => wishlistItem._id === item._id);
+    const isInWishlist = wishlist.some(
+      (wishlistItem) => wishlistItem._id === item._id
+    );
 
     if (isInWishlist) {
       // Remove from wishlist
@@ -85,7 +88,7 @@ console.log('wishlist', wishlist)
   };
 
   const addToCart = (item) => {
-    console.log("add to cart called ", item)
+    console.log("add to cart called ", item);
     dispatch(addToCartAsync(item));
     Toast.show({
       type: "success",
@@ -97,7 +100,9 @@ console.log('wishlist', wishlist)
 
   const renderCategoryItem = ({ item }) => {
     // Check if item is in wishlist using Redux state
-    const isInWishlist = wishlist.some(wishlistItem => wishlistItem._id === item._id);
+    const isInWishlist = wishlist.some(
+      (wishlistItem) => wishlistItem._id === item._id
+    );
     const imageUri = item.images[0]?.url || "https://via.placeholder.com/150";
 
     return (
@@ -152,7 +157,10 @@ console.log('wishlist', wishlist)
       <Appbar.Header>
         <Appbar.BackAction onPress={() => navigation.goBack()} />
         <Appbar.Content title={categorydata.category} />
-        <Appbar.Action icon="cart" onPress={() => navigation.navigate('Cart')} />
+        <Appbar.Action
+          icon="cart"
+          onPress={() => navigation.navigate("Cart")}
+        />
       </Appbar.Header>
 
       <FlatList
@@ -164,7 +172,6 @@ console.log('wishlist', wishlist)
     </SafeAreaView>
   );
 }
-
 
 const styles = StyleSheet.create({
   container: {
