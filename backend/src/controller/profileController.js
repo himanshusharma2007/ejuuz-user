@@ -130,6 +130,7 @@ const profileController = {
   // Get profile details
   getProfile: async (req, res) => {
     try {
+        console.log('get profile called req.body', req.body)
       const customerId = req.user._id;
 
       const customer = await Customer.findById(customerId)

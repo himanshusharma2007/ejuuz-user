@@ -5,12 +5,14 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 class ProfileService {
   async getProfile() {
     try {
+      console.log("get profile called");
       const accessToken = await AsyncStorage.getItem("accesstoken");
-      const response = await api.get("/api/profile", {
+      const response = await api.get("/profile", {
         headers: {
           Authorization: `Bearer ${accessToken}`,
         },
       });
+      console.log("response in get profile", response);
       return response.data;
     } catch (error) {
       throw this.handleError(error);
@@ -19,8 +21,9 @@ class ProfileService {
 
   async updateProfile(data) {
     try {
+      console.log("data in update profile", data.name);
       const accessToken = await AsyncStorage.getItem("accesstoken");
-      const response = await api.patch("/api/profile/update", data, {
+      const response = await api.patch("/profile/update", data, {
         headers: {
           Authorization: `Bearer ${accessToken}`,
         },
