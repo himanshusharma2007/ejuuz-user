@@ -1,0 +1,66 @@
+// Frontend/src/service/profileService.js
+import api from "./api";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
+class ProfileService {
+  async getProfile() {
+    try {
+      const accessToken = await AsyncStorage.getItem("accesstoken");
+      const response = await api.get("/api/profile", {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+      return response.data;
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
+  async updateProfile(data) {
+    try {
+      const accessToken = await AsyncStorage.getItem("accesstoken");
+      const response = await api.patch("/api/profile/update", data, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+      return response.data;
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
+  async updateProfileImage(image) {
+    try {
+      const accessToken = await AsyncStorage.getItem("accesstoken");
+      const response = await api.patch("/api/profile/update-image", image, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+      return response.data;
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
+  handleError(error) {
+    if (error.response) {
+      // Server responded with error
+      return {
+        status: error.response.status,
+        message: error.response.data.error || "An error occurred",
+        details: error.response.data.details,
+      };
+    }
+    // Network error or other issues
+    return {
+      status: 500,
+      message: "Network error or server is not responding",
+      details: error.message,
+    };
+  }
+}
+
+export default new ProfileService();

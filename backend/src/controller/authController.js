@@ -6,9 +6,7 @@ const jwt = require('jsonwebtoken');
 require("dotenv").config();
 
 // Twilio setup
-const accountSid = process.env.TWILIO_ACCOUNT_SID;
 const authToken = process.env.TWILIO_AUTH_TOKEN;
-const verifyServiceSid = 'VAc88ce2237bcc703dd46ed8c42c31e7c1';
 const client = twilio(process.env.TWILIO_ACCOUNT_SID, authToken);
 
 exports.sendOtp = async (req, res) => {
