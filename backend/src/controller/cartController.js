@@ -4,17 +4,18 @@ const Product = require("../model/productModel"); // Assuming you have a product
 // Add Product to Cart
 exports.addToCart = async (req, res) => {
   try {
-    console.log("addToCart called",req.body);
-    const  item = req.body.item;
-    if(!item){
+    console.log("addToCart called req.body", req.body);
+    const productId = req.body.item.productId;
+    const quantity = req.body.item.quantity;
+
+    if (!productId) {
       return res.status(400).json({
         success: false,
         message: "item not found",
       });
     }
-    const productId = item._id, quantity = item.quantity; 
-    const customerId = req.user._id; // Assuming authentication middleware sets this
 
+    const customerId = req.user._id; // Assuming authentication middleware sets this
     console.log(`Received input: customerId=${customerId}, productId=${productId}, quantity=${quantity}`);
 
     if (!productId || !quantity || quantity < 1) {
@@ -43,6 +44,8 @@ exports.addToCart = async (req, res) => {
 
     console.log("Product details:", product);
 
+    let addedCartItem;
+
     const existingCartItem = customer.cart.find(
       (item) => item.productId.toString() === productId
     );
@@ -50,21 +53,33 @@ exports.addToCart = async (req, res) => {
     if (existingCartItem) {
       console.log(`Product already in cart. Increasing quantity by ${quantity}`);
       existingCartItem.quantity += quantity;
+      existingCartItem.price = product.price * existingCartItem.quantity;
+      addedCartItem = existingCartItem;
     } else {
       console.log("Adding new product to cart");
-      customer.cart.push({
+      const newCartItem = {
         productId: productId,
         quantity: quantity,
         price: product.price * quantity,
-      });
+      };
+      customer.cart.push(newCartItem);
+      addedCartItem = newCartItem;
     }
 
     await customer.save();
-    console.log("Cart updated successfully:", customer.cart);
+
+    // Populate the productId field manually in the cart
+    const populatedCustomer = await Customer.findById(customerId).populate({
+      path: "cart.productId",
+      model: "Product", // Make sure this matches your Product model's name
+    });
+
+    console.log("Cart updated successfully with populated product details:", populatedCustomer.cart);
 
     return res.status(200).json({
       message: "Product added to cart successfully",
-      cart: customer.cart,
+      addedItem: addedCartItem,
+      updatedCart: populatedCustomer.cart,
     });
   } catch (error) {
     console.log("Error in addToCart:", error);
@@ -79,7 +94,7 @@ exports.addToCart = async (req, res) => {
 exports.removeFromCart = async (req, res) => {
   try {
     console.log("removeFromCart called");
-    const { customerId } = req.user;
+    const customerId  = req.user._id;
     const { productId } = req.params;
 
     console.log(`Received input: customerId=${customerId}, productId=${productId}`);
@@ -151,7 +166,7 @@ exports.getCart = async (req, res) => {
       return total + item.price * item.quantity;
     }, 0);
 
-    console.log("Cart data fetched successfully, total value:", cartTotal);
+    console.log("Cart data fetched successfully, total value:", customer.cart);
 
     return res.status(200).json({
       success: true,
@@ -164,6 +179,149 @@ exports.getCart = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Error retrieving cart",
+      error: error.message,
+    });
+  }
+};
+
+exports.incrementCartItem = async (req, res) => {
+  try {
+    console.log("incrementCartItem called");
+    const customerId = req.user._id;
+    const { productId } = req.params;
+
+    console.log(`Received input: customerId=${customerId}, productId=${productId}`);
+
+    const customer = await Customer.findById(customerId);
+    if (!customer) {
+      console.log("Customer not found");
+      return res.status(404).json({
+        success: false,
+        message: "Customer not found",
+      });
+    }
+
+    const cartItem = customer.cart.find(
+      (item) => item._id.toString() === productId
+    );
+
+    if (!cartItem) {
+      console.log("Cart item not found");
+      return res.status(404).json({
+        success: false,
+        message: "Cart item not found",
+      });
+    }
+console.log('cartItem', cartItem)
+    // Find the product to get its current price
+    const product = await Product.findById(cartItem?.productId);
+    if (!product) {
+      console.log("Product not found");
+      return res.status(404).json({
+        success: false,
+        message: "Product not found",
+      });
+    }
+
+    // Increment quantity
+    cartItem.quantity += 1;
+    // Recalculate price based on new quantity
+    cartItem.price = product.price * cartItem.quantity;
+
+    await customer.save();
+
+    // Populate the updated cart
+    const populatedCustomer = await Customer.findById(customerId).populate({
+      path: "cart.productId",
+      model: "Product",
+    });
+
+    console.log("Cart item incremented successfully:", populatedCustomer.cart);
+
+    return res.status(200).json({
+      message: "Cart item incremented successfully",
+      updatedCart: populatedCustomer.cart,
+    });
+  } catch (error) {
+    console.log("Error in incrementCartItem:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Error incrementing cart item",
+      error: error.message,
+    });
+  }
+};
+
+exports.decrementCartItem = async (req, res) => {
+  try {
+    console.log("decrementCartItem called");
+    const customerId = req.user._id;
+    const { productId } = req.params;
+
+    console.log(`Received input: customerId=${customerId}, productId=${productId}`);
+
+    const customer = await Customer.findById(customerId);
+    if (!customer) {
+      console.log("Customer not found");
+      return res.status(404).json({
+        success: false,
+        message: "Customer not found",
+      });
+    }
+
+    const cartItemIndex = customer.cart.findIndex(
+      (item) => item.productId.toString() === productId
+    );
+
+    if (cartItemIndex === -1) {
+      console.log("Cart item not found");
+      return res.status(404).json({
+        success: false,
+        message: "Cart item not found",
+      });
+    }
+
+    const cartItem = customer.cart[cartItemIndex];
+
+    // Find the product to get its current price
+    const product = await Product.findById(productId);
+    if (!product) {
+      console.log("Product not found");
+      return res.status(404).json({
+        success: false,
+        message: "Product not found",
+      });
+    }
+
+    // If quantity is 1, remove the item from cart
+    if (cartItem.quantity === 1) {
+      customer.cart.splice(cartItemIndex, 1);
+    } else {
+      // Decrement quantity
+      cartItem.quantity -= 1;
+      // Recalculate price based on new quantity
+      cartItem.price = product.price * cartItem.quantity;
+    }
+
+    await customer.save();
+
+    // Populate the updated cart
+    const populatedCustomer = await Customer.findById(customerId).populate({
+      path: "cart.productId",
+      model: "Product",
+    });
+
+    console.log("Cart item decremented successfully:", populatedCustomer.cart);
+
+    return res.status(200).json({
+      message: "Cart item decremented successfully",
+      updatedCart: populatedCustomer.cart,
+    });
+  } catch (error) {
+    console.log("Error in decrementCartItem:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Error decrementing cart item",
       error: error.message,
     });
   }
