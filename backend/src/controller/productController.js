@@ -1,4 +1,5 @@
 const Product = require('../model/productModel');
+const Order = require('../model/orderModel');
 const Shop = require('../model/shopModel');
 const Merchant = require('../model/merchantModel');
 
@@ -191,6 +192,88 @@ exports.getTopDiscountedProducts = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error fetching top discounted products',
+      error: error.message
+    });
+  }
+};
+exports.postProductReview = async (req, res) => {
+  try {
+    console.log('Posting product review - postProductReview function called');
+    
+    const { productId } = req.params;
+    const { rating, review } = req.body;
+    const customerId = req.user._id; // Assuming authentication middleware adds user info
+
+    // Validate input
+    if (!rating || rating < 1 || rating > 5) {
+      return res.status(400).json({
+        success: false,
+        message: 'Rating must be between 1 and 5'
+      });
+    }
+
+    // Check if product exists
+    const product = await Product.findById(productId);
+    if (!product) {
+      console.log('Product not found');
+      return res.status(404).json({
+        success: false,
+        message: 'Product not found'
+      });
+    }
+
+    // Check if customer has completed an order for this product
+    const completedOrder = await Order.findOne({
+      customerId: customerId,
+      status: 'Complete',
+      'products.productId': productId
+    });
+
+    if (!completedOrder) {
+      console.log('Customer has not purchased this product or order not completed');
+      return res.status(403).json({
+        success: false,
+        message: 'You can only review products you have purchased and whose order is completed'
+      });
+    }
+
+    // Check if customer has already reviewed this product
+    const existingReviewIndex = product.ratings.findIndex(
+      r => r.customerId.toString() === customerId.toString()
+    );
+
+    if (existingReviewIndex !== -1) {
+      // Update existing review
+      product.ratings[existingReviewIndex].rating = rating;
+      product.ratings[existingReviewIndex].review = review || '';
+      product.ratings[existingReviewIndex].createdAt = Date.now();
+    } else {
+      // Add new review
+      product.ratings.push({
+        rating,
+        review: review || '',
+        customerId: customerId
+      });
+    }
+
+    // Save the product (this will trigger the pre-save hook to recalculate avgRating)
+    await product.save();
+
+    console.log('Review posted successfully');
+    
+    res.status(201).json({
+      success: true,
+      message: 'Review posted successfully',
+      product: {
+        avgRating: product.avgRating,
+        ratings: product.ratings
+      }
+    });
+  } catch (error) {
+    console.error('Error in postProductReview:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error posting review',
       error: error.message
     });
   }

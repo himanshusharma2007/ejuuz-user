@@ -1,5 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { StyleSheet, View, Modal, TouchableOpacity, Alert, Image } from "react-native";
+import {
+  StyleSheet,
+  View,
+  Modal,
+  TouchableOpacity,
+  Alert,
+  Image,
+} from "react-native";
 import {
   Avatar,
   Card,
@@ -10,7 +17,7 @@ import {
   TextInput,
   ActivityIndicator,
 } from "react-native-paper";
-import * as ImagePicker from 'expo-image-picker';
+import * as ImagePicker from "expo-image-picker";
 import ProfileService from "../../../service/profileServices";
 
 export default function ProfileSettings() {
@@ -29,14 +36,14 @@ export default function ProfileSettings() {
     try {
       setIsLoading(true);
       const userData = await ProfileService.getProfile();
-      console.log('userData', userData)
-      console.log('userData.data.profileImage', userData.data.profileImage.url)
+      console.log("userData", userData);
+      console.log("userData.data.profileImage", userData.data.profileImage.url);
       setProfile(userData.data);
 
       setTempProfile({ ...userData });
       setProfileImage(userData.data.profileImage);
     } catch (error) {
-      console.log('error', error)
+      console.log("error", error);
       Alert.alert("Error", error.message || "Failed to fetch profile");
     } finally {
       setIsLoading(false);
@@ -45,7 +52,7 @@ export default function ProfileSettings() {
 
   const handleSave = async () => {
     try {
-      console.log('tempProfile', tempProfile)
+      console.log("tempProfile", tempProfile);
       const updatedProfile = await ProfileService.updateProfile(tempProfile);
       setProfile(updatedProfile);
       setModalVisible(false);
@@ -59,16 +66,16 @@ export default function ProfileSettings() {
   const pickImage = async (source) => {
     let result;
     try {
-      if (source === 'camera') {
+      if (source === "camera") {
         result = await ImagePicker.launchCameraAsync({
-          mediaTypes: ImagePicker.MediaTypeOptions.Images,
+          mediaTypes: ImagePicker.MediaType,
           allowsEditing: true,
           aspect: [4, 4],
           quality: 0.7,
         });
       } else {
         result = await ImagePicker.launchImageLibraryAsync({
-          mediaTypes: ImagePicker.MediaTypeOptions.Images,
+          mediaTypes: ImagePicker.MediaType,
           allowsEditing: true,
           aspect: [4, 4],
           quality: 0.7,
@@ -77,13 +84,15 @@ export default function ProfileSettings() {
 
       if (!result.canceled) {
         const formData = new FormData();
-        formData.append('profileImage', {
+        formData.append("profileImage", {
           uri: result.assets[0].uri,
-          type: 'image/jpeg',
-          name: 'profile.jpg'
+          type: "image/jpeg",
+          name: "profile.jpg",
         });
 
-        const updatedProfile = await ProfileService.updateProfileImage(formData);
+        const updatedProfile = await ProfileService.updateProfileImage(
+          formData
+        );
         setProfileImage(updatedProfile.profileImage);
         setImageModalVisible(false);
       }
@@ -103,8 +112,8 @@ export default function ProfileSettings() {
           <Text style={styles.incompleteProfileText}>
             Complete your profile to personalize your experience
           </Text>
-          <Button 
-            mode="contained" 
+          <Button
+            mode="contained"
             onPress={() => setModalVisible(true)}
             style={styles.completeProfileBtn}
           >
@@ -132,8 +141,8 @@ export default function ProfileSettings() {
           <Avatar.Image
             size={100}
             source={
-           profileImage 
-                ? { uri: profileImage.url } 
+              profileImage
+                ? { uri: profileImage.url }
                 : "https://cdn-icons-png.flaticon.com/512/149/149071.png"
             }
           />
@@ -147,9 +156,6 @@ export default function ProfileSettings() {
           />
         )}
         <Text style={styles.title}>{profile?.name || "User"}</Text>
-        <Text style={styles.subtitle}>
-          Joined {new Date(profile?.createdAt).toLocaleDateString()}
-        </Text>
       </View>
 
       {renderProfileStatus()}
@@ -205,8 +211,8 @@ export default function ProfileSettings() {
 
       {/* Update Profile Button */}
       <View style={styles.updateButtonContainer}>
-        <Button 
-          mode="contained" 
+        <Button
+          mode="contained"
           onPress={() => setModalVisible(true)}
           disabled={!profile}
         >
@@ -228,7 +234,7 @@ export default function ProfileSettings() {
               mode="flat"
               style={styles.input}
               placeholder="Full Name"
-              value={tempProfile?.name || ''}
+              value={tempProfile?.name || ""}
               onChangeText={(text) =>
                 setTempProfile((prev) => ({ ...prev, name: text }))
               }
@@ -237,7 +243,7 @@ export default function ProfileSettings() {
               mode="flat"
               style={styles.input}
               placeholder="Mobile Number"
-              value={tempProfile?.mobile || ''}
+              value={tempProfile?.mobile || ""}
               keyboardType="phone-pad"
               onChangeText={(text) =>
                 setTempProfile((prev) => ({ ...prev, mobile: text }))
@@ -247,7 +253,7 @@ export default function ProfileSettings() {
               mode="flat"
               style={styles.input}
               placeholder="Email Address"
-              value={tempProfile?.email || ''}
+              value={tempProfile?.email || ""}
               keyboardType="email-address"
               onChangeText={(text) =>
                 setTempProfile((prev) => ({ ...prev, email: text }))
@@ -284,23 +290,23 @@ export default function ProfileSettings() {
           <View style={styles.imageModalContent}>
             <Text style={styles.modalTitle}>Select Profile Picture</Text>
             <View style={styles.imagePickerOptions}>
-              <TouchableOpacity 
-                style={styles.imagePickerButton} 
-                onPress={() => pickImage('camera')}
+              <TouchableOpacity
+                style={styles.imagePickerButton}
+                onPress={() => pickImage("camera")}
               >
                 <List.Icon icon="camera" />
                 <Text>Take Photo</Text>
               </TouchableOpacity>
-              <TouchableOpacity 
-                style={styles.imagePickerButton} 
-                onPress={() => pickImage('library')}
+              <TouchableOpacity
+                style={styles.imagePickerButton}
+                onPress={() => pickImage("library")}
               >
                 <List.Icon icon="image" />
                 <Text>Choose from Library</Text>
               </TouchableOpacity>
             </View>
-            <Button 
-              mode="outlined" 
+            <Button
+              mode="outlined"
               onPress={() => setImageModalVisible(false)}
               style={styles.cancelButton}
             >
@@ -404,32 +410,32 @@ const styles = StyleSheet.create({
     borderColor: "#f44336",
   },
   incompleteProfileContainer: {
-    backgroundColor: '#f0f0f0',
+    backgroundColor: "#f0f0f0",
     padding: 15,
     borderRadius: 10,
-    alignItems: 'center',
+    alignItems: "center",
     marginHorizontal: 10,
     marginTop: 10,
   },
   incompleteProfileText: {
-    textAlign: 'center',
+    textAlign: "center",
     marginBottom: 10,
-    color: '#333',
+    color: "#333",
   },
   completeProfileBtn: {
-    width: '80%',
+    width: "80%",
   },
   imagePickerOptions: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
+    flexDirection: "row",
+    justifyContent: "space-around",
     marginVertical: 20,
   },
   imagePickerButton: {
-    alignItems: 'center',
+    alignItems: "center",
   },
   loadingContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  }
+    justifyContent: "center",
+    alignItems: "center",
+  },
 });

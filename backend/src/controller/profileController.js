@@ -157,6 +157,7 @@ const profileController = {
           loyaltyPoints: customer.loyaltyPoints,
           orderHistory: customer.orderHistory,
           wishlist: customer.wishlist,
+          cretedAt: customer.createdAt,
         },
       });
     } catch (error) {
