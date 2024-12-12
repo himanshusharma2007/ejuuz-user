@@ -157,7 +157,7 @@ const HomeStack = () => {
         name="OrderStatus"
         component={OrderStatus}
         options={{
-          headerShown: true,
+          headerShown: false,
           headerTitleAlign: "center",
           title: "Order Status",
         }}
@@ -425,7 +425,8 @@ function getTabbarVisibility(route) {
     routeName === "WalletTransactionPin" ||
     routeName === "PaymentDone" ||
     routeName === "Auth" ||
-    routeName === "OtpPage"
+    routeName === "OtpPage"  ||
+    routeName === "Cart"
   ) {
     return "none";
   }

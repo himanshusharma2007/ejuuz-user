@@ -1,3 +1,4 @@
+import React, { useEffect, useState } from "react";
 import {
   Image,
   ScrollView,
@@ -7,62 +8,85 @@ import {
   View,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
-import React, { useEffect, useState } from "react";
 import { Button, Icon, Surface } from "react-native-paper";
-import { useSelector } from "react-redux";
+import { getCart } from "../../../service/cartService"; // Importing cart service
 
 export default function Checkout() {
   const navigation = useNavigation();
+  const [cartItems, setCartItems] = useState([]);
   const [totalitemPrice, setTotalitemPrice] = useState(0);
-  const [convenienceFee, setConvenienceFee] = useState(1.0); // Set a default convenience fee
-  const processdata = useSelector((state) => state.cart.items);
-
-  console.log("processdata", processdata);
-
-  const totalitemprice = () => {
-    let calculatedPrice = 0;
-    processdata.map((item) => {
-      calculatedPrice +=
-        item.quantity * parseFloat(item.price.replace("R ", ""));
-    });
-    setTotalitemPrice(calculatedPrice);
-  };
+  const [totalQuantity, setTotalQuantity] = useState(0);
+  const [convenienceFee, setConvenienceFee] = useState(50.0);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    totalitemprice();
-  }, [processdata]);
+    const fetchCartData = async () => {
+      try {
+        const cartData = await getCart();
+        setCartItems(cartData);
+        
+        // Calculate total price
+        const totalPrice = cartData.reduce((total, item) => 
+          total + item.price, 0);
+        setTotalitemPrice(totalPrice);
+        
+        // Calculate total quantity
+        const quantity = cartData.reduce((total, item) => 
+          total + item.quantity, 0);
+        setTotalQuantity(quantity);
+        
+        setLoading(false);
+      } catch (err) {
+        console.error("Failed to fetch cart", err);
+        setError(err);
+        setLoading(false);
+      }
+    };
 
-  const orderTotal = totalitemPrice + convenienceFee; // Calculate order total including convenience fee
+    fetchCartData();
+  }, []);
+
+  const orderTotal = totalitemPrice + convenienceFee;
+
+  // Render loading state
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <Text>Loading your cart...</Text>
+      </View>
+    );
+  }
+
+  // Render error state
+  if (error) {
+    return (
+      <View style={styles.errorContainer}>
+        <Text>Failed to load cart</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
       <ScrollView style={styles.content}>
-        {/* Order Items */}
-        {processdata.map((item) => (
-          <Surface key={item.id} style={styles.itemCard}>
+        {/* Cart Items List */}
+        {cartItems.map((item) => (
+          <Surface key={item._id} style={styles.itemCard}>
             <View style={styles.itemContainer}>
               <View style={styles.imageContainer}>
-                <Image source={{ uri: item.image }} style={styles.itemImage} />
+                <Image 
+                  source={{ uri: item.productId.images[0].url }} 
+                  style={styles.itemImage} 
+                />
               </View>
               <View style={styles.itemDetails}>
-                <Text style={styles.itemName}>{item.name}</Text>
-                <View style={styles.ratingContainer}>
-                  <Text>{item.rating}</Text>
-                </View>
+                <Text style={styles.itemName}>{item.productId.name}</Text>
                 <View style={styles.priceContainer}>
-                  <Text style={styles.price}> {item.price}</Text>
-                  <Text style={styles.discount}>upto 33% off</Text>
+                  <Text style={styles.price}>R {item.price.toFixed(2)}</Text>
+                  <Text style={styles.discount}>Qty: {item.quantity}</Text>
                 </View>
               </View>
-            </View>
-            <View style={styles.orderTotal}>
-              <Text style={styles.orderTotalText}>Total Order (1kg) :</Text>
-              <Text style={styles.orderTotalAmount}>
-                R
-                {(
-                  item.quantity * parseFloat(item.price.replace("R ", ""))
-                ).toFixed(2)}
-              </Text>
             </View>
           </Surface>
         ))}
@@ -75,6 +99,13 @@ export default function Checkout() {
             <Text style={styles.paymentLabel}>Order Amount</Text>
             <Text style={styles.paymentAmount}>
               R {totalitemPrice.toFixed(2)}
+            </Text>
+          </View>
+
+          <View style={styles.paymentRow}>
+            <Text style={styles.paymentLabel}>Total Quantity</Text>
+            <Text style={styles.paymentAmount}>
+              {totalQuantity} Items
             </Text>
           </View>
 
@@ -108,20 +139,16 @@ export default function Checkout() {
               <Text style={styles.viewDetails}>View Details</Text>
             </TouchableOpacity>
           </View>
-          {/* <Link href={"/home/payment"}> */}
-          <Button
+          <TouchableOpacity
+            style={styles.proceedButtonContainer}
             onPress={() =>
               navigation.navigate("Payment", {
                 orderTotal: orderTotal.toFixed(2),
               })
             }
-            mode="contained"
-            style={styles.proceedButton}
-            labelStyle={styles.proceedButtonText}
           >
-            Proceed to Payment
-          </Button>
-          {/* </Link> */}
+            <Text style={styles.proceedButtonText}>Proceed to Payment</Text>
+          </TouchableOpacity>
         </View>
       </Surface>
     </View>
@@ -250,7 +277,7 @@ const styles = StyleSheet.create({
   knowMore: {
     color: "#007AFF",
     marginLeft: 8,
-    fontSize: 14,
+    fontSize: 10,
   },
   paymentAmount: {
     fontSize: 16,
@@ -287,12 +314,26 @@ const styles = StyleSheet.create({
     color: "#007AFF",
     marginTop: 4,
   },
-  proceedButton: {
+  proceedButtonContainer: {
     backgroundColor: "#003366",
     paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 8,
   },
   proceedButtonText: {
-    fontSize: 16,
+    color: "#fff",
+    fontSize: 14,
+    borderRadius: 0,
     fontWeight: "bold",
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });

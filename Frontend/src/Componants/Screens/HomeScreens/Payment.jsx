@@ -1,17 +1,49 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { View, StyleSheet, TouchableOpacity, ScrollView } from "react-native";
 import { Text, Surface, Button } from "react-native-paper";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import { useNavigation, useRoute } from "@react-navigation/native";
+import { useSelector } from 'react-redux';
+import AuthService from '../../../service/authService'; // Adjust the import path as needed
 
 export default function Payment() {
   const navigation = useNavigation();
   const route = useRoute();
-  const { orderTotal } = route.params;
-  const [selectedPayment, setSelectedPayment] = useState("wallet");
-  const [packing, setPacking] = useState(10);
+  
+  // Fetch cart items from Redux store
+  const cartItems = useSelector((state) => state.cart.items);
 
-  // Ensure orderTotal is a number
+  const [userData, setUserData] = useState(null);
+  const [walletBalance, setWalletBalance] = useState(0);
+
+  // Fetch user data when component mounts
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const response = await AuthService.getCurrentUser();
+        if (response && response.user) {
+          setUserData(response.user);
+          setWalletBalance(response.user.walletBalance || 0);
+        }
+      } catch (error) {
+        console.error('Error fetching user data:', error);
+        // Optionally set a default balance or show an error
+        setWalletBalance(0);
+      }
+    };
+
+    fetchUserData();
+  }, []);
+
+  // Calculate order total from cart items
+  const orderTotal = cartItems.reduce((total, item) => {
+    return total + (item.price * item.quantity);
+  }, 0);
+
+  const [selectedPayment, setSelectedPayment] = useState("wallet");
+  const [packing] = useState(10);
+
+  // Ensure values are numbers
   const orderTotalNum = parseFloat(orderTotal) || 0;
   const packingNum = parseFloat(packing) || 0;
 
@@ -23,19 +55,19 @@ export default function Payment() {
       id: "wallet",
       name: "Wallet",
       icon: "wallet",
-      details: "********2109",
+      details: `Balance: R${walletBalance.toFixed(2)}`,
     },
-    // Add more payment methods if necessary
   ];
 
   const handletransitionPin = () => {
-    if (paymentMethods && totalPaymentWithPacking) {
+    if (paymentMethods && totalPaymentWithPacking && walletBalance >= totalPaymentWithPacking) {
       navigation.navigate("TransactionPin", {
         orderItem: totalPaymentWithPacking,
       });
     }
   };
 
+  // Rest of the component remains the same as in the previous implementation
   return (
     <View style={styles.container}>
       <ScrollView style={styles.content}>
@@ -94,21 +126,36 @@ export default function Payment() {
         </View>
       </ScrollView>
 
-      {/* Continue Button */}
+      {/* Continue Button or Insufficient Balance Message */}
       <Surface style={styles.bottomBar}>
-        <Button
-          mode="contained"
-          style={styles.continueButton}
-          labelStyle={styles.continueButtonText}
-          onPress={handletransitionPin}
-        >
-          Continue
-        </Button>
+        {walletBalance >= totalPaymentWithPacking ? (
+          <Button
+            mode="contained"
+            style={styles.continueButton}
+            labelStyle={styles.continueButtonText}
+            onPress={handletransitionPin}
+          >
+            Continue
+          </Button>
+        ) : (
+          <View style={styles.insufficientBalanceContainer}>
+            <Text style={styles.insufficientBalanceText}>
+              Insufficient balance. Please add money to your wallet.
+            </Text>
+            <Button
+              mode="outlined"
+              style={styles.addMoneyButton}
+              labelStyle={styles.addMoneyButtonText}
+              onPress={() => navigation.navigate('AddMoney')}
+            >
+              Add Money
+            </Button>
+          </View>
+        )}
       </Surface>
     </View>
   );
 }
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -210,5 +257,24 @@ const styles = StyleSheet.create({
   continueButtonText: {
     fontSize: 16,
     fontWeight: "bold",
+  },
+  insufficientBalanceContainer: {
+    backgroundColor: '#ffebee', // Light red background
+    padding: 16,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  insufficientBalanceText: {
+    color: '#d32f2f', // Dark red text
+    fontSize: 16,
+    textAlign: 'center',
+    marginBottom: 12,
+  },
+  addMoneyButton: {
+    borderColor: '#d32f2f',
+    borderWidth: 1,
+  },
+  addMoneyButtonText: {
+    color: '#d32f2f',
   },
 });
