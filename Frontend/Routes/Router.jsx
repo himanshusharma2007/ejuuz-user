@@ -426,7 +426,9 @@ function getTabbarVisibility(route) {
     routeName === "PaymentDone" ||
     routeName === "Auth" ||
     routeName === "OtpPage"  ||
-    routeName === "Cart"
+    routeName === "Cart" ||
+    routeName === "Orders" 
+
   ) {
     return "none";
   }

@@ -214,3 +214,94 @@ exports.placeOrder = async (req, res) => {
         });
     }
 };
+
+
+// Get all orders for a specific customer
+exports.getAllCustomerOrders = async (req, res) => {
+  try {
+    console.log('Starting getAllCustomerOrders function');
+    const customerId = req.user._id;
+    console.log(`Fetching orders for customer ID: ${customerId}`);
+
+    // Find all orders for the specific customer and populate related fields
+    const orders = await Order.find({ customerId })
+      .populate('merchantId', 'name') // Populate merchant details
+      .populate('products.productId', 'name price images') // Populate product details
+      .populate('transactionId', 'status') // Populate transaction details
+      .sort({ orderDate: -1 }); // Sort by most recent orders first
+
+    console.log(`Number of orders found: ${orders.length}`);
+
+    if (!orders || orders.length === 0) {
+      console.log('No orders found for this customer');
+      return res.status(404).json({
+        status: 'success',
+        message: 'No orders found for this customer',
+        data: []
+      });
+    }
+
+    console.log('Successfully retrieved customer orders');
+    res.status(200).json({
+      status: 'success',
+      results: orders.length,
+      data: orders
+    });
+  } catch (error) {
+    console.error('Error in getAllCustomerOrders:', error);
+    // Use the custom error handling method from the model
+    const errors = Order.handleValidationError(error);
+    
+    res.status(500).json({
+      status: 'error',
+      message: 'Error retrieving customer orders',
+      errors
+    });
+  } finally {
+    console.log('Completed getAllCustomerOrders function');
+  }
+};
+
+// Get a specific order by its ID
+exports.getOrderById = async (req, res) => {
+  try {
+    console.log('Starting getOrderById function');
+    const { orderId } = req.params;
+    console.log(`Searching for order with ID: ${orderId}`);
+
+    // Find the order and populate related fields
+    const order = await Order.findOne({ orderId })
+      .populate('customerId', 'name email') // Populate customer details
+      .populate('merchantId', 'name') // Populate merchant details
+      .populate('products.productId', 'name price') // Populate product details
+      .populate('transactionId', 'status paymentMethod'); // Populate transaction details
+
+    console.log('Order lookup completed');
+
+    if (!order) {
+      console.log('Order not found');
+      return res.status(404).json({
+        status: 'error',
+        message: 'Order not found'
+      });
+    }
+
+    console.log('Successfully retrieved order details');
+    res.status(200).json({
+      status: 'success',
+      data: order
+    });
+  } catch (error) {
+    console.error('Error in getOrderById:', error);
+    // Use the custom error handling method from the model
+    const errors = Order.handleValidationError(error);
+    
+    res.status(500).json({
+      status: 'error',
+      message: 'Error retrieving order',
+      errors
+    });
+  } finally {
+    console.log('Completed getOrderById function');
+  }
+};
