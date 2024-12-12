@@ -42,6 +42,15 @@ exports.placeOrder = async (req, res) => {
                 });
             }
 
+            // Stock validation check with additional check for zero stock
+            if (product.stock <= 0) {
+                await session.abortTransaction();
+                session.endSession();
+                return res.status(400).json({
+                    error: `Product ${product.name} is out of stock`
+                });
+            }
+
             // Stock validation check
             if (product.stock < item.quantity) {
                 await session.abortTransaction();
@@ -95,10 +104,14 @@ exports.placeOrder = async (req, res) => {
             await order.save({ session });
             orders.push(order);
 
-            // Update product stock and add order to customer's order history
+            // Update product stock and sales count, and add order to customer's order history
             for (const prod of products) {
                 // Reduce product stock
                 prod.product.stock -= prod.quantity;
+                
+                // Increase sales count
+                prod.product.salesCount += prod.quantity;
+                
                 await prod.product.save({ session });
             }
 
