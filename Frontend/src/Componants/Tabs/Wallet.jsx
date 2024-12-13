@@ -11,11 +11,15 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useNavigation } from "@react-navigation/native";
+import { useDispatch } from "react-redux";
+import { selectUser } from "../../../redux/features/userSlice";
 
 export default function Wallet() {
   const [activeTab, setActiveTab] = useState("Account");
   const navigation = useNavigation();
-
+  const dispatch= useDispatch()
+  const user = dispatch(selectUser)
+  console.log("====use in wallet===== ",user)
   // Mock Data
   const balance = 14235.34;
 
