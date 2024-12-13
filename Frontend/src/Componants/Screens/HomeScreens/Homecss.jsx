@@ -87,8 +87,22 @@ export const styles = StyleSheet.create({
     marginLeft: 12,
   },
   iconButton: {
-    marginLeft: 12,
-    padding: 8,
+    position: "relative",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  badge: {
+    padding: 3,
+    borderRadius: 50,
+    width: 16,
+    height: 16,
+    textAlign: "center",
+    position: "absolute",
+    top: -4,
+    right: -8,
+    backgroundColor: "red",
+    color: "white",
+    fontSize: 10,
   },
   locationBar: {
     flexDirection: "row",
@@ -185,6 +199,7 @@ export const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     marginBottom: 16,
+    paddingHorizontal: 10,
   },
   sectionTitle: {
     fontSize: 18,
@@ -203,7 +218,7 @@ export const styles = StyleSheet.create({
   },
   categoryItem: {
     width: 90,
-    height:30,
+    height: 30,
     aspectRatio: 1,
     alignItems: "center",
     justifyContent: "center",

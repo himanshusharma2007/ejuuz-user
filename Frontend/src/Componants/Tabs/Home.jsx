@@ -30,36 +30,12 @@ import {
   getAllProducts,
 } from "../../service/productService";
 import { getAllShops } from "../../service/shopservice";
+import authService from "../../service/authService";
+import { useSelector } from "react-redux";
+import { Badge } from "react-native-paper";
+import Categories from "../Screens/HomeScreens/Categories";
 
 const { width } = Dimensions.get("window");
-
-const banners = [
-  {
-    id: "1",
-    title: "Special Offer",
-    discount: "25% OFF",
-    image:
-      "https://images.unsplash.com/photo-1598528738936-c50861cc75a9?q=80&w=1480&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    color: "#E3F2FD",
-  },
-  {
-    id: "2",
-    title: "Special Offer",
-    discount: "55% OFF",
-    image:
-      "https://images.unsplash.com/photo-1550344071-13ecada2a91d?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    color: "#E3F2FD",
-  },
-  {
-    id: "3",
-    title: "Special Offer",
-    discount: "15% OFF",
-    image:
-      "https://images.unsplash.com/photo-1498579397066-22750a3cb424?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    color: "#E3F2FD",
-  },
-  // ... other banner items
-];
 
 const recommendedProducts = [
   {
@@ -168,6 +144,9 @@ export default function Home() {
   const [productdata, setAllProducts] = useState([]);
   const [discountedProducts, setDiscountedProducts] = useState([]);
   const [shopdata, setShopdata] = useState([]);
+  const cartData = useSelector((state) => state.cart.items);
+
+  // console.log("cart data length", cartData.length);
 
   useEffect(() => {
     const fetchAllTopDiscountProduct = async () => {
@@ -208,6 +187,17 @@ export default function Home() {
     fetchAllShopdata();
   }, []);
 
+  useState(() => {
+    const fetchcurentuser = async () => {
+      try {
+        const response = await authService.getCurrentUser();
+        console.log("current user is", response);
+      } catch (error) {
+        console.error("Error fetching product data:", error);
+      }
+    };
+    fetchcurentuser();
+  }, []);
   const categories = useMemo(() => {
     const categoryMap = new Map();
 
@@ -234,11 +224,13 @@ export default function Home() {
     //   params: { item: JSON.stringify(product) },
     // });
 
-    navigation.navigate("ProductDetails", { item: JSON.stringify(product) });
+    navigation.navigate("ProductDetails", {
+      item: JSON.stringify(product._id),
+    });
   }, []);
 
   const handleDealPress = useCallback((deal) => {
-    navigation.navigate("ProductDetails", { item: JSON.stringify(deal) });
+    navigation.navigate("ProductDetails", { item: JSON.stringify(deal._id) });
   }, []);
 
   const startAutoScroll = useCallback(() => {
@@ -332,7 +324,7 @@ export default function Home() {
         <Pressable
           onPress={() =>
             navigation.navigate("ProductDetails", {
-              item: JSON.stringify(item),
+              item: JSON.stringify(item._id),
             })
           }
           style={styles.bannerContent}
@@ -415,6 +407,9 @@ export default function Home() {
                 onPress={() => navigation.navigate("Cart")}
               >
                 <Ionicons name="cart-outline" size={24} color="#FFF" />
+                {cartData.length > 0 && (
+                  <Text style={styles.badge}>{cartData.length}</Text>
+                )}
               </TouchableOpacity>
 
               {/* <TouchableOpacity
@@ -469,7 +464,7 @@ export default function Home() {
               </>
             )}
             <View style={styles.bannerDots}>
-              {banners.map((_, index) => (
+              {discountedProducts.map((_, index) => (
                 <BannerDot key={index} index={index} scrollX={scrollX} />
               ))}
             </View>
@@ -508,21 +503,27 @@ export default function Home() {
               contentContainerStyle={styles.categoryScrollContent}
             >
               {filteredCategories.map((category) => (
-                <TouchableOpacity
+                <Categories
                   key={category.category}
-                  style={[
-                    styles.categoryItem,
-                    // { backgroundColor: category.categorycolor },
-                  ]}
+                  category={category.category}
                   onPress={() => handleCategoryPress(category)}
-                  activeOpacity={0.7}
-                >
-                  {/* <Text style={styles.categoryIcon}>
-                    {category.categoryicon}
-                  </Text> */}
-                  <Text style={styles.category}>{category.category}</Text>
-                </TouchableOpacity>
+                />
               ))}
+
+              {/* <TouchableOpacity
+                   key={category.category}
+                   style={[
+                     styles.categoryItem,
+                      { backgroundColor: category.categorycolor },
+                   ]}
+                   onPress={() => handleCategoryPress(category)}
+                   activeOpacity={0.7}
+                 >
+                   <Text style={styles.categoryIcon}>
+                     {category.categoryicon}
+                   </Text>
+                   <Text style={styles.category}>{category.category}</Text>
+                 </TouchableOpacity> */}
             </ScrollView>
           </View>
         </View>
@@ -604,31 +605,45 @@ export default function Home() {
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.recommendedScrollContent}
           >
-            {recommendedProducts.map((product) => (
-              <TouchableOpacity
-                key={product.id}
-                style={styles.recommendedCard}
-                onPress={() => handleProductPress(product)}
-              >
-                <Image
-                  source={{ uri: product.image }}
-                  style={styles.recommendedImage}
-                />
-                <View style={styles.discountBadge}>
-                  <Text style={styles.discountText}>{product.discount}</Text>
-                </View>
-                <View style={styles.recommendedInfo}>
-                  <Text style={styles.recommendedName} numberOfLines={1}>
-                    {product.name}
-                  </Text>
-                  <View style={styles.priceContainer}>
-                    <Text style={styles.price}>{product.price}</Text>
-                    <Text style={styles.oldPrice}>{product.oldPrice}</Text>
+            {discountedProducts.map((product) => {
+              const imgageUri =
+                product.images[0]?.url || "https://via.placeholder.com/150";
+              return (
+                <TouchableOpacity
+                  key={product._id}
+                  style={styles.recommendedCard}
+                  onPress={() => handleProductPress(product)}
+                >
+                  <Image
+                    source={{ uri: imgageUri }}
+                    style={styles.recommendedImage}
+                  />
+                  {product.discount > 0 && (
+                    <View style={styles.discountBadge}>
+                      <Text style={styles.discountText}>
+                        {product.discount}%
+                      </Text>
+                    </View>
+                  )}
+                  <View style={styles.recommendedInfo}>
+                    <Text style={styles.recommendedName} numberOfLines={1}>
+                      {product.name}
+                    </Text>
+                    <View style={styles.priceContainer}>
+                      <Text style={styles.price}>R{product.price}</Text>
+                      <Text style={styles.oldPrice}>R{product.mrp}</Text>
+                    </View>
+                    <Text style={styles.ratingText}>
+                      {product.avgRating === 0
+                        ? `⭐ (5.0)`
+                        : product.avgRating > 0
+                        ? `⭐ (${product.avgRating.toFixed(1)})`
+                        : ""}
+                    </Text>
                   </View>
-                  <Text style={styles.ratingText}>{product.rating}</Text>
-                </View>
-              </TouchableOpacity>
-            ))}
+                </TouchableOpacity>
+              );
+            })}
           </ScrollView>
         </View>
 
@@ -641,62 +656,35 @@ export default function Home() {
             </TouchableOpacity>
           </View>
           <View style={styles.dealsGrid}>
-            {weeklyDeals.map((deal) => (
+            {[...discountedProducts].reverse().map((deal) => (
               <TouchableOpacity
-                key={deal.id}
+                key={deal._id}
                 style={styles.dealCard}
                 onPress={() => handleDealPress(deal)}
               >
-                <Image source={{ uri: deal.image }} style={styles.dealImage} />
+                <Image
+                  source={{
+                    uri:
+                      deal.images[0]?.url || "https://via.placeholder.com/150",
+                  }}
+                  style={styles.dealImage}
+                />
                 <View style={styles.dealInfo}>
                   <Text style={styles.dealName} numberOfLines={2}>
                     {deal.name}
                   </Text>
                   <View style={styles.dealPriceContainer}>
-                    <Text style={styles.dealPrice}>{deal.price}</Text>
-                    <Text style={styles.dealOldPrice}>{deal.oldPrice}</Text>
+                    <Text style={styles.dealPrice}>R{deal.price}</Text>
+                    <Text style={styles.dealOldPrice}>R{deal.mrp}</Text>
                   </View>
                   <View style={styles.dealBottom}>
-                    <Text style={styles.saveAmount}>
-                      Save {deal.saveAmount}
-                    </Text>
-                    <Text style={styles.validUntil}>{deal.validUntil}</Text>
+                    <Text style={styles.saveAmount}>{deal.discount}% OFF</Text>
+                    {/* <Text style={styles.validUntil}>{deal.discount}</Text> */}
                   </View>
                 </View>
               </TouchableOpacity>
             ))}
           </View>
-        </View>
-
-        {/* Recently Viewed Section */}
-        <View style={styles.recentlyViewedSection}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Recently Viewed</Text>
-            <TouchableOpacity>
-              <Text style={styles.seeAllText}>Clear all</Text>
-            </TouchableOpacity>
-          </View>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.recentlyViewedContent}
-          >
-            {/* {productdata.slice(0, 5).map((item) => (
-              <TouchableOpacity
-                key={item.id}
-                style={styles.recentlyViewedItem}
-                onPress={() => handleProductPress(item)}
-              >
-                <Image
-                  source={{ uri: item.image }}
-                  style={styles.recentlyViewedImage}
-                />
-                <Text style={styles.recentlyViewedName} numberOfLines={1}>
-                  {item.name}
-                </Text>
-              </TouchableOpacity>
-            ))} */}
-          </ScrollView>
         </View>
       </ScrollView>
     </SafeAreaView>

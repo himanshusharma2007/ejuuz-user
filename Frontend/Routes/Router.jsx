@@ -425,10 +425,10 @@ function getTabbarVisibility(route) {
     routeName === "WalletTransactionPin" ||
     routeName === "PaymentDone" ||
     routeName === "Auth" ||
-    routeName === "OtpPage"  ||
+    routeName === "OtpPage" ||
     routeName === "Cart" ||
-    routeName === "Orders" 
-
+    routeName === "Orders" ||
+    routeName === "SearchTab"
   ) {
     return "none";
   }

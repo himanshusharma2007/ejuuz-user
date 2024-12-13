@@ -15,10 +15,10 @@ import { Text, Button, Surface, Chip } from "react-native-paper";
 import { useDispatch, useSelector } from "react-redux";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
-import { 
-  addToCartAsync, 
-  addToWishlistAsync, 
-  removeFromWishlistAsync 
+import {
+  addToCartAsync,
+  addToWishlistAsync,
+  removeFromWishlistAsync,
 } from "../../../../redux/features/cartSlice";
 import { getProductById } from "../../../service/productService";
 import { ToastAndroid } from "react-native";
@@ -35,7 +35,7 @@ export default function ProductDetails() {
   const route = useRoute();
   const { item } = route.params;
   const dispatch = useDispatch();
-  const [productData, setProductData] = useState({});
+  const [productData, setProductData] = useState(null);
 
   // Get wishlist from Redux store
   const wishlist = useSelector((state) => state.cart.wishlist);
@@ -48,14 +48,15 @@ export default function ProductDetails() {
     );
   }
 
-  const productdata = JSON.parse(item);
-  const productId = productdata._id;
+  const productdataWithId = JSON.parse(item);
+  // console.log("productData", JSON.stringify(item));
+  console.log("productId", productdataWithId);
 
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        const response = await getProductById(productId);
-        console.log("response", response);
+        const response = await getProductById(productdataWithId);
+        console.log("response", response.product);
         setProductData(response.product);
       } catch (error) {
         console.error("Error fetching product data:", error);
@@ -63,11 +64,11 @@ export default function ProductDetails() {
     };
 
     fetchProduct();
-  }, [productId]);
+  }, [productdataWithId]);
 
-  useEffect(() => {
-    setQuantity(productdata.quantity);
-  }, [productdata.quantity]);
+  // useEffect(() => {
+  //   setQuantity(productData?.quantity || null);
+  // }, [productData?.quantity]);
 
   // Handle Add to Cart
   const handleAddToCart = async () => {
@@ -83,8 +84,10 @@ export default function ProductDetails() {
   // Handle Wishlist Toggle
   const handleWishlistToggle = async () => {
     try {
-      const isInWishlist = wishlist.some(item => item._id === productData._id);
-      
+      const isInWishlist = wishlist.some(
+        (item) => item._id === productData?._id
+      );
+
       if (isInWishlist) {
         // Remove from wishlist
         await dispatch(removeFromWishlistAsync(productData)).unwrap();
@@ -101,20 +104,20 @@ export default function ProductDetails() {
   };
 
   // Safely create carouselImages
-  const carouselImages = Array.isArray(productData.images)
-    ? productData.images.map((img) => ({
+  const carouselImages = Array.isArray(productData?.images)
+    ? productData?.images.map((img) => ({
         id: String(img._id),
         image: img.url || img,
       }))
     : [];
 
   // Log each id and image
-  carouselImages.forEach((imgObj) => {
-    console.log("id:", imgObj.id);
-    console.log("image:", imgObj.image);
-  });
+  // carouselImages.forEach((imgObj) => {
+  //   console.log("id:", imgObj.id);
+  //   console.log("image:", imgObj.image);
+  // });
 
-  const specifications = productData.specifications;
+  const specifications = productData?.specifications;
 
   const handleScroll = (event) => {
     const scrollPosition = event.nativeEvent.contentOffset.x;
@@ -139,7 +142,7 @@ export default function ProductDetails() {
     if (activeTab === "description") {
       return (
         <View style={styles.tabContentContainer}>
-          <Text style={styles.description}>{productdata.description}</Text>
+          <Text style={styles.description}>{productData?.description}</Text>
           <View>
             {specifications &&
               Object.entries(specifications).some(
@@ -164,7 +167,7 @@ export default function ProductDetails() {
           <View style={styles.tagsContainer}>
             <Text style={styles.sectionTitle}>Tags</Text>
             <View style={styles.tagChipsContainer}>
-              {productdata.tags.map((tag) => (
+              {productData?.tags.map((tag) => (
                 <Chip key={tag} style={styles.tagChip}>
                   #{tag}
                 </Chip>
@@ -184,16 +187,16 @@ export default function ProductDetails() {
           </TouchableOpacity>
         </View>
         <Text style={styles.ratingsText}>
-          {productdata.ratings.length === 0
+          {productData?.ratings.length === 0
             ? "No Ratings"
-            : productdata.ratings}
+            : productData?.ratings}
         </Text>
       </View>
     );
   };
 
   // Check if product is in wishlist
-  const isInWishlist = wishlist.some(item => item._id === productData._id);
+  const isInWishlist = wishlist.some((item) => item._id === productData?._id);
 
   return (
     <View style={styles.container}>
@@ -224,8 +227,8 @@ export default function ProductDetails() {
               <Image
                 source={require("../../../images/wishlist.png")}
                 style={[
-                  styles.heartIcon, 
-                  { tintColor: isInWishlist ? 'red' : 'rgba(0,0,0,0.4)' }
+                  styles.heartIcon,
+                  { tintColor: isInWishlist ? "red" : "rgba(0,0,0,0.4)" },
                 ]}
               />
             </TouchableOpacity>
@@ -258,33 +261,33 @@ export default function ProductDetails() {
         <View style={styles.contentContainer}>
           {/* Store Info */}
           <View style={styles.storeContainer}>
-            <Text style={styles.storeName}>{productdata.shopId.name}</Text>
+            <Text style={styles.storeName}>{productData?.shopId.name}</Text>
           </View>
 
           {/* Product Info */}
           <View style={styles.productInfoContainer}>
             <View style={styles.productTitleContainer}>
-              <Text style={styles.productTitle}>{productdata.name}</Text>
+              <Text style={styles.productTitle}>{productData?.name}</Text>
               <Text style={styles.stockStatus}>
-                {productdata.stock.length === 0
+                {productData?.stock.length === 0
                   ? "Out of Stock"
-                  : `Stock: ${productdata.stock}`}
+                  : `Stock: ${productData?.stock}`}
               </Text>
             </View>
 
             <View style={styles.priceContainer}>
-              {productdata.discount > 0 && (
+              {productData?.discount > 0 && (
                 <View style={styles.discountBadge}>
                   <Ionicons name="arrow-down" size={16} color="#fff" />
                   <Text style={styles.discountText}>
-                    {productdata.discount}%
+                    {productData?.discount}%
                   </Text>
                 </View>
               )}
-              {productdata.mrp && (
-                <Text style={styles.originalPrice}>R {productdata.mrp}</Text>
+              {productData?.mrp && (
+                <Text style={styles.originalPrice}>R {productData?.mrp}</Text>
               )}
-              <Text style={styles.finalPrice}>R {productdata.price}</Text>
+              <Text style={styles.finalPrice}>R {productData?.price}</Text>
             </View>
           </View>
 
