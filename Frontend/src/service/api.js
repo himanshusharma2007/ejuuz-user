@@ -3,7 +3,7 @@ import { Alert } from "react-native";
 
 // Create an Axios instance with base URL
 const api = axios.create({
-  baseURL: "http://192.168.1.24:3000/api",
+  baseURL: "http://192.168.103.88:3000/api",
   withCredentials: true,
 });
 

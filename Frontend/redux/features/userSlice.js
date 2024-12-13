@@ -2,42 +2,40 @@ import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import AuthService from '../../src/service/authService';
 
 const initialState = {
-  name: '',
-  email: '',
+  user: null, // Single state object to store user data
   isAuthenticated: false,
-  userData: null, // Add this to store the full user data
-  status: 'idle', // Add status for async operation
-  error: null // Add error handling
+  status: 'idle', // For async operation status
+  error: null // For error handling
 };
 
-export const fetchUser = createAsyncThunk('user/fetchUser', async (_, { rejectWithValue }) => {
-  try {
-    console.log('Fetching user data...');
-    const userData = await AuthService.getCurrentUser();
-    console.log('User data fetched successfully:', userData);
-    return userData;
-  } catch (error) {
-    console.error('Error fetching user data:', error.response?.data || errorr);
-    return rejectWithValue(error.response?.data || error.message);
+export const fetchUser = createAsyncThunk(
+  'user/fetchUser',
+  async (_, { rejectWithValue }) => {
+    try {
+      console.log('Fetching user data...');
+      const userData = await AuthService.getCurrentUser();
+      console.log('------User data fetched successfully-------:', userData.user);
+      return userData.user; // Return the fetched user data
+    } catch (error) {
+      console.error('Error fetching user data:', error.response?.data || error.message);
+      return rejectWithValue(error.response?.data || error.message); // Properly handle errors
+    }
   }
-});
+);
 
 const userSlice = createSlice({
   name: 'user',
   initialState,
   reducers: {
     setUser: (state, action) => {
-      const { name, email } = action.payload;
-      state.name = name;
-      state.email = email;
+      console.log('===========Setting user:============', action.payload);
+      state.user = action.payload; // Set all user data in a single state
       state.isAuthenticated = true;
       console.log('User set successfully:', action.payload);
     },
     clearUser: (state) => {
-      state.name = '';
-      state.email = '';
+      state.user = null; // Clear user data
       state.isAuthenticated = false;
-      state.userData = null;
       console.log('User cleared successfully.');
     },
   },
@@ -49,13 +47,9 @@ const userSlice = createSlice({
       })
       .addCase(fetchUser.fulfilled, (state, action) => {
         state.status = 'succeeded';
-        // Store the full user data
-        state.userData = action.payload;
-        // Also update the basic user info
-        state.name = action.payload.name;
-        state.email = action.payload.email;
+        state.user = action.payload; // Store user data in a single state
         state.isAuthenticated = true;
-        console.log('User data set successfully in state:', state.userData);
+        console.log('User data set successfully in state:', state.user);
       })
       .addCase(fetchUser.rejected, (state, action) => {
         state.status = 'failed';
@@ -65,10 +59,11 @@ const userSlice = createSlice({
   }
 });
 
-// Export actions and selectors remain the same
+// Export actions and selectors
 export const { setUser, clearUser } = userSlice.actions;
-export const selectUser = (state) => state.user;
+export const selectUser = (state) => {
+  return state.user.user;
+};
 export const selectIsAuthenticated = (state) => state.user.isAuthenticated;
-export const selectUserData = (state) => state.user.userData; // New selector for full user data
 
 export default userSlice.reducer;

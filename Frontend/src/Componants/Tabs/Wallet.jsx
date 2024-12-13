@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   StyleSheet,
   View,
@@ -11,14 +11,19 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useNavigation } from "@react-navigation/native";
+import { useDispatch, useSelector } from "react-redux";
+import { selectUser } from "../../../redux/features/userSlice";
 
 export default function Wallet() {
   const [activeTab, setActiveTab] = useState("Account");
+  const [balance, setBalance] = useState(0);
   const navigation = useNavigation();
-
+  const user = useSelector(selectUser);
+  console.log("user in wallet ",user);
   // Mock Data
-  const balance = 14235.34;
-
+ useEffect(()=>{
+  setBalance(user?.walletBalance || 0);
+ },[user.walletBalance])
   const recentContacts = [
     { id: 1, name: "Ali", avatar: "🤠" },
     { id: 2, name: "Steve", avatar: "👨🏾" },

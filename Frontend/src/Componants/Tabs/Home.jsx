@@ -615,7 +615,7 @@ export default function Home() {
                   }
                 >
                   <Image
-                    source={{ uri: imgageUri }}
+                    source={{ uri: item.products[0]?.images[0]?.url || imgageUri }}
                     style={styles.recommendedImage}
                   />
                   {/* <View style={styles.discountBadge}>
