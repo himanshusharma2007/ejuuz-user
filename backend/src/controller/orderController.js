@@ -228,7 +228,7 @@ exports.getAllCustomerOrders = async (req, res) => {
       .populate('merchantId', 'name') // Populate merchant details
       .populate('products.productId', 'name price images') // Populate product details
       .populate('transactionId', 'status') // Populate transaction details
-      .sort({ orderDate: -1 }); // Sort by most recent orders first
+      .sort({ createdAt: -1 }); // Sort by most recent orders first
 
     console.log(`Number of orders found: ${orders.length}`);
 
