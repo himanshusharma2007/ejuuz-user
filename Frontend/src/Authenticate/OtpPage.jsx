@@ -49,7 +49,6 @@ const OtpPage = () => {
   const verifyOTP = async () => {
     const otpValue = otp.join("");
 
-    // Simple validation
     if (otpValue.length !== 6) {
       setError("Please enter a complete 6-digit code");
       return;
@@ -58,9 +57,9 @@ const OtpPage = () => {
     try {
       const res = await authService.verifyOtp(otpValue);
       console.log(res);
-
-      navigation.navigate("/");
       setIsVerified(true);
+      await AsyncStorage.setItem("isLoggedIn", JSON.stringify(true));
+      navigation.navigate("/"); // Navigate to Router instead of "/"
       setError("");
     } catch (error) {
       setError(error.message || "Invalid OTP. Please try again.");
