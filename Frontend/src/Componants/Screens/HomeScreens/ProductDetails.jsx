@@ -8,142 +8,113 @@ import {
   Dimensions,
   FlatList,
   StatusBar,
+  Modal,
+  Pressable,
 } from "react-native";
-import {
-  Card,
-  Text,
-  Button,
-  IconButton,
-  Surface,
-  Chip,
-  Icon,
-  Avatar,
-  Rating,
-} from "react-native-paper";
+import { Text, Button, Surface, Chip } from "react-native-paper";
 import { useDispatch, useSelector } from "react-redux";
-import {
-  AddItemtoWishlist,
-  addToCart,
-  decrement,
-  incrament,
-} from "../../../../redux/features/cartSlice";
 import { Ionicons } from "@expo/vector-icons";
-import { styles } from "./ProductDetailscss";
 import { useNavigation, useRoute } from "@react-navigation/native";
+import { 
+  addToCartAsync, 
+  addToWishlistAsync, 
+  removeFromWishlistAsync 
+} from "../../../../redux/features/cartSlice";
+import { getProductById } from "../../../service/productService";
+import { ToastAndroid } from "react-native";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
 export default function ProductDetails() {
-  const [quantity, setQuantity] = useState(0);
+  const [quantity, setQuantity] = useState(1);
   const [activeTab, setActiveTab] = useState("description");
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [ImageModel, setImageModel] = useState(false);
   const flatListRef = useRef(null);
   const navigation = useNavigation();
   const route = useRoute();
   const { item } = route.params;
   const dispatch = useDispatch();
+  const [productData, setProductData] = useState({});
+
+  // Get wishlist from Redux store
+  const wishlist = useSelector((state) => state.cart.wishlist);
 
   if (!item) {
     return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <Text>Loading...</Text>
+      <View style={styles.loadingContainer}>
+        <Text style={styles.loadingText}>Loading...</Text>
       </View>
     );
   }
 
   const productdata = JSON.parse(item);
+  const productId = productdata._id;
 
-  React.useEffect(() => {
+  useEffect(() => {
+    const fetchProduct = async () => {
+      try {
+        const response = await getProductById(productId);
+        console.log("response", response);
+        setProductData(response.product);
+      } catch (error) {
+        console.error("Error fetching product data:", error);
+      }
+    };
+
+    fetchProduct();
+  }, [productId]);
+
+  useEffect(() => {
     setQuantity(productdata.quantity);
   }, [productdata.quantity]);
 
-  const handleaddtocart = () => {
-    dispatch(addToCart(productdata));
+  // Handle Add to Cart
+  const handleAddToCart = async () => {
+    try {
+      await dispatch(addToCartAsync(productData)).unwrap();
+      ToastAndroid.show("Added to Cart", ToastAndroid.SHORT);
+    } catch (error) {
+      console.error("Failed to add to cart:", error);
+      ToastAndroid.show("Failed to add to cart", ToastAndroid.SHORT);
+    }
   };
 
-  const additemtowishlist = () => {
-    dispatch(AddItemtoWishlist(productdata));
-    navigation.navigate("Wishlist");
-  };
-  const handleIncreaseQuantity = () => {
-    dispatch(incrament(productdata.id));
-  };
-
-  const handleDecreaseQuantity = () => {
-    dispatch(decrement(productdata.id));
-  };
-
-  const carouselImages = [
-    { id: "1", image: "https://via.placeholder.com/150" },
-    { id: "2", image: "https://via.placeholder.com/150" },
-    { id: "3", image: "https://via.placeholder.com/150" },
-  ];
-
-  const nutritionFacts = {
-    calories: "41 kcal",
-    protein: "0.9g",
-    carbs: "9.6g",
-    fiber: "2.8g",
-    sugar: "4.7g",
-    fat: "0.2g",
-    vitamins: ["Vitamin A", "Vitamin C", "Vitamin K", "Potassium"],
+  // Handle Wishlist Toggle
+  const handleWishlistToggle = async () => {
+    try {
+      const isInWishlist = wishlist.some(item => item._id === productData._id);
+      
+      if (isInWishlist) {
+        // Remove from wishlist
+        await dispatch(removeFromWishlistAsync(productData)).unwrap();
+        ToastAndroid.show("Removed from Wishlist", ToastAndroid.SHORT);
+      } else {
+        // Add to wishlist
+        await dispatch(addToWishlistAsync(productData)).unwrap();
+        ToastAndroid.show("Added to Wishlist", ToastAndroid.SHORT);
+      }
+    } catch (error) {
+      console.error("Failed to update wishlist:", error);
+      ToastAndroid.show("Failed to update wishlist", ToastAndroid.SHORT);
+    }
   };
 
-  // Mock review data
-  const reviews = [
-    {
-      id: 1,
-      user: "Sarah Johnson",
-      avatar: "https://via.placeholder.com/40",
-      rating: 5,
-      date: "2024-03-15",
-      content: "Great quality carrots! Very fresh and sweet.",
-    },
-    {
-      id: 2,
-      user: "Mike Smith",
-      avatar: "https://via.placeholder.com/40",
-      rating: 4,
-      date: "2024-03-14",
-      content: "Good value for money. Would buy again.",
-    },
-    {
-      id: 3,
-      user: "Emily Brown",
-      avatar: "https://via.placeholder.com/40",
-      rating: 5,
-      date: "2024-03-13",
-      content: "Perfect for my salads and cooking needs.",
-    },
-  ];
+  // Safely create carouselImages
+  const carouselImages = Array.isArray(productData.images)
+    ? productData.images.map((img) => ({
+        id: String(img._id),
+        image: img.url || img,
+      }))
+    : [];
 
-  // Mock recommended products
-  const recommendedProducts = [
-    {
-      id: 1,
-      name: "Fresh Broccoli",
-      price: "15,000",
-      image: "https://via.placeholder.com/150",
-    },
-    {
-      id: 2,
-      name: "Organic Tomatoes",
-      price: "12,000",
-      image: "https://via.placeholder.com/150",
-    },
-    {
-      id: 3,
-      name: "Green Bell Peppers",
-      price: "9,000",
-      image: "https://via.placeholder.com/150",
-    },
-    {
-      id: 4,
-      name: "Fresh Spinach",
-      price: "8,000",
-      image: "https://via.placeholder.com/150",
-    },
-  ];
+  // Log each id and image
+  carouselImages.forEach((imgObj) => {
+    console.log("id:", imgObj.id);
+    console.log("image:", imgObj.image);
+  });
+
+  const specifications = productData.specifications;
 
   const handleScroll = (event) => {
     const scrollPosition = event.nativeEvent.contentOffset.x;
@@ -152,89 +123,77 @@ export default function ProductDetails() {
   };
 
   const renderCarouselItem = ({ item }) => (
-    <Image
-      source={{ uri: item.image }}
-      style={styles.carouselImage}
-      resizeMode="cover"
-    />
-  );
-
-  const renderReviewItem = ({ item }) => (
-    <View style={styles.reviewItem}>
-      <View style={styles.reviewHeader}>
-        <View style={styles.reviewUser}>
-          <Avatar.Image size={40} source={{ uri: item.avatar }} />
-          <View style={styles.reviewUserInfo}>
-            <Text style={styles.reviewUserName}>{item.user}</Text>
-            <Text style={styles.reviewDate}>{item.date}</Text>
-          </View>
-        </View>
-        <View style={styles.ratingContainer}>
-          {[...Array(5)].map((_, index) => (
-            <Ionicons
-              key={index}
-              name={index < item.rating ? "star" : "star-outline"}
-              size={16}
-              color="#FFD700"
-            />
-          ))}
-        </View>
-      </View>
-      <Text style={styles.reviewContent}>{item.content}</Text>
-    </View>
-  );
-
-  const renderRecommendedProduct = ({ item }) => (
-    <TouchableOpacity style={styles.recommendedProductCard}>
+    <Pressable
+      onPress={() => setImageModel(true)}
+      style={styles.carouselImageContainer}
+    >
       <Image
         source={{ uri: item.image }}
-        style={styles.recommendedProductImage}
+        style={styles.carouselImage}
+        resizeMode="cover"
       />
-      <View style={styles.recommendedProductInfo}>
-        <Text style={styles.recommendedProductName}>{item.name}</Text>
-        <Text style={styles.recommendedProductPrice}>R {item.price}</Text>
-      </View>
-    </TouchableOpacity>
+    </Pressable>
   );
 
   const TabContent = () => {
     if (activeTab === "description") {
       return (
-        <Text style={styles.description}>
-          The carrot is a root vegetable, most commonly observed as orange in
-          color, though purple, black, red, white, and yellow cultivars exist,
-          all of which are domesticated forms of the wild carrot, Daucus carota,
-          native to Europe and...
-        </Text>
+        <View style={styles.tabContentContainer}>
+          <Text style={styles.description}>{productdata.description}</Text>
+          <View>
+            {specifications &&
+              Object.entries(specifications).some(
+                ([_, value]) => value !== ""
+              ) && (
+                <View style={styles.highlightsContainer}>
+                  <Text style={styles.sectionTitle}>Highlights</Text>
+                  {Object.entries(specifications)
+                    .filter(([_, value]) => value !== "")
+                    .map(([key, value]) => (
+                      <View key={key} style={styles.highlightItem}>
+                        <Text style={styles.highlightKey}>
+                          {key.charAt(0).toUpperCase() + key.slice(1)}:
+                        </Text>
+                        <Text style={styles.highlightValue}>{value}</Text>
+                      </View>
+                    ))}
+                </View>
+              )}
+          </View>
+
+          <View style={styles.tagsContainer}>
+            <Text style={styles.sectionTitle}>Tags</Text>
+            <View style={styles.tagChipsContainer}>
+              {productdata.tags.map((tag) => (
+                <Chip key={tag} style={styles.tagChip}>
+                  #{tag}
+                </Chip>
+              ))}
+            </View>
+          </View>
+        </View>
       );
     }
 
     return (
-      <View style={styles.nutritionContainer}>
-        {Object.entries(nutritionFacts).map(([key, value], index) =>
-          key !== "vitamins" ? (
-            <View key={index} style={styles.nutritionItem}>
-              <Text style={styles.nutritionLabel}>
-                {key.charAt(0).toUpperCase() + key.slice(1)}:
-              </Text>
-              <Text style={styles.nutritionValue}>{value}</Text>
-            </View>
-          ) : (
-            <View key={index} style={styles.vitaminsContainer}>
-              <Text style={styles.nutritionLabel}>Key Vitamins:</Text>
-              <View style={styles.vitaminsList}>
-                {value.map((vitamin, idx) => (
-                  <Chip key={idx} style={styles.vitaminChip}>
-                    {vitamin}
-                  </Chip>
-                ))}
-              </View>
-            </View>
-          )
-        )}
+      <View style={styles.reviewsContainer}>
+        <View style={styles.reviewsHeader}>
+          <Text style={styles.sectionTitle}>Customer Reviews</Text>
+          <TouchableOpacity>
+            <Text style={styles.seeAllButton}>See All</Text>
+          </TouchableOpacity>
+        </View>
+        <Text style={styles.ratingsText}>
+          {productdata.ratings.length === 0
+            ? "No Ratings"
+            : productdata.ratings}
+        </Text>
       </View>
     );
   };
+
+  // Check if product is in wishlist
+  const isInWishlist = wishlist.some(item => item._id === productData._id);
 
   return (
     <View style={styles.container}>
@@ -243,10 +202,13 @@ export default function ProductDetails() {
         backgroundColor="transparent"
         barStyle={"dark-content"}
       />
-      <ScrollView style={styles.scrollView}>
+      <ScrollView
+        style={styles.scrollView}
+        showsVerticalScrollIndicator={false}
+      >
         {/* Image Carousel */}
         <View style={styles.carouselContainer}>
-          <View style={styles.backButtonContainer}>
+          <View style={styles.carouselOverlay}>
             <TouchableOpacity
               style={styles.backButton}
               onPress={() => navigation.goBack()}
@@ -258,10 +220,15 @@ export default function ProductDetails() {
                 style={styles.carouselIcon}
               />
             </TouchableOpacity>
-            <Image
-              source={require("../../../images/wishlist.png")}
-              style={styles.hearticon}
-            />
+            <TouchableOpacity onPress={handleWishlistToggle}>
+              <Image
+                source={require("../../../images/wishlist.png")}
+                style={[
+                  styles.heartIcon, 
+                  { tintColor: isInWishlist ? 'red' : 'rgba(0,0,0,0.4)' }
+                ]}
+              />
+            </TouchableOpacity>
           </View>
           <FlatList
             ref={flatListRef}
@@ -291,21 +258,38 @@ export default function ProductDetails() {
         <View style={styles.contentContainer}>
           {/* Store Info */}
           <View style={styles.storeContainer}>
-            <Text style={styles.storeName}>Rabbit Store</Text>
-            <Chip style={styles.distanceChip}>1km</Chip>
+            <Text style={styles.storeName}>{productdata.shopId.name}</Text>
           </View>
 
           {/* Product Info */}
-          <View style={styles.productInfo}>
-            <Text style={styles.productTitle}>Fresh Carrot</Text>
-            <Text style={styles.price}>
-              R 18,000 <Text style={styles.perKg}>/kg</Text>
-            </Text>
-            <Text style={styles.originalPrice}>Rp 21,000</Text>
+          <View style={styles.productInfoContainer}>
+            <View style={styles.productTitleContainer}>
+              <Text style={styles.productTitle}>{productdata.name}</Text>
+              <Text style={styles.stockStatus}>
+                {productdata.stock.length === 0
+                  ? "Out of Stock"
+                  : `Stock: ${productdata.stock}`}
+              </Text>
+            </View>
+
+            <View style={styles.priceContainer}>
+              {productdata.discount > 0 && (
+                <View style={styles.discountBadge}>
+                  <Ionicons name="arrow-down" size={16} color="#fff" />
+                  <Text style={styles.discountText}>
+                    {productdata.discount}%
+                  </Text>
+                </View>
+              )}
+              {productdata.mrp && (
+                <Text style={styles.originalPrice}>R {productdata.mrp}</Text>
+              )}
+              <Text style={styles.finalPrice}>R {productdata.price}</Text>
+            </View>
           </View>
 
           {/* Tabs */}
-          <View style={styles.tabs}>
+          <View style={styles.tabsContainer}>
             <TouchableOpacity
               style={[
                 styles.tab,
@@ -335,46 +319,13 @@ export default function ProductDetails() {
                   activeTab === "nutrition" && styles.activeTabText,
                 ]}
               >
-                Nutrition facts
+                Reviews
               </Text>
             </TouchableOpacity>
           </View>
 
           {/* Tab Content */}
           <TabContent />
-
-          {/* Reviews Section */}
-          <View style={styles.reviewsSection}>
-            <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Customer Reviews</Text>
-              <TouchableOpacity>
-                <Text style={styles.seeAllButton}>See All</Text>
-              </TouchableOpacity>
-            </View>
-            <FlatList
-              data={reviews}
-              renderItem={renderReviewItem}
-              keyExtractor={(item) => item.id.toString()}
-              scrollEnabled={false}
-            />
-          </View>
-
-          {/* Recommended Products Section */}
-          <View style={styles.recommendedSection}>
-            <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Recommended Products</Text>
-              <TouchableOpacity>
-                <Text style={styles.seeAllButton}>See All</Text>
-              </TouchableOpacity>
-            </View>
-            <FlatList
-              data={recommendedProducts}
-              renderItem={renderRecommendedProduct}
-              keyExtractor={(item) => item.id.toString()}
-              horizontal
-              showsHorizontalScrollIndicator={false}
-            />
-          </View>
         </View>
       </ScrollView>
 
@@ -383,7 +334,7 @@ export default function ProductDetails() {
         <Button
           mode="contained"
           style={styles.addToCartButton}
-          onPress={handleaddtocart}
+          onPress={handleAddToCart}
         >
           Add to Cart
         </Button>
@@ -391,3 +342,251 @@ export default function ProductDetails() {
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#F5F5F5",
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#F5F5F5",
+  },
+  loadingText: {
+    fontSize: 18,
+    color: "#333",
+  },
+  scrollView: {
+    backgroundColor: "#F5F5F5",
+  },
+  carouselContainer: {
+    position: "relative",
+    height: 400,
+  },
+  carouselOverlay: {
+    position: "absolute",
+    top: 40,
+    left: 0,
+    right: 0,
+    zIndex: 10,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    paddingHorizontal: 15,
+  },
+  backButton: {
+    backgroundColor: "rgba(0,0,0,0.4)",
+    borderRadius: 10,
+    padding: 8,
+  },
+  heartIcon: {
+    width: 40,
+    height: 40,
+    tintColor: "rgba(0,0,0,0.4)",
+  },
+  carouselImageContainer: {
+    width: SCREEN_WIDTH,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  carouselImage: {
+    width: SCREEN_WIDTH,
+    height: 400,
+  },
+  paginationContainer: {
+    position: "absolute",
+    bottom: 20,
+    left: 0,
+    right: 0,
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  paginationDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: "rgba(255,255,255,0.5)",
+    marginHorizontal: 5,
+  },
+  paginationDotActive: {
+    backgroundColor: "#fff",
+    width: 12,
+    height: 12,
+  },
+  contentContainer: {
+    paddingHorizontal: 15,
+    paddingTop: 20,
+    backgroundColor: "#F5F5F5",
+  },
+  storeContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 15,
+  },
+  storeName: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#333",
+  },
+  productInfoContainer: {
+    marginBottom: 20,
+  },
+  productTitleContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 10,
+  },
+  productTitle: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: "#212121",
+    flex: 0.7,
+  },
+  stockStatus: {
+    fontSize: 14,
+    color: "#4CAF50",
+    fontWeight: "500",
+  },
+  priceContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  discountBadge: {
+    backgroundColor: "#4CAF50",
+    borderRadius: 15,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    flexDirection: "row",
+    alignItems: "center",
+    marginRight: 10,
+  },
+  discountText: {
+    color: "#fff",
+    fontSize: 12,
+    marginLeft: 5,
+  },
+  originalPrice: {
+    textDecorationLine: "line-through",
+    color: "#999",
+    marginRight: 10,
+    fontSize: 14,
+  },
+  finalPrice: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#212121",
+  },
+  tabsContainer: {
+    flexDirection: "row",
+    borderBottomWidth: 1,
+    borderBottomColor: "#E0E0E0",
+  },
+  tab: {
+    flex: 1,
+    paddingVertical: 15,
+    alignItems: "center",
+  },
+  activeTab: {
+    borderBottomWidth: 2,
+    borderBottomColor: "#4CAF50",
+  },
+  tabText: {
+    fontSize: 16,
+    color: "#666",
+  },
+  activeTabText: {
+    color: "#4CAF50",
+    fontWeight: "600",
+  },
+  tabContentContainer: {
+    padding: 15,
+  },
+  description: {
+    fontSize: 15,
+    color: "#333",
+    lineHeight: 22,
+    marginBottom: 15,
+  },
+  highlightsContainer: {
+    marginBottom: 15,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 10,
+    padding: 15,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  highlightItem: {
+    flexDirection: "row",
+    marginBottom: 8,
+  },
+  highlightKey: {
+    fontWeight: "600",
+    marginRight: 10,
+    color: "#666",
+  },
+  highlightValue: {
+    color: "#333",
+  },
+  tagsContainer: {
+    marginBottom: 15,
+  },
+  tagChipsContainer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+  },
+  tagChip: {
+    marginRight: 8,
+    marginBottom: 8,
+    backgroundColor: "#E0E0E0",
+  },
+  reviewsContainer: {
+    padding: 15,
+  },
+  reviewsHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 15,
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#333",
+  },
+  seeAllButton: {
+    color: "#4CAF50",
+    fontWeight: "500",
+  },
+  ratingsText: {
+    color: "#666",
+  },
+  cartSection: {
+    backgroundColor: "#fff",
+    padding: 15,
+    elevation: 10,
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0,0,0,0.5)",
+  },
+  modalContent: {
+    backgroundColor: "white",
+    borderRadius: 10,
+    padding: 20,
+    width: "85%",
+    height: "50%",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+});

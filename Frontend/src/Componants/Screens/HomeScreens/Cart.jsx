@@ -5,59 +5,56 @@ import {
   Image,
   TouchableOpacity,
   FlatList,
+  SafeAreaView,
 } from "react-native";
-import { Card, Text, Button, Surface, IconButton } from "react-native-paper";
+import { Card, Text, Surface, IconButton } from "react-native-paper";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import { useDispatch, useSelector } from "react-redux";
 import {
-  decrement,
-  incrament,
-  removeFromCart,
+  decrementCartItemAsync,
+  incrementCartItemAsync,
+  removeFromCartAsync,
 } from "../../../../redux/features/cartSlice";
 import { useNavigation } from "@react-navigation/native";
+import Toast from "react-native-toast-message";
 
 export default function Cart() {
   const dispatch = useDispatch();
-  const [totalitemQuantity, setTotalitemQuantity] = useState(0);
-  const [totalitemPrice, setTotalitemPrice] = useState(0);
-  const cartdata = useSelector((state) => state.cart.items);
+  const [totalItemQuantity, setTotalItemQuantity] = useState(0);
+  const [totalItemPrice, setTotalItemPrice] = useState(0);
+  
+  const cartData = useSelector((state) => state.cart.items);
   const navigation = useNavigation();
 
   const removefromcart = (id) => {
-    dispatch(removeFromCart(id));
+    dispatch(removeFromCartAsync(id));
+    Toast.show({
+      type: "success",
+      text1: "Item removed from cart successfully",
+      visibilityTime: 3000,
+      position: "top",
+    });
   };
 
-  const decreaseItemQuantity = (id) => {
-    dispatch(decrement({ id }));
+  const decreaseItemQuantity = (productId) => {
+    dispatch(decrementCartItemAsync(productId));
   };
 
-  const increaseItemQuantity = (id) => {
-    dispatch(incrament({ id }));
+  const increaseItemQuantity = (productId) => {
+    dispatch(incrementCartItemAsync(productId));
   };
 
-  const totalitemquantity = () => {
-    const totalQuantity = cartdata.reduce((total, item) => 
-      total + (item.quantity || 0), 0);
-    setTotalitemQuantity(totalQuantity);
-  };
-
-  const totalprice = () => {
-    const totalPrice = cartdata.reduce((total, item) => {
-      // Safely extract price, removing 'R ' if present, defaulting to 0
-      const price = typeof item.price === 'string' 
-        ? parseFloat(item.price.replace('R ', '').trim()) 
-        : (parseFloat(item.price) || 0);
-      
-      return total + ((item.quantity || 1) * price);
-    }, 0);
-
-    setTotalitemPrice(totalPrice);
+  const calculateTotalQuantityAndPrice = () => {
+    const totalQuantity = cartData.reduce((acc, item) => acc + item.quantity, 0);
+    const totalPrice = cartData.reduce((acc, item) => acc + (item.quantity * parseFloat(item.price)), 0);
+    
+    setTotalItemQuantity(totalQuantity);
+    setTotalItemPrice(totalPrice);
   };
 
   useEffect(() => {
-    totalitemquantity();
-    totalprice();
-  }, [cartdata]);
+    calculateTotalQuantityAndPrice();
+  }, [cartData]);
 
   const Processtocheckout = () => {
     navigation.navigate("Checkout");
@@ -72,104 +69,102 @@ export default function Cart() {
     return (item.quantity * price).toFixed(2);
   };
 
+  const renderCartItem = ({ item }) => (
+    <Card style={styles.cartItem}>
+      <View style={styles.itemContainer}>
+        <Image
+          source={{ uri: item.productId.images[0]?.url }}
+          style={styles.itemImage}
+          resizeMode="cover"
+        />
+        <View style={styles.itemDetails}>
+          <View style={styles.headerRow}>
+            <Text style={styles.itemName} numberOfLines={2}>
+              {item.productId.name}
+            </Text>
+            <TouchableOpacity
+              onPress={() => removefromcart(item.productId._id)}
+              style={styles.deleteButton}
+            >
+              <Icon name="delete-outline" size={24} color="#FF5252" />
+            </TouchableOpacity>
+          </View>
+          
+          <View style={styles.priceContainer}>
+            <Text style={styles.price}>R {item.productId.price}</Text>
+            <Text style={styles.discount}>Upto 33% off</Text>
+          </View>
+          
+          <View style={styles.quantityContainer}>
+            <TouchableOpacity
+              onPress={() => decreaseItemQuantity(item.productId._id)}
+              style={styles.quantityButton}
+            >
+              <Icon name="minus" size={20} color="#333" />
+            </TouchableOpacity>
+            <Text style={styles.quantityText}>{item.quantity}</Text>
+            <TouchableOpacity
+              onPress={() => increaseItemQuantity(item.productId._id)}
+              style={styles.quantityButton}
+            >
+              <Icon name="plus" size={20} color="#333" />
+            </TouchableOpacity>
+          </View>
+          
+          <View style={styles.orderTotalContainer}>
+            <Text style={styles.orderTotalLabel}>Total Order:</Text>
+            <Text style={styles.orderTotalAmount}>
+              R {(item.quantity * parseFloat(item.price)).toFixed(2)}
+            </Text>
+          </View>
+        </View>
+      </View>
+    </Card>
+  );
+
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.cartTitle}>
-          You have {cartdata.length} items in your cart
+          Your Cart ({cartData.length} Items)
         </Text>
       </View>
 
-      {cartdata.length === 0 ? (
-        <Text style={styles.emptyCartText}>Your cart is empty</Text>
+      {cartData.length === 0 ? (
+        <View style={styles.emptyCartContainer}>
+          <Icon name="cart-off" size={100} color="#333" />
+          <Text style={styles.emptyCartText}>Your cart is empty</Text>
+        </View>
       ) : (
         <>
           <FlatList
-            style={styles.cartList}
-            keyExtractor={(item) => item.id}
-            data={cartdata}
-            renderItem={({ item }) => (
-              <Card style={styles.cartItem} key={item.id}>
-                <View style={styles.itemContainer}>
-                  <Image
-                   source={{ 
-                    uri: (item.image ? item.image[0]?.url : item.images?.[0]?.url) || "https://via.placeholder.com/150" 
-                  }}
-                    style={styles.itemImage}
-                  />
-                  <View style={styles.itemDetails}>
-                    <View style={styles.headerRow}>
-                      <Text style={styles.itemName}>{item.name}</Text>
-                      <TouchableOpacity
-                        onPress={() => removefromcart(item.id)}
-                        style={styles.deleteButton}
-                      >
-                        <Icon name="delete-outline" size={24} color="#FF5252" />
-                      </TouchableOpacity>
-                    </View>
-                    <View style={styles.priceContainer}>
-                      <Text style={styles.price}> 
-                        {typeof item.price === 'string' 
-                          ? item.price 
-                          : `R ${parseFloat(item.price || 0).toFixed(2)}`}
-                      </Text>
-                      <Text style={styles.discount}>upto 33% off</Text>
-                    </View>
-                    <View style={styles.quantityContainer}>
-                      <TouchableOpacity
-                        onPress={() => decreaseItemQuantity(item.id)}
-                        style={styles.quantityButton}
-                      >
-                        <Icon name="minus" size={20} color="#333" />
-                      </TouchableOpacity>
-                      <Text style={styles.quantityText}>{item.quantity}</Text>
-                      <TouchableOpacity
-                        onPress={() => increaseItemQuantity(item.id)}
-                        style={styles.quantityButton}
-                      >
-                        <Icon name="plus" size={20} color="#333" />
-                      </TouchableOpacity>
-                    </View>
-                    <View style={styles.orderTotalContainer}>
-                      <Text style={styles.orderTotalLabel}>
-                        Total Order (1kg) :
-                      </Text>
-                      <Text style={styles.orderTotalAmount}>
-                        R {calculateItemTotal(item)}
-                      </Text>
-                    </View>
-                  </View>
-                </View>
-              </Card>
-            )}
+            data={cartData}
+            renderItem={renderCartItem}
+            keyExtractor={(item) => item._id}
+            contentContainerStyle={styles.cartList}
+            showsVerticalScrollIndicator={false}
           />
-
-          <Surface style={styles.bottomBar}>
-            <View style={{ flex: 1, flexDirection: "column", gap: 5 }}>
-              <Text style={styles.totalLabel}>
-                Total Items: {totalitemQuantity}
-              </Text>
-              <Text style={styles.totalLabel}>
-                Total: R {totalitemPrice.toFixed(2)}
-              </Text>
+          
+          <View style={styles.bottomBar}>
+            <View style={styles.totalContainer}>
+             
+              <View style={styles.totalPriceContainer}>
+                <Text style={styles.totalLabel}>Total Price</Text>
+                <Text style={styles.totalAmount}>R {totalItemPrice.toFixed(2)}</Text>
+              </View>
             </View>
-
-            <TouchableOpacity
-              style={styles.checkoutButton}
+            
+            <TouchableOpacity 
+              style={styles.checkoutButton} 
               onPress={Processtocheckout}
             >
-              <Text style={styles.checkoutButtonText}>Process to Checkout</Text>
-              <Icon
-                name="arrow-right"
-                size={20}
-                color="white"
-                style={styles.checkoutIcon}
-              />
+              <Text style={styles.checkoutButtonText}>Checkout</Text>
+              <Icon name="cart-arrow-right" size={24} color="white" />
             </TouchableOpacity>
-          </Surface>
+          </View>
         </>
       )}
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -187,22 +182,25 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: 15,
   },
   cartTitle: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: "bold",
     color: "white",
+    textAlign: "center",
   },
   cartList: {
     padding: 16,
+    paddingBottom: 100, // To ensure bottom bar doesn't cover items
   },
   cartItem: {
     marginBottom: 16,
     borderRadius: 12,
-    elevation: 2,
+    elevation: 3,
     backgroundColor: "white",
   },
   itemContainer: {
     flexDirection: "row",
     padding: 12,
+    alignItems: "center",
   },
   itemImage: {
     width: 100,
@@ -219,43 +217,14 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   itemName: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: "bold",
     color: "#333",
+    flex: 1,
+    marginRight: 10,
   },
   deleteButton: {
     padding: 4,
-  },
-  storeText: {
-    fontSize: 14,
-    color: "#666",
-    marginTop: 4,
-  },
-  ratingContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginTop: 4,
-  },
-  ratingText: {
-    marginRight: 4,
-    fontSize: 14,
-    color: "#666",
-  },
-  starsContainer: {
-    flexDirection: "row",
-  },
-  star: {
-    color: "#FFD700",
-    fontSize: 16,
-  },
-  emptyStar: {
-    color: "#D3D3D3",
-  },
-  emptyCartText: {
-    textAlign: "center",
-    fontSize: 20,
-    fontWeight: "500",
-    marginTop: 50,
   },
   priceContainer: {
     flexDirection: "row",
@@ -263,14 +232,21 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   price: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: "bold",
     color: "#333",
+  },
+  discount: {
+    color: "#4CAF50",
+    marginLeft: 8,
+    fontWeight: "500",
+    fontSize: 12,
   },
   quantityContainer: {
     flexDirection: "row",
     alignItems: "center",
     marginTop: 12,
+    alignSelf: "flex-start",
   },
   quantityButton: {
     borderWidth: 1,
@@ -285,17 +261,6 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "#333",
     marginHorizontal: 12,
-  },
-  originalPrice: {
-    textDecorationLine: "line-through",
-    color: "#666",
-    marginLeft: 8,
-  },
-  discount: {
-    color: "#4CAF50",
-    marginLeft: 8,
-    fontWeight: "500",
-    fontSize: 12,
   },
   orderTotalContainer: {
     flexDirection: "row",
@@ -313,29 +278,32 @@ const styles = StyleSheet.create({
     color: "#333",
   },
   bottomBar: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
+    backgroundColor: "#4CAF50",
     paddingHorizontal: 16,
     paddingVertical: 12,
-    backgroundColor: "#4CAF50",
-    position: "absolute",
-    bottom: 70,
-    left: 0,
-    right: 0,
     borderTopLeftRadius: 15,
     borderTopRightRadius: 15,
     elevation: 10,
+    zIndex: 5000,
   },
-
   totalContainer: {
     flexDirection: "row",
     alignItems: "center",
   },
+  totalPriceContainer: {
+    marginLeft: 20,
+  },
   totalLabel: {
-    fontSize: 18,
-    fontWeight: "bold",
+    fontSize: 14,
     color: "white",
+    opacity: 0.8,
   },
   totalAmount: {
     fontSize: 18,
@@ -353,7 +321,15 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginRight: 8,
   },
-  checkoutIcon: {
-    marginLeft: 4,
+  emptyCartContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    opacity: 0.6,
+  },
+  emptyCartText: {
+    fontSize: 18,
+    color: "#333",
+    marginTop: 16,
   },
 });

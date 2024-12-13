@@ -1,4 +1,3 @@
-import React, { useState, useRef } from "react";
 import {
   View,
   StyleSheet,
@@ -6,16 +5,25 @@ import {
   Animated,
   Easing,
 } from "react-native";
-import { Text, Button } from "react-native-paper";
+import { Text, Button, ActivityIndicator } from "react-native-paper";
 import { AntDesign } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
+import { useDispatch, useSelector } from "react-redux";
+import * as orderService from "../../../service/orderService"; // Assume you'll create this service
+import { clearCart } from "../../../../redux/features/cartSlice"; // Import the clearCart action
+import { useRef, useState } from "react";
 
 export default function TransactionPin() {
   const [pin, setPin] = useState("");
   const [showSuccess, setShowSuccess] = useState(false);
+  const [isLoading, setIsLoading] = useState(false); // Loading state
   const route = useRoute();
   const { orderItem } = route.params;
   const navigation = useNavigation();
+  const dispatch = useDispatch();
+
+  // Get cart items from Redux store
+  const cartItems = useSelector((state) => state.cart.items);
 
   const orderItemWithPin = orderItem;
   const maxLength = 6;
@@ -34,27 +42,51 @@ export default function TransactionPin() {
     setPin(pin.slice(0, -1));
   };
 
-  const handleDone = () => {
-    setShowSuccess(true);
-    // Start scale animation for checkmark
-    Animated.sequence([
-      Animated.timing(fadeValue, {
-        toValue: 0,
-        duration: 200,
-        useNativeDriver: true,
-      }),
-      Animated.timing(scaleValue, {
-        toValue: 1,
-        duration: 400,
-        easing: Easing.bounce,
-        useNativeDriver: true,
-      }),
-    ]).start(() => {
-      // Wait for animation to complete before navigating
-      setTimeout(() => {
-        navigation.navigate("OrderStatus", { pin, orderItemWithPin });
-      }, 1000);
-    });
+  const handleDone = async () => {
+    setIsLoading(true); // Start loading
+    try {
+      // Prepare order data
+      const orderData = {
+        items: cartItems,
+        pin: pin,
+        totalAmount: cartItems.reduce((total, item) => total + item.totalPrice, 0),
+      };
+
+      // Call place order service
+      const orderResponse = await orderService.PlaceOrder(orderData);
+
+      setShowSuccess(true);
+      // Start scale animation for checkmark
+      Animated.sequence([
+        Animated.timing(fadeValue, {
+          toValue: 0,
+          duration: 200,
+          useNativeDriver: true,
+        }),
+        Animated.timing(scaleValue, {
+          toValue: 1,
+          duration: 400,
+          easing: Easing.bounce,
+          useNativeDriver: true,
+        }),
+      ]).start(() => {
+        // Wait for animation to complete before navigating
+        setTimeout(() => {
+          // Clear cart after successful order
+          dispatch(clearCart());
+
+          navigation.navigate("OrderStatus", {
+            pin,
+            orderItemWithPin: orderResponse.order,
+          });
+        }, 1000);
+      });
+    } catch (error) {
+      console.error("Order placement failed:", error);
+      // Handle order placement error (show error message, etc.)
+    } finally {
+      setIsLoading(false); // Stop loading
+    }
   };
 
   const renderPinDots = () => {
@@ -72,7 +104,7 @@ export default function TransactionPin() {
   return (
     <View style={styles.container}>
       <Animated.View style={[styles.contentContainer, { opacity: fadeValue }]}>
-        <Text style={styles.title}>Enter Your Transition Pin</Text>
+        <Text style={styles.title}>Enter Your Transaction Pin</Text>
 
         <View style={styles.pinContainer}>{renderPinDots()}</View>
 
@@ -109,11 +141,11 @@ export default function TransactionPin() {
         <Button
           mode="contained"
           style={styles.doneButton}
-          disabled={pin.length !== maxLength}
+          disabled={pin.length !== maxLength || isLoading} // Disable button during loading
           labelStyle={styles.doneButtonText}
           onPress={handleDone}
         >
-          Done
+          {isLoading ? <ActivityIndicator color="white" /> : "Done"}
         </Button>
       </Animated.View>
 
@@ -128,7 +160,7 @@ export default function TransactionPin() {
           ]}
         >
           <AntDesign name="checkcircle" size={100} color="#4CAF50" />
-          <Text style={styles.successText}>Payment Done </Text>
+          <Text style={styles.successText}>Payment Done</Text>
         </Animated.View>
       )}
     </View>

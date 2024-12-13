@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   StyleSheet,
   View,
@@ -8,8 +8,9 @@ import {
   SafeAreaView,
   TouchableOpacity,
   Dimensions,
+  ToastAndroid,
 } from "react-native";
-import { Text, IconButton, Surface, Card, Badge } from "react-native-paper";
+import { Text, IconButton, Badge } from "react-native-paper";
 import {
   Feather,
   FontAwesome,
@@ -17,89 +18,66 @@ import {
   MaterialCommunityIcons,
 } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-import { useDispatch } from "react-redux";
-import { addToCart } from "../../../../redux/features/cartSlice";
+import { useDispatch, useSelector } from "react-redux";
+import { 
+  addToCartAsync, 
+  addToWishlistAsync, 
+  removeFromWishlistAsync 
+} from "../../../../redux/features/cartSlice";
 import { useNavigation, useRoute } from "@react-navigation/native";
+import { getShopById } from "../../../service/shopservice";
+import { Card } from "react-native-paper";
 
 const { width } = Dimensions.get("window");
 
 export default function StoreDeatils() {
   const route = useRoute();
+  const [storedata, setstoredata] = useState({});
   const { item } = route.params;
+  const storeId = JSON.parse(item);
   const storeData = JSON.parse(item);
-  const [activeTab, setActiveTab] = useState("products");
-  const navigation = useNavigation();
+
   const dispatch = useDispatch();
+  const navigation = useNavigation();
+  const [activeTab, setActiveTab] = useState("products");
 
-  // React.useEffect(() => {
-  //   navigation.getParent()?.setOptions({
-  //     tabBarStyle: {
-  //       display: "none",
-  //     },
-  //   });
-  //   return () =>
-  //     navigation.getParent()?.setOptions({
-  //       tabBarStyle: undefined,
-  //     });
-  // }, [navigation]);
+  // Get wishlist from Redux store
+  const wishlist = useSelector((state) => state.cart.wishlist);
 
-  const handleaddtocart = (item) => {
-    dispatch(addToCart(item));
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await getShopById(storeId);
+        setstoredata(response.data);
+      } catch (error) {
+        console.error("Error fetching product data:", error);
+      }
+    };
+    fetchData();
+  }, [storeId]);
+
+  // Handle adding product to cart
+  const handleAddToCart = (product) => {
+    dispatch(addToCartAsync(product));
+    ToastAndroid.show("Added to cart", ToastAndroid.SHORT);
   };
 
-  // Enhanced products data with more details
-  const products = [
-    {
-      id: "1",
-      name: "Fresh Red Chili",
-      price: "12,000",
-      rating: "⭐ 4.5",
-      image: "https://via.placeholder.com/150",
-      inStock: true,
-      discount: "15%",
-      sold: 234,
-    },
-    {
-      id: "2",
-      name: "Fresh Onion",
-      price: "21,000",
-      rating: "⭐ 4.0",
-      image: "https://via.placeholder.com/150",
-      inStock: true,
-      discount: null,
-      sold: 189,
-    },
-    {
-      id: "3",
-      name: "Fresh Carrot",
-      price: "18,000",
-      rating: "⭐ 4.0",
-      image: "https://via.placeholder.com/150",
-      inStock: false,
-      discount: "20%",
-      sold: 156,
-    },
-    {
-      id: "4",
-      name: "Fresh Carrot",
-      price: "18,000",
-      rating: "⭐4.0",
-      image: "https://via.placeholder.com/150",
-      inStock: false,
-      discount: "20%",
-      sold: 156,
-    },
-    {
-      id: "5",
-      name: "Fresh Carrot",
-      price: "18,000",
-      rating: "⭐4.0",
-      image: "https://via.placeholder.com/150",
-      inStock: false,
-      discount: "20%",
-      sold: 156,
-    },
-  ];
+  // Handle adding product to wishlist
+  const handleAddToWishlist = (product) => {
+    // Check if product is already in wishlist
+    const isInWishlist = wishlist.some(item => item._id === product._id);
+    
+    if (isInWishlist) {
+      // If already in wishlist, remove it
+      dispatch(removeFromWishlistAsync(product));
+      ToastAndroid.show("Removed from  Wishlist", ToastAndroid.SHORT);
+    } else {
+      // If not in wishlist, add it
+      dispatch(addToWishlistAsync(product));
+      ToastAndroid.show("Added to Wishlist", ToastAndroid.SHORT);
+
+    }
+  };
 
   const StoreHeader = () => (
     <Card style={styles.bannerCard}>
@@ -119,10 +97,12 @@ export default function StoreDeatils() {
             style={styles.carouselIcon}
           />
         </TouchableOpacity>
-        <Image
-          source={require("../../../images/wishlist.png")}
-          style={styles.hearticon}
-        />
+        <TouchableOpacity onPress={() => navigation.navigate('Wishlist')}>
+          <Image
+            source={require("../../../images/wishlist.png")}
+            style={styles.hearticon}
+          />
+        </TouchableOpacity>
       </View>
       <Image
         source={{ uri: storeData.image }}
@@ -179,41 +159,63 @@ export default function StoreDeatils() {
     </View>
   );
 
-  const renderProduct = ({ item }) => (
-    <Surface style={styles.productCard}>
-      <View style={styles.productImageContainer}>
-        <Image source={{ uri: item.image }} style={styles.productImage} />
-        {item.discount && (
-          <Badge style={styles.discountBadge}>{item.discount}</Badge>
-        )}
-      </View>
-      <View style={styles.productInfo}>
-        <View style={styles.productHeader}>
-          <Text style={styles.productName}>{item.name}</Text>
-          {!item.inStock && (
-            <Badge style={styles.outOfStockBadge}>Out of Stock</Badge>
+  const renderProducts = ({ item }) => {
+    const imageUri = item.images?.[0]?.url || "https://via.placeholder.com/150";
+    const discountText = item.discount ? `${item.discount}% OFF` : null;
+    const ratingText = item.avgRating
+      ? `Rating: ${item.avgRating}`
+      : "";
+
+    // Check if product is in wishlist
+    const isInWishlist = wishlist.some(wishlistItem => wishlistItem._id === item._id);
+
+    return (
+      <TouchableOpacity
+        style={styles.productCard}
+        onPress={() =>
+          navigation.navigate("ProductDetails", { item: JSON.stringify(item) })
+        }
+      >
+        <View style={styles.productImageContainer}>
+          <Image source={{ uri: imageUri }} style={styles.productImage} />
+          {discountText && (
+            <Badge style={styles.discountBadge}>{discountText}</Badge>
           )}
         </View>
-        <Text style={styles.productPrice}>Rp {item.price} /kg</Text>
-        <View style={styles.productFooter}>
-          <View style={styles.ratingContainer}>
-            {/* <FontAwesome name="star" size={14} color="#FFD700" /> */}
-            <Text style={styles.ratingText}>
-              {item.rating} ({item.sold})
+        <View style={styles.productInfo}>
+          <View style={styles.productHeader}>
+            <Text style={styles.productName}>
+              {item.name || "Unnamed Product"}
             </Text>
+          <Text style={styles.productPrice}>R {item.price || "0.00"}</Text>
           </View>
-          {item.inStock && (
-            <TouchableOpacity
-              style={styles.addButton}
-              onPress={() => handleaddtocart(item)}
-            >
-              <MaterialCommunityIcons name="plus" size={20} color="#4CAF50" />
-            </TouchableOpacity>
-          )}
+            <View style={styles.ratingContainer}>
+              <Text style={styles.ratingText}>{ratingText}</Text>
+            </View>
+          <View style={styles.productFooter}>
+            <View style={styles.productActions}>
+              <TouchableOpacity
+                style={styles.wishlistButton}
+                onPress={() => handleAddToWishlist(item)}
+              >
+                <MaterialCommunityIcons 
+                  name={isInWishlist ? "heart" : "heart-outline"} 
+                  size={20} 
+                  color={isInWishlist ? "#FF0000" : "#666"} 
+                />
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.addButton}
+                onPress={() => handleAddToCart(item)}
+              >
+                <MaterialCommunityIcons name="plus" size={20} color="#4CAF50" />
+              </TouchableOpacity>
+            </View>
+          </View>
         </View>
-      </View>
-    </Surface>
-  );
+      </TouchableOpacity>
+    );
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -224,9 +226,9 @@ export default function StoreDeatils() {
         {activeTab === "products" && (
           <View style={styles.productsSection}>
             <FlatList
-              data={products}
-              renderItem={renderProduct}
-              keyExtractor={(item) => item.id}
+              data={Array.isArray(storedata.products) ? storedata.products : []}
+              renderItem={renderProducts}
+              keyExtractor={(item) => item._id}
               scrollEnabled={false}
             />
           </View>
@@ -234,27 +236,39 @@ export default function StoreDeatils() {
 
         {activeTab === "reviews" && (
           <View style={styles.reviewsSection}>
-            <Text style={styles.comingSoon}>Reviews coming soon</Text>
+            <Text style={styles.reviewsHeader}>Reviews </Text>
+            <Text style={styles.noReviews}>No Reviews </Text>
           </View>
         )}
 
         {activeTab === "info" && (
           <View style={styles.infoSection}>
-            <Text style={styles.infoHeader}>About {storeData.name}</Text>
-            <Text style={styles.description}>{storeData.description}</Text>
+            <Text style={styles.infoHeader}>About </Text>
+            <Text style={styles.infoHeader}> {storedata.name}</Text>
+
+            <Text style={styles.description}>{storedata.description}</Text>
+
+            <Text style={styles.infoHeader}>Address</Text>
+            <View style={styles.addressContainer}>
+              <Text>{storedata.address.city} ,</Text>
+              <Text>{storedata.address.country} ,</Text>
+              <Text>{storedata.address.postalCode} ,</Text>
+              <Text>{storedata.address.street} ,</Text>
+            </View>
+
+            <Text style={styles.infoHeader}> Owner </Text>
+            <Text style={styles.owner}>{storedata.merchantId.name}</Text>
+
+            <Text style={styles.infoHeader}>Contact</Text>
+            <Text style={styles.contact}>
+              Email : {storedata.contact.email}
+            </Text>
+            <Text style={styles.contact}>
+              phoneNo : {storedata.contact.phoneNo}
+            </Text>
           </View>
         )}
       </ScrollView>
-
-      {/* <Surface style={styles.bottomNav}>
-        <View style={styles.bottomNavLeft}>
-          <IconButton icon="message" size={24} />
-          <IconButton icon="heart-outline" size={24} />
-        </View>
-        <TouchableOpacity style={styles.cartButton}>
-          <Text style={styles.cartButtonText}>View Cart</Text>
-        </TouchableOpacity>
-      </Surface> */}
     </SafeAreaView>
   );
 }
@@ -365,6 +379,9 @@ const styles = StyleSheet.create({
   productsSection: {
     padding: 16,
   },
+  outOfStockBadge: {
+    backgroundColor: "#9E9E9E",
+  },
   productCard: {
     flexDirection: "row",
     marginBottom: 16,
@@ -380,21 +397,18 @@ const styles = StyleSheet.create({
     width: 120,
     height: 120,
   },
+  productInfo: {
+    flex: 1,
+    padding: 12,
+  },
   discountBadge: {
     position: "absolute",
     top: 8,
     left: 8,
     backgroundColor: "#FF5252",
   },
-  outOfStockBadge: {
-    backgroundColor: "#9E9E9E",
-  },
-  productInfo: {
-    flex: 1,
-    padding: 12,
-  },
   productHeader: {
-    flexDirection: "row",
+    flexDirection: "column",
     justifyContent: "space-between",
     alignItems: "flex-start",
   },
@@ -456,13 +470,35 @@ const styles = StyleSheet.create({
     padding: 16,
     alignItems: "center",
   },
+  reviewsHeader: {
+    fontSize: 18,
+    fontWeight: "600",
+    marginBottom: 20,
+    marginTop: 0,
+  },
+  noReviews: {
+    fontSize: 16,
+    color: "#666",
+  },
   infoSection: {
     padding: 16,
   },
   infoHeader: {
     fontSize: 18,
     fontWeight: "600",
-    marginBottom: 12,
+    marginBottom: 0,
+    marginTop: 15,
+  },
+  addressContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+  },
+  owner: {
+    fontSize: 16,
+    color: "#666",
+    fontWeight: "600",
+    marginBottom: 0,
   },
   description: {
     fontSize: 15,
@@ -472,5 +508,20 @@ const styles = StyleSheet.create({
   comingSoon: {
     fontSize: 16,
     color: "#666",
+  },
+  productFooter: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  productActions: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+  },
+  wishlistButton: {
+    backgroundColor: "#F0F0F0",
+    borderRadius: 8,
+    padding: 8,
   },
 });

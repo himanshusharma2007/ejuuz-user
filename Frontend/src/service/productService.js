@@ -67,18 +67,17 @@ export const searchProducts = async (keyword) => {
   try {
     const accessToken = await AsyncStorage.getItem("accesstoken");
 
-    console.log('Search Keyword:', keyword);
-    console.log('Access Token:', accessToken);
+    const response = await api.get(
+      `/products/search`,
+      { params: keyword },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      }
+    );
 
-    const response = await api.get('/products/search', {
-      params: { keyword: keyword.keyword }, // Ensure this matches your backend route
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        'Content-Type': 'application/json'
-      },
-    });
-
-    console.log('Search Response:', JSON.stringify(response.data, null, 2));
+    console.log("search", response.data);
 
     // Return the products array from the response
     return response.data.products || [];
@@ -95,6 +94,21 @@ export const searchProducts = async (keyword) => {
       console.error("Error Message:", error.message);
     }
 
+    throw error;
+  }
+};
+
+export const getAllDiscountedProducts = async () => {
+  try {
+    const accessToken = await AsyncStorage.getItem("accesstoken");
+    const response = await api.get("/products/top-discounted", {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching discounted products", error);
     throw error;
   }
 };

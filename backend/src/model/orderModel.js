@@ -17,6 +17,11 @@ const orderSchema = new mongoose.Schema({
     unique: true,
     required: [true, "Order ID is required"],
   },
+    transactionId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Transaction',
+    required: true
+  },
   products: [
     {
       productId: {

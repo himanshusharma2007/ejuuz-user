@@ -1,3 +1,4 @@
+import React, { useState, useEffect } from "react";
 import {
   FlatList,
   Image,
@@ -6,58 +7,89 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  ActivityIndicator,
 } from "react-native";
-import React from "react";
 import { Card, IconButton } from "react-native-paper";
 import { Feather, Ionicons } from "@expo/vector-icons";
+import { getCustomerOrders } from "../../../service/orderService";
 
-const items = [
-  {
-    id: "1",
-    name: "Leather Jacket",
-    price: "R 59.99 / kg",
-    rating: "⭐⭐⭐⭐⭐",
-    image: "https://via.placeholder.com/150",
-    status: "processing",
-  },
-  {
-    id: "2",
-    name: "Running Shoes",
-    price: "R 79.99 / kg",
-    rating: "⭐⭐⭐⭐⭐",
-    image: "https://via.placeholder.com/150",
-    status: "Cancelled",
-  },
-  {
-    id: "3",
-    name: "Smartwatch",
-    price: "R 199.99 / kg",
-    rating: "⭐⭐⭐⭐⭐",
-    image: "https://via.placeholder.com/150",
-    status: "Collected",
-  },
-];
-
-const renderItem = ({ item }) => (
-  <Card style={styles.itemCard}>
-    <View style={styles.itemContent}>
-      <Image source={{ uri: item.image }} style={styles.itemImage} />
-      <View style={styles.itemDetails}>
-        <Text style={styles.status}>{item.status}</Text>
-        <Text style={styles.itemName}>{item.name}</Text>
-        <Text style={styles.itemPrice}>{item.price}</Text>
-        <Text style={styles.rating}>{item.rating}</Text>
-      </View>
-      <IconButton
-        icon="chevron-right"
-        color="green"
-        size={30}
-        style={styles.addButton}
-      />
-    </View>
-  </Card>
-);
 export default function Orders() {
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    fetchOrders();
+  }, []);
+
+  const fetchOrders = async () => {
+    try {
+      setLoading(true);
+      const response = await getCustomerOrders();
+      if (response.status === "success" && response.data) {
+        setOrders(response.data);
+      }
+      setLoading(false);
+    } catch (err) {
+      console.error("Failed to fetch orders:", err);
+      setError(err);
+      setLoading(false);
+    }
+  };
+
+  const renderItem = ({ item }) => {
+    // Extract first product details
+    const firstProduct = item.products[0]?.productId || {};
+    
+    return (
+      <Card style={styles.itemCard}>
+        <View style={styles.itemContent}>
+          <Image 
+            source={{ uri: firstProduct.images[0]?.url || "https://via.placeholder.com/150" }} 
+            style={styles.itemImage} 
+          />
+          <View style={styles.itemDetails}>
+            <Text style={styles.status}>{item.status}</Text>
+            <Text style={styles.itemName}>
+              {firstProduct.name || 'Unknown Product'}
+            </Text>
+            <Text style={styles.itemPrice}>
+              R {firstProduct.price?.toLocaleString() || '0'} / item
+            </Text>
+            <Text style={styles.orderDetails}>
+              Total Amount: R {item.totalAmount?.toLocaleString() || '0'}
+            </Text>
+          </View>
+          <IconButton
+            icon="chevron-right"
+            color="green"
+            size={30}
+            style={styles.addButton}
+          />
+        </View>
+      </Card>
+    );
+  };
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#0000ff" />
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={styles.errorContainer}>
+        <Text style={styles.errorText}>Failed to load orders</Text>
+        <TouchableOpacity onPress={fetchOrders} style={styles.retryButton}>
+          <Text>Retry</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <View style={styles.searchContainer}>
@@ -68,13 +100,19 @@ export default function Orders() {
         </TouchableOpacity>
       </View>
 
-      <FlatList
-        showsVerticalScrollIndicator={false}
-        data={items}
-        keyExtractor={(item) => item.id}
-        renderItem={renderItem}
-        contentContainerStyle={styles.content}
-      />
+      {orders.length === 0 ? (
+        <View style={styles.emptyContainer}>
+          <Text style={styles.emptyText}>No orders found</Text>
+        </View>
+      ) : (
+        <FlatList
+          showsVerticalScrollIndicator={false}
+          data={orders}
+          keyExtractor={(item) => item._id}
+          renderItem={renderItem}
+          contentContainerStyle={styles.content}
+        />
+      )}
     </View>
   );
 }
@@ -83,6 +121,36 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#fff",
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  errorText: {
+    fontSize: 18,
+    color: 'red',
+    marginBottom: 10,
+  },
+  retryButton: {
+    padding: 10,
+    backgroundColor: '#f0f0f0',
+    borderRadius: 5,
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  emptyText: {
+    fontSize: 18,
+    color: '#888',
   },
   searchContainer: {
     marginTop: 20,
@@ -120,12 +188,10 @@ const styles = StyleSheet.create({
   itemContent: {
     flexDirection: "row",
     alignItems: "flex-start",
-    // padding: 15,
   },
   itemImage: {
     width: 130,
     height: 130,
-    // borderRadius: 8,
     marginRight: 15,
   },
   itemDetails: {
@@ -136,6 +202,7 @@ const styles = StyleSheet.create({
   status: {
     fontSize: 14,
     fontWeight: "500",
+    marginBottom: 5,
   },
   itemName: {
     fontSize: 18,
@@ -147,15 +214,15 @@ const styles = StyleSheet.create({
     color: "#888",
     marginBottom: 5,
   },
-  rating: {
+  orderDetails: {
     fontSize: 14,
-    color: "#f4b400",
+    color: "#555",
+    marginBottom: 3,
   },
   addButton: {
     backgroundColor: "#fff",
     borderRadius: 10,
     padding: 5,
-
     position: "absolute",
     top: 30,
     right: 10,

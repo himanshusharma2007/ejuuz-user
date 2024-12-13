@@ -4,8 +4,11 @@ const cookieParser = require('cookie-parser');
 const dotenv= require('dotenv')
 const authRouter = require('./src/router/authRouter');
 const productRouter = require('./src/router/productRouter');
+const shopRouter = require('./src/router/shopRouter');
 const cartRouter = require('./src/router/cartRouter');
 const wishlistRouter = require('./src/router/wishlistRouter');
+const orderRouter = require('./src/router/orderRouter');
+const profileRouter = require('./src/router/profileRouter');
 const mongoose = require('mongoose');
 const cors = require('cors');
 dotenv.config();
@@ -28,8 +31,11 @@ app.use(cors({
 // Routes
 app.use('/api/auth', authRouter);
 app.use('/api/products', productRouter);
+app.use('/api/shop', shopRouter);
 app.use('/api/cart', cartRouter);
 app.use('/api/wishlist', wishlistRouter);
+app.use('/api/order', orderRouter);
+app.use('/api/profile', profileRouter);
 
 const uri = process.env.MONGO_URI;
 

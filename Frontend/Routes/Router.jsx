@@ -47,6 +47,12 @@ import Help from "../src/Componants/Screens/ProfileScreens/help";
 import ContactUs from "../src/Componants/Screens/ProfileScreens/contactus";
 import About from "../src/Componants/Screens/ProfileScreens/about";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useDispatch } from "react-redux";
+import { fetchUser } from "../redux/features/userSlice";
+import {
+  fetchCartAsync,
+  fetchWishlistAsync,
+} from "../redux/features/cartSlice";
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -151,7 +157,7 @@ const HomeStack = () => {
         name="OrderStatus"
         component={OrderStatus}
         options={{
-          headerShown: true,
+          headerShown: false,
           headerTitleAlign: "center",
           title: "Order Status",
         }}
@@ -170,6 +176,28 @@ const HomeStack = () => {
         component={GetStarted}
         options={{ headerShown: false }}
       />
+      <Stack.Screen
+        name="OtpPage"
+        component={OtpPage}
+        options={{ headerShown: false }}
+      />
+      {/* <Stack.Screen
+        name="StoreDetails"
+        component={StoreDeatils}
+        options={{
+          headerShown: false,
+          headerTitle: "",
+          headerShadowVisible: false,
+          headerRight: () => (
+            <TouchableOpacity onPress={() => navigation.navigate("Wishlist")}>
+              <Image
+                source={require("../src/images/wishlist.png")}
+                style={{ width: 40, height: 40 }}
+              />
+            </TouchableOpacity>
+          ),
+        }}
+      /> */}
     </Stack.Navigator>
   );
 };
@@ -396,7 +424,11 @@ function getTabbarVisibility(route) {
     routeName === "TransactionDetails" ||
     routeName === "WalletTransactionPin" ||
     routeName === "PaymentDone" ||
-    routeName === "Auth"
+    routeName === "Auth" ||
+    routeName === "OtpPage"  ||
+    routeName === "Cart" ||
+    routeName === "Orders" 
+
   ) {
     return "none";
   }
@@ -514,7 +546,12 @@ export default function Router() {
   useEffect(() => {
     getdata();
   }, []);
-
+  const dispatch = useDispatch();
+  useEffect(() => {
+    dispatch(fetchUser());
+    dispatch(fetchCartAsync());
+    dispatch(fetchWishlistAsync());
+  }, [dispatch]);
   return (
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }}>

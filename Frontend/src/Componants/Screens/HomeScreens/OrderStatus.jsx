@@ -10,6 +10,7 @@ import {
   Avatar,
   Chip,
   List,
+  Appbar,
 } from "react-native-paper";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import { useSelector } from "react-redux";
@@ -53,6 +54,10 @@ export default function OrderStatus() {
   };
   return (
     <View style={styles.container}>
+      <Appbar.Header style={styles.header}>
+        <Appbar.BackAction onPress={() => navigation.navigate('HomeStack')} />
+        <Appbar.Content title="Order Status" style={{ alignItems: "center" , fontWeight: "bold"}} />
+      </Appbar.Header>
       <FlatList
         style={styles.orderList}
         showsVerticalScrollIndicator={false}
@@ -186,9 +191,12 @@ export default function OrderStatus() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingHorizontal: 16,
+    // paddingHorizontal: 16,
     backgroundColor: "#f5f5f5",
-    paddingTop: 14,
+  },
+  header:{
+    backgroundColor: "#fff",
+    paddingBottom: 14,
   },
   orderList: {
     paddingBottom: 16,

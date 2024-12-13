@@ -1,117 +1,151 @@
 import { StyleSheet, Dimensions, Platform } from "react-native";
 
-const { width } = Dimensions.get("window");
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
 export const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: "#F5F5F5",
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#F5F5F5",
+  },
+  loadingText: {
+    fontSize: 18,
+    color: "#333",
   },
   scrollView: {
-    flex: 1,
-  },
-  contentContainer: {
-    borderTopLeftRadius: 30,
-    borderTopRightRadius: 30,
-    backgroundColor: "white",
-    marginTop: -20,
+    backgroundColor: "#F5F5F5",
   },
   carouselContainer: {
     position: "relative",
+    height: 400,
   },
-  backButtonContainer: {
-    flexDirection: "row",
-    alignItems: "center",
+  carouselOverlay: {
     position: "absolute",
-    top: Platform.OS === "ios" ? 50 : 30,
-    width: "100%",
-    padding: 16,
-    zIndex: 1,
-    justifyContent: "space-between",
-  },
-  backButton: {
-    backgroundColor: "#707070",
-    width: 40,
-    height: 40,
-    borderRadius: 10,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  hearticon: {
-    width: 40,
-    height: 40,
-    borderRadius: 10,
-  },
-  carouselImage: {
-    width: width,
-    height: 300,
-  },
-  paginationContainer: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    position: "absolute",
-    bottom: 26,
+    top: 40,
     left: 0,
     right: 0,
+    zIndex: 10,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    paddingHorizontal: 15,
+  },
+  backButton: {
+    backgroundColor: "rgba(0,0,0,0.4)",
+    borderRadius: 25,
+    padding: 8,
+  },
+  heartIcon: {
+    width: 30,
+    height: 30,
+    tintColor: "#fff",
+  },
+  carouselImageContainer: {
+    width: SCREEN_WIDTH,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  carouselImage: {
+    width: SCREEN_WIDTH,
+    height: 400,
+  },
+  paginationContainer: {
+    position: "absolute",
+    bottom: 20,
+    left: 0,
+    right: 0,
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
   },
   paginationDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: "#D8D8D8",
-    marginHorizontal: 4,
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: "rgba(255,255,255,0.5)",
+    marginHorizontal: 5,
   },
   paginationDotActive: {
-    backgroundColor: "#4CAF50",
+    backgroundColor: "#fff",
     width: 12,
     height: 12,
-    borderRadius: 6,
+  },
+  contentContainer: {
+    paddingHorizontal: 15,
+    paddingTop: 20,
+    backgroundColor: "#F5F5F5",
   },
   storeContainer: {
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
-    padding: 16,
+    marginBottom: 15,
   },
   storeName: {
     fontSize: 16,
-    color: "#4CAF50",
+    fontWeight: "600",
+    color: "#333",
   },
-  distanceChip: {
-    backgroundColor: "#E8F5E9",
+  productInfoContainer: {
+    marginBottom: 20,
   },
-  productInfo: {
-    padding: 16,
+  productTitleContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 10,
   },
   productTitle: {
-    fontSize: 24,
-    fontWeight: "bold",
-  },
-  price: {
     fontSize: 20,
-    fontWeight: "bold",
-    marginTop: 8,
+    fontWeight: "700",
+    color: "#212121",
+    flex: 0.7,
   },
-  perKg: {
-    fontSize: 16,
-    color: "#666",
+  stockStatus: {
+    fontSize: 14,
+    color: "#4CAF50",
+    fontWeight: "500",
+  },
+  priceContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  discountBadge: {
+    backgroundColor: "#4CAF50",
+    borderRadius: 15,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    flexDirection: "row",
+    alignItems: "center",
+    marginRight: 10,
+  },
+  discountText: {
+    color: "#fff",
+    fontSize: 12,
+    marginLeft: 5,
   },
   originalPrice: {
-    fontSize: 16,
-    color: "#666",
     textDecorationLine: "line-through",
+    color: "#999",
+    marginRight: 10,
+    fontSize: 14,
   },
-  tabs: {
+  finalPrice: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#212121",
+  },
+  tabsContainer: {
     flexDirection: "row",
     borderBottomWidth: 1,
     borderBottomColor: "#E0E0E0",
-    marginTop: 16,
   },
   tab: {
-    paddingVertical: 12,
-    paddingHorizontal: 16,
     flex: 1,
+    paddingVertical: 15,
     alignItems: "center",
   },
   activeTab: {
@@ -119,161 +153,81 @@ export const styles = StyleSheet.create({
     borderBottomColor: "#4CAF50",
   },
   tabText: {
+    fontSize: 16,
     color: "#666",
   },
   activeTabText: {
     color: "#4CAF50",
-    fontWeight: "bold",
+    fontWeight: "600",
+  },
+  tabContentContainer: {
+    padding: 15,
   },
   description: {
-    padding: 16,
-    color: "#666",
+    fontSize: 15,
+    color: "#333",
     lineHeight: 22,
+    marginBottom: 15,
   },
-  nutritionContainer: {
-    padding: 16,
-  },
-  nutritionItem: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    paddingVertical: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: "#E0E0E0",
-  },
-  nutritionLabel: {
-    fontSize: 16,
-    color: "#333",
-    flex: 1,
-  },
-  nutritionValue: {
-    fontSize: 16,
-    color: "#666",
-    fontWeight: "500",
-  },
-  vitaminsContainer: {
-    marginTop: 16,
-  },
-  vitaminsList: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    marginTop: 8,
-  },
-  vitaminChip: {
-    margin: 4,
-    backgroundColor: "#E8F5E9",
-  },
-  // Reviews Section Styles
-  reviewsSection: {
-    padding: 16,
-    backgroundColor: "#fff",
-  },
-  sectionHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 16,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#333",
-  },
-  seeAllButton: {
-    color: "#4CAF50",
-    fontSize: 14,
-    fontWeight: "600",
-  },
-  reviewItem: {
-    marginBottom: 20,
-    padding: 12,
-    backgroundColor: "#F5F5F5",
-    borderRadius: 12,
-  },
-  reviewHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-    marginBottom: 8,
-  },
-  reviewUser: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  reviewUserInfo: {
-    marginLeft: 12,
-  },
-  reviewUserName: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#333",
-  },
-  reviewDate: {
-    fontSize: 12,
-    color: "#666",
-    marginTop: 2,
-  },
-  ratingContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  reviewContent: {
-    fontSize: 14,
-    color: "#666",
-    lineHeight: 20,
-  },
-  // Recommended Products Section Styles
-  recommendedSection: {
-    padding: 16,
-    backgroundColor: "#fff",
-  },
-  recommendedProductCard: {
-    width: 160,
-    marginRight: 16,
-    backgroundColor: "#fff",
-    borderRadius: 12,
+  highlightsContainer: {
+    marginBottom: 15,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 10,
+    padding: 15,
     shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
   },
-  recommendedProductImage: {
-    width: "100%",
-    height: 120,
-    borderTopLeftRadius: 12,
-    borderTopRightRadius: 12,
+  highlightItem: {
+    flexDirection: "row",
+    marginBottom: 8,
   },
-  recommendedProductInfo: {
-    padding: 12,
+  highlightKey: {
+    fontWeight: "600",
+    marginRight: 10,
+    color: "#666",
   },
-  recommendedProductName: {
-    fontSize: 14,
+  highlightValue: {
+    color: "#333",
+  },
+  tagsContainer: {
+    marginBottom: 15,
+  },
+  tagChipsContainer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+  },
+  tagChip: {
+    marginRight: 8,
+    marginBottom: 8,
+    backgroundColor: "#E0E0E0",
+  },
+  reviewsContainer: {
+    padding: 15,
+  },
+  reviewsHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 15,
+  },
+  sectionTitle: {
+    fontSize: 16,
     fontWeight: "600",
     color: "#333",
-    marginBottom: 4,
   },
-  recommendedProductPrice: {
-    fontSize: 14,
+  seeAllButton: {
     color: "#4CAF50",
-    fontWeight: "bold",
+    fontWeight: "500",
   },
-  // Cart Section Styles
+  ratingsText: {
+    color: "#666",
+  },
   cartSection: {
-    flexDirection: "row",
-    padding: 16,
-    alignItems: "center",
     backgroundColor: "#fff",
-    elevation: 5,
-    borderTopWidth: 1,
-    borderTopLeftRadius: 30,
-    borderTopRightRadius: 30,
-    borderTopColor: "#E0E0E0",
-  },
-  addToCartButton: {
-    flex: 1,
-    backgroundColor: "#002E6E",
+    padding: 15,
+    elevation: 10,
   },
 });
