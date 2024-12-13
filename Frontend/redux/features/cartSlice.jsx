@@ -8,15 +8,38 @@ const cartSlice = createSlice({
   },
   reducers: {
     addToCart: (state, action) => {
-      const ItemIndex = state.items.findIndex(
-        (item) => item.id === action.payload.id
-      );
-      if (ItemIndex >= 0) {
-        state.items[ItemIndex].quantity += 1;
+      // Create a deep copy of the payload to ensure we're working with a new object
+      const newItem = JSON.parse(JSON.stringify(action.payload));
+      
+      console.log('New Item Being Added:', newItem);
+      console.log('Current Cart Items:', state.items);
+    
+      // Find the index of an existing item with the same id
+        const existingItemIndex = state.items.findIndex(
+          (item) => {
+            // Use _id instead of id
+            console.log('Comparing:', item._id, 'with', newItem._id);
+            return item._id === newItem._id;
+          }
+        );
+    
+      // If the item exists, increment its quantity
+      if (existingItemIndex !== -1) {
+        console.log('Existing item found at index:', existingItemIndex);
+        state.items[existingItemIndex].quantity += 1;
       } else {
-        const temp = { ...action.payload, quantity: 1 };
-        state.items.push(temp);
+        // If the item does not exist, add it to the cart with quantity 1
+        console.log('Adding new item to cart');
+        const itemToAdd = {
+          ...newItem,
+          quantity: 1,
+          // Add a unique identifier 
+          cartItemId: Date.now() + Math.random()
+        };
+        state.items.push(itemToAdd);
       }
+    
+      console.log('Updated Cart Items:', state.items);
     },
     removeFromCart: (state, action) => {
       state.items = state.items.filter((item) => item.id !== action.payload);

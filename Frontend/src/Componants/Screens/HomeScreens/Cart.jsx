@@ -14,7 +14,6 @@ import {
   incrament,
   removeFromCart,
 } from "../../../../redux/features/cartSlice";
-// import { addItem } from "../../../redux/feature/CheckoutSlice";
 import { useNavigation } from "@react-navigation/native";
 
 export default function Cart() {
@@ -23,20 +22,6 @@ export default function Cart() {
   const [totalitemPrice, setTotalitemPrice] = useState(0);
   const cartdata = useSelector((state) => state.cart.items);
   const navigation = useNavigation();
-
-  console.log(cartdata);
-
-  // React.useEffect(() => {
-  //   navigation.getParent()?.setOptions({
-  //     tabBarStyle: {
-  //       display: "none",
-  //     },
-  //   });
-  //   return () =>
-  //     navigation.getParent()?.setOptions({
-  //       tabBarStyle: undefined,
-  //     });
-  // }, [navigation]);
 
   const removefromcart = (id) => {
     dispatch(removeFromCart(id));
@@ -51,22 +36,22 @@ export default function Cart() {
   };
 
   const totalitemquantity = () => {
-    let totalitemQuantity = 0;
-
-    cartdata.map((item) => {
-      totalitemQuantity += item.quantity;
-    });
-    setTotalitemQuantity(totalitemQuantity);
+    const totalQuantity = cartdata.reduce((total, item) => 
+      total + (item.quantity || 0), 0);
+    setTotalitemQuantity(totalQuantity);
   };
 
   const totalprice = () => {
-    let totalitemPrice = 0;
+    const totalPrice = cartdata.reduce((total, item) => {
+      // Safely extract price, removing 'R ' if present, defaulting to 0
+      const price = typeof item.price === 'string' 
+        ? parseFloat(item.price.replace('R ', '').trim()) 
+        : (parseFloat(item.price) || 0);
+      
+      return total + ((item.quantity || 1) * price);
+    }, 0);
 
-    cartdata.map((item) => {
-      totalitemPrice +=
-        item.quantity * parseFloat(item.price.replace("R ", ""));
-    });
-    setTotalitemPrice(totalitemPrice);
+    setTotalitemPrice(totalPrice);
   };
 
   useEffect(() => {
@@ -75,8 +60,16 @@ export default function Cart() {
   }, [cartdata]);
 
   const Processtocheckout = () => {
-    // dispatch(addItem(cartdata));
     navigation.navigate("Checkout");
+  };
+
+  const calculateItemTotal = (item) => {
+    // Safely calculate item total
+    const price = typeof item.price === 'string' 
+      ? parseFloat(item.price.replace('R ', '').trim()) 
+      : (parseFloat(item.price) || 0);
+    
+    return (item.quantity * price).toFixed(2);
   };
 
   return (
@@ -99,7 +92,9 @@ export default function Cart() {
               <Card style={styles.cartItem} key={item.id}>
                 <View style={styles.itemContainer}>
                   <Image
-                    source={{ uri: item.image }}
+                   source={{ 
+                    uri: (item.image ? item.image[0]?.url : item.images?.[0]?.url) || "https://via.placeholder.com/150" 
+                  }}
                     style={styles.itemImage}
                   />
                   <View style={styles.itemDetails}>
@@ -112,15 +107,12 @@ export default function Cart() {
                         <Icon name="delete-outline" size={24} color="#FF5252" />
                       </TouchableOpacity>
                     </View>
-                    {/* <Text style={styles.storeText}>Store: {item.store}</Text> */}
-                    <View style={styles.ratingContainer}>
-                      <Text style={styles.ratingText}>{item.rating}</Text>
-                    </View>
                     <View style={styles.priceContainer}>
-                      <Text style={styles.price}> {item.price}</Text>
-                      {/* <Text style={styles.originalPrice}>
-                      R {item.originalPrice.toFixed(2)}
-                    </Text> */}
+                      <Text style={styles.price}> 
+                        {typeof item.price === 'string' 
+                          ? item.price 
+                          : `R ${parseFloat(item.price || 0).toFixed(2)}`}
+                      </Text>
                       <Text style={styles.discount}>upto 33% off</Text>
                     </View>
                     <View style={styles.quantityContainer}>
@@ -143,11 +135,7 @@ export default function Cart() {
                         Total Order (1kg) :
                       </Text>
                       <Text style={styles.orderTotalAmount}>
-                        {/* {item.price} */}R
-                        {(
-                          item.quantity *
-                          parseFloat(item.price.replace("R ", ""))
-                        ).toFixed(2)}
+                        R {calculateItemTotal(item)}
                       </Text>
                     </View>
                   </View>
@@ -156,7 +144,6 @@ export default function Cart() {
             )}
           />
 
-          <View style={styles.cartList}></View>
           <Surface style={styles.bottomBar}>
             <View style={{ flex: 1, flexDirection: "column", gap: 5 }}>
               <Text style={styles.totalLabel}>
@@ -185,6 +172,7 @@ export default function Cart() {
     </View>
   );
 }
+
 
 const styles = StyleSheet.create({
   container: {

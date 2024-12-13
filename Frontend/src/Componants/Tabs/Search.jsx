@@ -1,465 +1,424 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
-  StyleSheet,
   View,
   FlatList,
-  Image,
   TouchableOpacity,
   TextInput,
   SafeAreaView,
-  ImageBackground,
+  Image,
+  ActivityIndicator,
+  StatusBar
 } from "react-native";
-import { Appbar, Badge, Card, Text, IconButton } from "react-native-paper";
+import { Text, Card, Chip, IconButton } from "react-native-paper";
 import { Ionicons, Feather, MaterialIcons } from "@expo/vector-icons";
 import { useDispatch, useSelector } from "react-redux";
 import {
   addToCart,
   AddItemtoWishlist,
 } from "../../../redux/features/cartSlice";
-import { useFocusEffect, useNavigation, useRoute } from "@react-navigation/native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import Toast from "react-native-toast-message";
 
-export default function Search() {
+// Import styles
+
+
+// Import services
+import { searchProducts } from "../../service/productService";
+
+export default function SearchScreen() {
   const [searchQuery, setSearchQuery] = useState("");
+  const [productResults, setProductResults] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [recentSearches, setRecentSearches] = useState([
+    "Smartphone", "Laptop", "Headphones", "Smartwatch"
+  ]);
+  
   const navigation = useNavigation();
   const dispatch = useDispatch();
-  const route = useRoute();
   const inputRef = useRef(null);
 
+  const cartData = useSelector((state) => state.cart.items);
+
+  // Debounced search effect
+  useEffect(() => {
+    const delayDebounceFn = setTimeout(() => {
+      if (searchQuery.length > 0) {
+        performSearch();
+      } else {
+        setProductResults([]);
+      }
+    }, 500);
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [searchQuery]);
+
+  // Focus effect for search input
   useFocusEffect(
     useCallback(() => {
       inputRef.current?.focus();
     }, [])
   );
 
-  const additemtowishlist = (item) => {
-    dispatch(AddItemtoWishlist(item));
-    navigation.navigate("wishlist");
-  };
+  // Perform search for products
+  const performSearch = async () => {
+    try {
+      setLoading(true);
+      const products = await searchProducts({ keyword: searchQuery });
+      setProductResults(products);
 
-  const cartdata = useSelector((state) => state.cart.items);
-  console.log("cartdata", cartdata);
-  const truncateText = (text, wordLimit) => {
-    const words = text.split(" ");
-    if (words.length > 3) {
-      return words.slice(0, 3).join(" ") + " ...";
+      // Add to recent searches if not already present
+      if (!recentSearches.includes(searchQuery)) {
+        setRecentSearches(prev => 
+          [searchQuery, ...prev].slice(0, 5)
+        );
+      }
+
+    } catch (error) {
+      Toast.show({
+        type: "error",
+        text1: "Search Error",
+        text2: error.message,
+        visibilityTime: 3000,
+        position: "top",
+      });
+    } finally {
+      setLoading(false);
     }
-    return text;
   };
 
-  const handleaddtocart = (item) => {
+  // Add to wishlist handler
+  const addItemToWishlist = (item) => {
+    dispatch(AddItemtoWishlist(item));
+    navigation.navigate("Wishlist");
+  };
+
+  // Add to cart handler
+  const handleAddToCart = (item) => {
+    console.log('Adding to cart:', item);
     dispatch(addToCart(item));
     Toast.show({
       type: "success",
-      text1: "item add in cart successfully",
-      visibilityTime: 3000,
+      text1: "Item Added",
+      text2: "Item added to cart successfully",
+      visibilityTime: 2000,
       position: "top",
     });
   };
 
-  const horizontalitems = [
-    {
-      id: "1",
-      name: "Leather Jacket",
-      price: "R 59.99 / kg",
-      rating: "⭐⭐⭐⭐⭐",
-      image: "https://via.placeholder.com/150",
-      description:
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
-      quantity: 0,
-    },
-    {
-      id: "2",
-      name: "Running Shoes",
-      price: "R 79.99 / kg",
-      rating: "⭐⭐⭐⭐⭐",
-      image: "https://via.placeholder.com/150",
-      description:
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
-      quantity: 0,
-    },
-    // {
-    //   id: "3",
-    //   name: "Smartwatch",
-    //   price: "R 199.99 / kg",
-    //   rating: "⭐⭐⭐⭐⭐",
-    //   image: "https://via.placeholder.com/150",
-    //   description:
-    //     "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
-    // },
-    {
-      id: "3",
-      name: "Leather Jacket",
-      price: "R 59.99 / kg",
-      rating: "⭐⭐⭐⭐⭐",
-      image: "https://via.placeholder.com/150",
-      description:
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
-      quantity: 0,
-    },
-  ];
-  const verticalitems = [
-    {
-      id: "1",
-      name: "Rebbit Store",
-      description:
-        "401 East Benton Place, Chicago, Cook County, Illinois, 60601, USA",
-      rating: "⭐⭐⭐⭐⭐",
-      image:
-        "https://plus.unsplash.com/premium_photo-1661376954615-26609d61d924?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    },
-    {
-      id: "2",
-      name: "Vegitable Store",
-      description:
-        "401 East Benton Place, Chicago, Cook County, Illinois, 60601, USA",
-      rating: "⭐⭐⭐⭐⭐",
-      image: "https://via.placeholder.com/150",
-    },
-    {
-      id: "3",
-      name: "Rebbit Store",
-      description:
-        "401 East Benton Place, Chicago, Cook County, Illinois, 60601, USA",
-      rating: "⭐⭐⭐⭐⭐",
-      image: "https://via.placeholder.com/150",
-    },
-  ];
-
-  const horizontalrenderItem = ({ item }) => (
-    <Card
-      style={styles.horizontalitemCard}
-      onPress={() =>
-        navigation.navigate("ProductDetails", { item: JSON.stringify(item) })
-      }
+  // Render product item
+  const renderProductItem = ({ item }) => (
+    <Card 
+      style={styles.productCard} 
+      elevation={4}
+      onPress={() => navigation.navigate("ProductDetails", { 
+        item: JSON.stringify(item) 
+      })}
     >
-      <View style={styles.horizontalitemContent}>
-        <View style={styles.imageWrapper}>
-          <ImageBackground
-            source={{ uri: item.image }}
-            style={styles.horizontalitemImage}
+      <View style={styles.productContent}>
+        <View style={styles.imageContainer}>
+          <Image
+            source={{ 
+              uri: item.images[0]?.url || "https://via.placeholder.com/150" 
+            }}
+            style={styles.productImage}
+            resizeMode="cover"
+          />
+          {/* <TouchableOpacity 
+            style={styles.wishlistButton}
+            onPress={() => addItemToWishlist(item)}
           >
-            <Ionicons
-              name="heart"
-              size={30}
-              color="red"
-              onPress={() => additemtowishlist(item)}
-              style={styles.heartButton}
-            />
-          </ImageBackground>
+            <Ionicons name="heart" size={24} color="#FF6B6B" />
+          </TouchableOpacity> */}
         </View>
 
-        <View style={styles.horizontalitemDetails}>
-          <Text style={styles.horizontalitemName}>{item.name}</Text>
-          <Text style={styles.horizontalitemPrice}>{item.price}</Text>
-          <Text style={styles.horizontalrating}>{item.rating}</Text>
+        <View style={styles.productDetails}>
+          <Text style={styles.productName} numberOfLines={2}>
+            {item.name}
+          </Text>
+          <View style={styles.priceRatingContainer}>
+            <Text style={styles.productPrice}>${item.price}</Text>
+            <View style={styles.ratingContainer}>
+              <Ionicons name="star" size={16} color="#FFD700" />
+              <Text style={styles.productRating}>
+                {item.rating ? item.rating.toFixed(1) : "N/A"}
+              </Text>
+            </View>
+          </View>
           <IconButton
             icon="plus"
-            color="green"
+            iconColor="#FFFFFF"
+            containerColor="#4CAF50"
             size={24}
-            style={styles.horizontaladdButton}
-            onPress={() => handleaddtocart(item)}
+            style={styles.addToCartButton}
+            onPress={() => handleAddToCart(item)}
           />
         </View>
       </View>
     </Card>
-  );
-  const verticalrenderItem = ({ item }) => (
-    <Card
-      style={styles.itemCard}
-      onPress={() =>
-        navigation.navigate("StoreDetails", {
-          item: JSON.stringify({
-            id: item.id,
-            name: item.name,
-            description: item.description,
-            rating: item.rating,
-            image: item.image,
-          }),
-        })
-      }
-    >
-      <View style={styles.itemContent}>
-        <Image source={{ uri: item.image }} style={styles.itemImage} />
-        <View style={styles.itemDetails}>
-          <Text style={styles.itemName}>{item.name}</Text>
-          <Text style={styles.itemPrice}>
-            {truncateText(item.description, 6)}
-          </Text>
-          <Text style={styles.rating}>{item.rating}</Text>
-        </View>
-        <Text style={styles.distance}>1Km</Text>
-      </View>
-    </Card>
-  );
-
-  const filteredItems = horizontalitems.filter((item) =>
-    item.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Custom Header */}
-      <Appbar.Header style={styles.header}>
-        <Appbar.BackAction onPress={() => navigation.goBack()} />
+      <StatusBar 
+        backgroundColor="#F9FAFB" 
+        barStyle="dark-content" 
+      />
 
-        {/* Search Input */}
-        <View style={styles.searchContainer}>
-          <Ionicons name="search" size={20} color="#888" />
+      {/* Search and Cart Header */}
+      <View style={styles.headerContainer}>
+        <TouchableOpacity 
+          onPress={() => navigation.goBack()}
+          style={styles.backButton}
+        >
+          <Ionicons name="arrow-back" size={24} color="#333" />
+        </TouchableOpacity>
+
+        <View style={styles.searchInputContainer}>
+          <Feather name="search" size={20} color="#888" />
           <TextInput
             ref={inputRef}
-            placeholder="Search"
+            placeholder="Search products"
+            placeholderTextColor="#888"
             style={styles.searchInput}
             value={searchQuery}
             onChangeText={setSearchQuery}
           />
-          <TouchableOpacity onPress={() => console.log("Filter pressed")}>
-            <Feather name="filter" size={24} color="#888" />
+          <TouchableOpacity onPress={() => {}}>
+            <Feather name="filter" size={20} color="#888" />
           </TouchableOpacity>
         </View>
 
-        {/* Cart with Red Dot */}
-        <TouchableOpacity onPress={() => navigation.navigate("Cart")}>
-          <View style={styles.cartContainer}>
-            <MaterialIcons name="shopping-cart" size={28} color="#007AFF" />
-            <Badge style={styles.cartBadge}>{cartdata.length}</Badge>
-          </View>
+        <TouchableOpacity 
+          onPress={() => navigation.navigate("Cart")}
+          style={styles.cartIconContainer}
+        >
+          <MaterialIcons name="shopping-cart" size={24} color="#007AFF" />
+          {cartData.length > 0 && (
+            <View style={styles.cartBadge}>
+              <Text style={styles.cartBadgeText}>{cartData.length}</Text>
+            </View>
+          )}
         </TouchableOpacity>
-      </Appbar.Header>
-      <FlatList
-        showsVerticalScrollIndicator={false}
-        data={[1, 1]}
-        contentContainerStyle={styles.maincontent}
-        renderItem={({ index }) => (
-          <View>
-            {index == 0 && (
-              <>
-                <Text
-                  style={{ fontSize: 24, fontWeight: "600", marginTop: 10 }}
-                >
-                  Product
-                </Text>
+      </View>
 
-                <FlatList
-                  showsHorizontalScrollIndicator={false}
-                  horizontal
-                  data={filteredItems}
-                  keyExtractor={(item) => item.id}
-                  renderItem={horizontalrenderItem}
-                  contentContainerStyle={styles.horizontalcontent}
-                />
-              </>
-            )}
-            {index == 1 && (
-              <>
-                <Text
-                  style={{ fontSize: 24, fontWeight: "600", marginTop: 20 }}
-                >
-                  Stores
-                </Text>
-                <FlatList
-                  showsVerticalScrollIndicator={false}
-                  data={verticalitems}
-                  keyExtractor={(item) => item.id}
-                  renderItem={verticalrenderItem}
-                  contentContainerStyle={styles.content}
-                />
-              </>
-            )}
+      {/* Recent Searches */}
+      {!searchQuery && (
+        <View style={styles.recentSearchesContainer}>
+          <Text style={styles.sectionTitle}>Recent Searches</Text>
+          <View style={styles.chipContainer}>
+            {recentSearches.map((search, index) => (
+              <Chip 
+                key={index} 
+                onPress={() => setSearchQuery(search)}
+                style={styles.chip}
+                textStyle={styles.chipText}
+              >
+                {search}
+              </Chip>
+            ))}
           </View>
-        )}
-      />
+        </View>
+      )}
+
+      {/* Loading or Results */}
+      {loading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#007AFF" />
+        </View>
+      ) : (
+        <FlatList
+          data={productResults}
+          keyExtractor={(product) => product.id}
+          renderItem={renderProductItem}
+          contentContainerStyle={styles.productListContainer}
+          showsVerticalScrollIndicator={false}
+          ListHeaderComponent={
+            searchQuery ? (
+              <Text style={styles.resultHeaderText}>
+                {`${productResults.length} results for "${searchQuery}"`}
+              </Text>
+            ) : null
+          }
+          ListEmptyComponent={
+            <View style={styles.emptyStateContainer}>
+              <Ionicons 
+                name="search-outline" 
+                size={64} 
+                color="#E0E0E0" 
+              />
+              <Text style={styles.emptyStateText}>
+                {searchQuery 
+                  ? "No products found" 
+                  : "Start searching for products"}
+              </Text>
+            </View>
+          }
+        />
+      )}
     </SafeAreaView>
   );
 }
 
-const styles = StyleSheet.create({
+const styles = {
   container: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: '#F9FAFB',
   },
-  header: {
-    backgroundColor: "#fdfdfd",
-    elevation: 4,
-    paddingHorizontal: 15,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
+  headerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: 'white',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
   },
-  searchContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#eef1f7",
-    borderRadius: 25,
+  backButton: {
+    marginRight: 12,
+  },
+  searchInputContainer: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F3F4F6',
+    borderRadius: 12,
     paddingHorizontal: 12,
     paddingVertical: 8,
-    flex: 1,
-    marginHorizontal: 10,
+    marginRight: 12,
   },
-
   searchInput: {
     flex: 1,
-    height: 40,
-    marginLeft: 10,
+    marginHorizontal: 8,
     fontSize: 16,
-    color: "#333",
+    color: '#333',
   },
-  cartContainer: {
-    position: "relative",
-    marginRight: 10,
+  cartIconContainer: {
+    position: 'relative',
   },
   cartBadge: {
-    position: "absolute",
-    top: -5,
-    right: -5,
-    backgroundColor: "red",
-    color: "#fff",
-    fontSize: 10,
-    fontWeight: "bold",
-    paddingHorizontal: 5,
-    borderRadius: 12,
+    position: 'absolute',
+    top: -8,
+    right: -8,
+    backgroundColor: '#FF3B30',
+    borderRadius: 10,
+    width: 20,
+    height: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-
-  maincontent: {
-    padding: 10,
-    paddingBottom: 60,
-  },
-  horizontalcontent: {
-    padding: 0,
-  },
-  content: {
-    padding: 10,
-  },
-  itemCard: {
-    marginBottom: 15,
-    borderRadius: 12,
-    elevation: 4,
-    backgroundColor: "#fff",
-    marginVertical: 6,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-  },
-  itemContent: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    // padding: 15,
-  },
-  horizontalitemCard: {
-    width: 180,
-    marginBottom: 15,
-    borderRadius: 12,
-    elevation: 6,
-    backgroundColor: "#fff",
-    marginVertical: 6,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    marginRight: 15,
-    overflow: "hidden",
-  },
-
-  horizontalitemContent: {
-    flexDirection: "column",
-    alignItems: "flex-start",
-    width: 170,
-  },
-  imageWrapper: {
-    width: "100%",
-    height: 130,
-    borderRadius: 12, // Add border radius here
-    overflow: "hidden", // Ensure child elements respect the border radius
-  },
-
-  heartButton: {
-    backgroundColor: "transparent",
-    borderRadius: 20,
-    padding: 5,
-    alignSelf: "flex-end",
-  },
-  horizontalitemImage: {
-    width: "100%",
-    height: 140,
-    resizeMode: "cover",
-  },
-
-  horizontalitemDetails: {
-    padding: 10,
-    flex: 1,
-    justifyContent: "space-between",
-  },
-  horizontalitemName: {
-    fontSize: 16,
-    fontWeight: "600",
-    marginBottom: 4,
-    color: "#333",
-  },
-  horizontalitemPrice: {
-    fontSize: 14,
-    color: "#555",
-    marginBottom: 4,
-  },
-  horizontalrating: {
+  cartBadgeText: {
+    color: 'white',
     fontSize: 12,
-    color: "#f4b400",
-    marginBottom: 8,
+    fontWeight: 'bold',
   },
-  itemImage: {
-    width: 130,
-    height: 150,
-    resizeMode: "stretch",
-    borderRadius: 8,
-    marginRight: 15,
+  recentSearchesContainer: {
+    padding: 16,
   },
-  itemDetails: {
-    padding: 15,
-    flex: 1,
-    justifyContent: "center",
-  },
-  itemName: {
+  sectionTitle: {
     fontSize: 18,
-    fontWeight: "bold",
-    marginBottom: 5,
+    fontWeight: 'bold',
+    marginBottom: 12,
+    color: '#333',
   },
-  itemPrice: {
+  chipContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  chip: {
+    backgroundColor: '#E5E7EB',
+  },
+  chipText: {
+    color: '#4B5563',
+  },
+  productListContainer: {
+    paddingHorizontal: 16,
+    paddingBottom: 16,
+  },
+  productCard: {
+    marginBottom: 16,
+    backgroundColor: 'white',
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  productContent: {
+    flexDirection: 'row',
+    padding: 12,
+  },
+  imageContainer: {
+    position: 'relative',
+    width: 120,
+    height: 120,
+    borderRadius: 8,
+    overflow: 'hidden',
+    marginRight: 12,
+  },
+  productImage: {
+    width: '100%',
+    height: '100%',
+  },
+  // wishlistButton: {
+  //   position: 'absolute',
+  //   top: 8,
+  //   right: 8,
+  //   backgroundColor: 'rgba(255,255,255,0.8)',
+  //   borderRadius: 20,
+  //   padding: 4,
+  // },
+  productDetails: {
+    flex: 1,
+    justifyContent: 'space-between',
+  },
+  productName: {
     fontSize: 16,
-    color: "#888",
-    marginBottom: 5,
+    fontWeight: 'bold',
+    marginBottom: 8,
+    color: '#333',
   },
-  rating: {
+  priceRatingContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  productPrice: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#4CAF50',
+  },
+  ratingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  productRating: {
+    marginLeft: 4,
     fontSize: 14,
-    color: "#f4b400",
+    color: '#666',
   },
-  distance: {
-    padding: 15,
-    fontSize: 20,
-    fontWeight: "700",
+  addToCartButton: {
+    alignSelf: 'flex-end',
   },
-  heartButton: {
-    backgroundColor: "transparent",
-    borderRadius: 20,
-    padding: 5,
-    alignSelf: "flex-end",
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  horizontaladdButton: {
-    backgroundColor: "#fff",
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: "#4caf50",
-    position: "relative",
-    left: 100,
+  resultHeaderText: {
+    fontSize: 16,
+    color: '#666',
+    marginBottom: 12,
+    fontWeight: '500',
   },
-  addButton: {
-    backgroundColor: "#fff",
-    borderRadius: 10,
-    padding: 5,
-    borderColor: "green",
-    borderWidth: 2,
-    position: "absolute",
-    top: 30,
-    right: 10,
+  emptyStateContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 100,
   },
-});
+  emptyStateText: {
+    fontSize: 18,
+    color: '#888',
+    marginTop: 16,
+    textAlign: 'center',
+  },
+};
