@@ -8,8 +8,9 @@ import {
   SafeAreaView,
   TouchableOpacity,
   Dimensions,
+  ToastAndroid,
 } from "react-native";
-import { Text, IconButton, Surface, Card, Badge } from "react-native-paper";
+import { Text, IconButton, Badge } from "react-native-paper";
 import {
   Feather,
   FontAwesome,
@@ -17,10 +18,15 @@ import {
   MaterialCommunityIcons,
 } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-import { useDispatch } from "react-redux";
-import { addToCart } from "../../../../redux/features/cartSlice";
+import { useDispatch, useSelector } from "react-redux";
+import { 
+  addToCartAsync, 
+  addToWishlistAsync, 
+  removeFromWishlistAsync 
+} from "../../../../redux/features/cartSlice";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { getShopById } from "../../../service/shopservice";
+import { Card } from "react-native-paper";
 
 const { width } = Dimensions.get("window");
 
@@ -31,27 +37,18 @@ export default function StoreDeatils() {
   const storeId = JSON.parse(item);
   const storeData = JSON.parse(item);
 
-  // console.log("address", storedata.address.city);
+  const dispatch = useDispatch();
+  const navigation = useNavigation();
+  const [activeTab, setActiveTab] = useState("products");
 
-  // console.log("array", Array.isArray(storedata.products));
-  // if (Array.isArray(storedata.products)) {
-  //   storedata.products.map((product) => {
-  //     console.log(
-  //       // (product.avgRating = product.avgRating || 0),
-  //       // (product.discount = product.discount || 0)
-  //       "product",
-  //       product._id
-  //     );
-  //   });
-  // }
+  // Get wishlist from Redux store
+  const wishlist = useSelector((state) => state.cart.wishlist);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const response = await getShopById(storeId);
         setstoredata(response.data);
-        // console.log("address", response.data.address[0]?.city);
-        // console.log("response", response.data);
       } catch (error) {
         console.error("Error fetching product data:", error);
       }
@@ -59,12 +56,27 @@ export default function StoreDeatils() {
     fetchData();
   }, [storeId]);
 
-  const [activeTab, setActiveTab] = useState("products");
-  const navigation = useNavigation();
-  const dispatch = useDispatch();
+  // Handle adding product to cart
+  const handleAddToCart = (product) => {
+    dispatch(addToCartAsync(product));
+    ToastAndroid.show("Added to cart", ToastAndroid.SHORT);
+  };
 
-  const handleaddtocart = (item) => {
-    dispatch(addToCart(item));
+  // Handle adding product to wishlist
+  const handleAddToWishlist = (product) => {
+    // Check if product is already in wishlist
+    const isInWishlist = wishlist.some(item => item._id === product._id);
+    
+    if (isInWishlist) {
+      // If already in wishlist, remove it
+      dispatch(removeFromWishlistAsync(product));
+      ToastAndroid.show("Removed from  Wishlist", ToastAndroid.SHORT);
+    } else {
+      // If not in wishlist, add it
+      dispatch(addToWishlistAsync(product));
+      ToastAndroid.show("Added to Wishlist", ToastAndroid.SHORT);
+
+    }
   };
 
   const StoreHeader = () => (
@@ -85,10 +97,12 @@ export default function StoreDeatils() {
             style={styles.carouselIcon}
           />
         </TouchableOpacity>
-        <Image
-          source={require("../../../images/wishlist.png")}
-          style={styles.hearticon}
-        />
+        <TouchableOpacity onPress={() => navigation.navigate('Wishlist')}>
+          <Image
+            source={require("../../../images/wishlist.png")}
+            style={styles.hearticon}
+          />
+        </TouchableOpacity>
       </View>
       <Image
         source={{ uri: storeData.image }}
@@ -150,7 +164,10 @@ export default function StoreDeatils() {
     const discountText = item.discount ? `${item.discount}% OFF` : null;
     const ratingText = item.avgRating
       ? `Rating: ${item.avgRating}`
-      : "No rating";
+      : "";
+
+    // Check if product is in wishlist
+    const isInWishlist = wishlist.some(wishlistItem => wishlistItem._id === item._id);
 
     return (
       <TouchableOpacity
@@ -170,18 +187,30 @@ export default function StoreDeatils() {
             <Text style={styles.productName}>
               {item.name || "Unnamed Product"}
             </Text>
-          </View>
           <Text style={styles.productPrice}>R {item.price || "0.00"}</Text>
-          <View style={styles.productFooter}>
+          </View>
             <View style={styles.ratingContainer}>
               <Text style={styles.ratingText}>{ratingText}</Text>
             </View>
-            <TouchableOpacity
-              style={styles.addButton}
-              onPress={() => handleaddtocart(item)}
-            >
-              <MaterialCommunityIcons name="plus" size={20} color="#4CAF50" />
-            </TouchableOpacity>
+          <View style={styles.productFooter}>
+            <View style={styles.productActions}>
+              <TouchableOpacity
+                style={styles.wishlistButton}
+                onPress={() => handleAddToWishlist(item)}
+              >
+                <MaterialCommunityIcons 
+                  name={isInWishlist ? "heart" : "heart-outline"} 
+                  size={20} 
+                  color={isInWishlist ? "#FF0000" : "#666"} 
+                />
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.addButton}
+                onPress={() => handleAddToCart(item)}
+              >
+                <MaterialCommunityIcons name="plus" size={20} color="#4CAF50" />
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
       </TouchableOpacity>
@@ -202,10 +231,6 @@ export default function StoreDeatils() {
               keyExtractor={(item) => item._id}
               scrollEnabled={false}
             />
-            {/* {Array.isArray(storedata.products) &&
-              storedata.products.map((item) => (
-                <Text key={item._id}>{item._id}</Text>
-              ))} */}
           </View>
         )}
 
@@ -244,16 +269,6 @@ export default function StoreDeatils() {
           </View>
         )}
       </ScrollView>
-
-      {/* <Surface style={styles.bottomNav}>
-        <View style={styles.bottomNavLeft}>
-          <IconButton icon="message" size={24} />
-          <IconButton icon="heart-outline" size={24} />
-        </View>
-        <TouchableOpacity style={styles.cartButton}>
-          <Text style={styles.cartButtonText}>View Cart</Text>
-        </TouchableOpacity>
-      </Surface> */}
     </SafeAreaView>
   );
 }
@@ -393,7 +408,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#FF5252",
   },
   productHeader: {
-    flexDirection: "row",
+    flexDirection: "column",
     justifyContent: "space-between",
     alignItems: "flex-start",
   },
@@ -493,5 +508,20 @@ const styles = StyleSheet.create({
   comingSoon: {
     fontSize: 16,
     color: "#666",
+  },
+  productFooter: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  productActions: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+  },
+  wishlistButton: {
+    backgroundColor: "#F0F0F0",
+    borderRadius: 8,
+    padding: 8,
   },
 });

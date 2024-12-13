@@ -202,7 +202,7 @@ exports.incrementCartItem = async (req, res) => {
     }
 
     const cartItem = customer.cart.find(
-      (item) => item._id.toString() === productId
+      (item) => item.productId._id.toString() === productId
     );
 
     if (!cartItem) {

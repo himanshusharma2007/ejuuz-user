@@ -1,5 +1,12 @@
-import React, { useState } from "react";
-import { StyleSheet, View, Modal } from "react-native";
+import React, { useState, useEffect } from "react";
+import {
+  StyleSheet,
+  View,
+  Modal,
+  TouchableOpacity,
+  Alert,
+  Image,
+} from "react-native";
 import {
   Avatar,
   Card,
@@ -8,73 +15,191 @@ import {
   Divider,
   Button,
   TextInput,
+  ActivityIndicator,
 } from "react-native-paper";
+import * as ImagePicker from "expo-image-picker";
+import ProfileService from "../../../service/profileServices";
 
 export default function ProfileSettings() {
+  const [isLoading, setIsLoading] = useState(true);
   const [isModalVisible, setModalVisible] = useState(false);
-  const [profile, setProfile] = useState({
-    name: "Sunny Bhardwaj",
-    email: "abcdgfx@gmail.com",
-    mobile: "+962 79 890 50 14",
-  });
+  const [isImageModalVisible, setImageModalVisible] = useState(false);
+  const [profile, setProfile] = useState(null);
+  const [tempProfile, setTempProfile] = useState(null);
+  const [profileImage, setProfileImage] = useState(null);
 
-  const [tempProfile, setTempProfile] = useState(profile);
+  useEffect(() => {
+    fetchProfile();
+  }, []);
 
-  const handleSave = () => {
-    setProfile(tempProfile); // Update the profile state with new values
-    setModalVisible(false);
+  const fetchProfile = async () => {
+    try {
+      setIsLoading(true);
+      const userData = await ProfileService.getProfile();
+      console.log("userData", userData);
+      console.log("userData.data.profileImage", userData.data.profileImage.url);
+      setProfile(userData.data);
+
+      setTempProfile({ ...userData });
+      setProfileImage(userData.data.profileImage);
+    } catch (error) {
+      console.log("error", error);
+      Alert.alert("Error", error.message || "Failed to fetch profile");
+    } finally {
+      setIsLoading(false);
+    }
   };
+
+  const handleSave = async () => {
+    try {
+      console.log("tempProfile", tempProfile);
+      const updatedProfile = await ProfileService.updateProfile(tempProfile);
+      setProfile(updatedProfile);
+      setModalVisible(false);
+      Alert.alert("Success", "Profile updated successfully");
+      fetchProfile();
+    } catch (error) {
+      Alert.alert("Error", error.message || "Failed to update profile");
+    }
+  };
+
+  const pickImage = async (source) => {
+    let result;
+    try {
+      if (source === "camera") {
+        result = await ImagePicker.launchCameraAsync({
+          mediaTypes: ImagePicker.MediaType,
+          allowsEditing: true,
+          aspect: [4, 4],
+          quality: 0.7,
+        });
+      } else {
+        result = await ImagePicker.launchImageLibraryAsync({
+          mediaTypes: ImagePicker.MediaType,
+          allowsEditing: true,
+          aspect: [4, 4],
+          quality: 0.7,
+        });
+      }
+
+      if (!result.canceled) {
+        const formData = new FormData();
+        formData.append("profileImage", {
+          uri: result.assets[0].uri,
+          type: "image/jpeg",
+          name: "profile.jpg",
+        });
+
+        const updatedProfile = await ProfileService.updateProfileImage(
+          formData
+        );
+        setProfileImage(updatedProfile.profileImage);
+        setImageModalVisible(false);
+      }
+    } catch (error) {
+      Alert.alert("Error", error.message || "Failed to update profile image");
+    }
+  };
+
+  const isProfileIncomplete = () => {
+    return !profile?.name || !profile?.email;
+  };
+
+  const renderProfileStatus = () => {
+    if (isProfileIncomplete()) {
+      return (
+        <View style={styles.incompleteProfileContainer}>
+          <Text style={styles.incompleteProfileText}>
+            Complete your profile to personalize your experience
+          </Text>
+          <Button
+            mode="contained"
+            onPress={() => setModalVisible(true)}
+            style={styles.completeProfileBtn}
+          >
+            Complete Profile
+          </Button>
+        </View>
+      );
+    }
+    return null;
+  };
+
+  if (isLoading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator animating={true} size="large" />
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
       {/* Avatar Section */}
       <View style={styles.avatarSection}>
-        <Card style={styles.avatarCard}>
+        <TouchableOpacity onPress={() => setImageModalVisible(true)}>
           <Avatar.Image
             size={100}
-            source={{
-              uri: "https://static.vecteezy.com/system/resources/thumbnails/000/439/863/small/Basic_Ui__28186_29.jpg",
-            }}
+            source={
+              profileImage
+                ? { uri: profileImage.url }
+                : "https://cdn-icons-png.flaticon.com/512/149/149071.png"
+            }
           />
-        </Card>
-        <List.Icon
-          icon="check-circle"
-          color="#00baf2"
-          size={24}
-          style={styles.verifyIcon}
-        />
-        <Text style={styles.title}>{profile.name}</Text>
-        <Text style={styles.subtitle}>Joined 2 years ago</Text>
+        </TouchableOpacity>
+        {profile?.isVerified && (
+          <List.Icon
+            icon="check-circle"
+            color="#00baf2"
+            size={24}
+            style={styles.verifyIcon}
+          />
+        )}
+        <Text style={styles.title}>{profile?.name || "User"}</Text>
       </View>
+
+      {renderProfileStatus()}
 
       {/* Details Section */}
       <View style={styles.detailsContainer}>
-        <List.Item
-          title="Full name"
-          description={profile.name}
-          left={(props) => (
-            <List.Icon {...props} icon="account" color="#8e44ad" />
-          )}
-        />
-        <Divider bold />
+        {profile?.name && (
+          <>
+            <List.Item
+              title="Full name"
+              description={profile.name}
+              left={(props) => (
+                <List.Icon {...props} icon="account" color="#8e44ad" />
+              )}
+            />
+            <Divider bold />
+          </>
+        )}
 
-        <List.Item
-          title="Mobile"
-          description={profile.mobile}
-          left={(props) => (
-            <List.Icon {...props} icon="phone" color="#2980b9" />
-          )}
-        />
-        <Divider bold />
+        {profile?.mobile && (
+          <>
+            <List.Item
+              title="Mobile"
+              description={profile.mobile}
+              left={(props) => (
+                <List.Icon {...props} icon="phone" color="#2980b9" />
+              )}
+            />
+            <Divider bold />
+          </>
+        )}
 
-        <List.Item
-          title="Email"
-          description={profile.email}
-          left={(props) => (
-            <List.Icon {...props} icon="email" color="#e67e22" />
-          )}
-        />
-        <Divider bold />
+        {profile?.email && (
+          <>
+            <List.Item
+              title="Email"
+              description={profile.email}
+              left={(props) => (
+                <List.Icon {...props} icon="email" color="#e67e22" />
+              )}
+            />
+            <Divider bold />
+          </>
+        )}
 
         <List.Item
           title="Change password"
@@ -82,16 +207,20 @@ export default function ProfileSettings() {
           left={(props) => <List.Icon {...props} icon="lock" color="#c0392b" />}
           right={() => <List.Icon icon="chevron-right" />}
         />
-        <Divider bold />
       </View>
 
       {/* Update Profile Button */}
       <View style={styles.updateButtonContainer}>
-        <Button mode="contained" onPress={() => setModalVisible(true)}>
+        <Button
+          mode="contained"
+          onPress={() => setModalVisible(true)}
+          disabled={!profile}
+        >
           Update Profile
         </Button>
       </View>
 
+      {/* Profile Update Modal */}
       <Modal
         visible={isModalVisible}
         animationType="slide"
@@ -105,7 +234,7 @@ export default function ProfileSettings() {
               mode="flat"
               style={styles.input}
               placeholder="Full Name"
-              value={tempProfile.name}
+              value={tempProfile?.name || ""}
               onChangeText={(text) =>
                 setTempProfile((prev) => ({ ...prev, name: text }))
               }
@@ -114,7 +243,7 @@ export default function ProfileSettings() {
               mode="flat"
               style={styles.input}
               placeholder="Mobile Number"
-              value={tempProfile.mobile}
+              value={tempProfile?.mobile || ""}
               keyboardType="phone-pad"
               onChangeText={(text) =>
                 setTempProfile((prev) => ({ ...prev, mobile: text }))
@@ -124,7 +253,7 @@ export default function ProfileSettings() {
               mode="flat"
               style={styles.input}
               placeholder="Email Address"
-              value={tempProfile.email}
+              value={tempProfile?.email || ""}
               keyboardType="email-address"
               onChangeText={(text) =>
                 setTempProfile((prev) => ({ ...prev, email: text }))
@@ -146,6 +275,43 @@ export default function ProfileSettings() {
                 Cancel
               </Button>
             </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Image Selection Modal */}
+      <Modal
+        visible={isImageModalVisible}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setImageModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.imageModalContent}>
+            <Text style={styles.modalTitle}>Select Profile Picture</Text>
+            <View style={styles.imagePickerOptions}>
+              <TouchableOpacity
+                style={styles.imagePickerButton}
+                onPress={() => pickImage("camera")}
+              >
+                <List.Icon icon="camera" />
+                <Text>Take Photo</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.imagePickerButton}
+                onPress={() => pickImage("library")}
+              >
+                <List.Icon icon="image" />
+                <Text>Choose from Library</Text>
+              </TouchableOpacity>
+            </View>
+            <Button
+              mode="outlined"
+              onPress={() => setImageModalVisible(false)}
+              style={styles.cancelButton}
+            >
+              Cancel
+            </Button>
           </View>
         </View>
       </Modal>
@@ -242,5 +408,34 @@ const styles = StyleSheet.create({
     flex: 1,
     marginLeft: 5,
     borderColor: "#f44336",
+  },
+  incompleteProfileContainer: {
+    backgroundColor: "#f0f0f0",
+    padding: 15,
+    borderRadius: 10,
+    alignItems: "center",
+    marginHorizontal: 10,
+    marginTop: 10,
+  },
+  incompleteProfileText: {
+    textAlign: "center",
+    marginBottom: 10,
+    color: "#333",
+  },
+  completeProfileBtn: {
+    width: "80%",
+  },
+  imagePickerOptions: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    marginVertical: 20,
+  },
+  imagePickerButton: {
+    alignItems: "center",
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
 });

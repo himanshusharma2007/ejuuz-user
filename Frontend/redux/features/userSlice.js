@@ -69,6 +69,6 @@ const userSlice = createSlice({
 export const { setUser, clearUser } = userSlice.actions;
 export const selectUser = (state) => state.user;
 export const selectIsAuthenticated = (state) => state.user.isAuthenticated;
-export const selectUserData = (state) => state.user.userData.admin; // New selector for full user data
+export const selectUserData = (state) => state.user.userData; // New selector for full user data
 
 export default userSlice.reducer;

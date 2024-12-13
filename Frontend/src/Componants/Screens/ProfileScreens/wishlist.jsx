@@ -71,7 +71,7 @@ console.log('wishlistData in wishlist page ', wishlistData)
     <Card style={styles.itemCard}>
       <View style={styles.itemContent}>
         <Image 
-          source={{ uri: item.image || 'https://via.placeholder.com/150' }} 
+          source={{ uri: item.images[0].url || 'https://via.placeholder.com/150' }} 
           style={styles.itemImage} 
         />
         <View style={styles.itemDetails}>

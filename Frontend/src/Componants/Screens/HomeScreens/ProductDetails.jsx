@@ -12,11 +12,16 @@ import {
   Pressable,
 } from "react-native";
 import { Text, Button, Surface, Chip } from "react-native-paper";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
-import { addToCart } from "../../../../redux/features/cartSlice";
+import { 
+  addToCartAsync, 
+  addToWishlistAsync, 
+  removeFromWishlistAsync 
+} from "../../../../redux/features/cartSlice";
 import { getProductById } from "../../../service/productService";
+import { ToastAndroid } from "react-native";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
@@ -31,6 +36,9 @@ export default function ProductDetails() {
   const { item } = route.params;
   const dispatch = useDispatch();
   const [productData, setProductData] = useState({});
+
+  // Get wishlist from Redux store
+  const wishlist = useSelector((state) => state.cart.wishlist);
 
   if (!item) {
     return (
@@ -61,8 +69,35 @@ export default function ProductDetails() {
     setQuantity(productdata.quantity);
   }, [productdata.quantity]);
 
-  const handleAddToCart = () => {
-    dispatch(addToCart(productData));
+  // Handle Add to Cart
+  const handleAddToCart = async () => {
+    try {
+      await dispatch(addToCartAsync(productData)).unwrap();
+      ToastAndroid.show("Added to Cart", ToastAndroid.SHORT);
+    } catch (error) {
+      console.error("Failed to add to cart:", error);
+      ToastAndroid.show("Failed to add to cart", ToastAndroid.SHORT);
+    }
+  };
+
+  // Handle Wishlist Toggle
+  const handleWishlistToggle = async () => {
+    try {
+      const isInWishlist = wishlist.some(item => item._id === productData._id);
+      
+      if (isInWishlist) {
+        // Remove from wishlist
+        await dispatch(removeFromWishlistAsync(productData)).unwrap();
+        ToastAndroid.show("Removed from Wishlist", ToastAndroid.SHORT);
+      } else {
+        // Add to wishlist
+        await dispatch(addToWishlistAsync(productData)).unwrap();
+        ToastAndroid.show("Added to Wishlist", ToastAndroid.SHORT);
+      }
+    } catch (error) {
+      console.error("Failed to update wishlist:", error);
+      ToastAndroid.show("Failed to update wishlist", ToastAndroid.SHORT);
+    }
   };
 
   // Safely create carouselImages
@@ -157,6 +192,9 @@ export default function ProductDetails() {
     );
   };
 
+  // Check if product is in wishlist
+  const isInWishlist = wishlist.some(item => item._id === productData._id);
+
   return (
     <View style={styles.container}>
       <StatusBar
@@ -182,10 +220,13 @@ export default function ProductDetails() {
                 style={styles.carouselIcon}
               />
             </TouchableOpacity>
-            <TouchableOpacity>
+            <TouchableOpacity onPress={handleWishlistToggle}>
               <Image
                 source={require("../../../images/wishlist.png")}
-                style={styles.heartIcon}
+                style={[
+                  styles.heartIcon, 
+                  { tintColor: isInWishlist ? 'red' : 'rgba(0,0,0,0.4)' }
+                ]}
               />
             </TouchableOpacity>
           </View>
