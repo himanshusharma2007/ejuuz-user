@@ -130,7 +130,15 @@ export default function Profile() {
   const renderMenuItem = (item) => (
     <TouchableOpacity
       style={styles.option}
-      onPress={() => navigation.navigate(item.navigate)}
+      onPress={() => {
+        if (item.id === "wallet" || item.id === "transactions") {
+          navigation.navigate("WalletTab", {
+            screen: item.navigate,
+          })
+        } else {
+          navigation.navigate(item.navigate);
+        }
+      }}
       key={item.id}
     >
       <View style={styles.optionContainer}>
