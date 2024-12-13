@@ -37,73 +37,73 @@ import Categories from "../Screens/HomeScreens/Categories";
 
 const { width } = Dimensions.get("window");
 
-const recommendedProducts = [
-  {
-    id: "r1",
-    name: "Fresh Berries Mix",
-    price: "R 129.99",
-    oldPrice: "R 159.99",
-    discount: "20%",
-    rating: "⭐⭐⭐⭐½",
-    image:
-      "https://images.unsplash.com/photo-1613082410785-22292e8426e7?q=80&w=1287&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-  },
-  {
-    id: "r2",
-    name: "Oranges",
-    price: "R 89.99",
-    oldPrice: "R 99.99",
-    discount: "10%",
-    rating: "⭐⭐⭐⭐⭐",
-    image:
-      "https://plus.unsplash.com/premium_photo-1669631944923-75bbc991f223?q=80&w=1287&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-  },
-  {
-    id: "r3",
-    name: "Whole Grain Bread",
-    price: "R 45.99",
-    oldPrice: "R 54.99",
-    discount: "15%",
-    rating: "⭐⭐⭐⭐",
-    image:
-      "https://images.unsplash.com/photo-1533782654613-826a072dd6f3?q=80&w=1365&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-  },
-  // Add more recommended products as needed
-];
+// const recommendedProducts = [
+//   {
+//     id: "r1",
+//     name: "Fresh Berries Mix",
+//     price: "R 129.99",
+//     oldPrice: "R 159.99",
+//     discount: "20%",
+//     rating: "⭐⭐⭐⭐½",
+//     image:
+//       "https://images.unsplash.com/photo-1613082410785-22292e8426e7?q=80&w=1287&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+//   },
+//   {
+//     id: "r2",
+//     name: "Oranges",
+//     price: "R 89.99",
+//     oldPrice: "R 99.99",
+//     discount: "10%",
+//     rating: "⭐⭐⭐⭐⭐",
+//     image:
+//       "https://plus.unsplash.com/premium_photo-1669631944923-75bbc991f223?q=80&w=1287&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+//   },
+//   {
+//     id: "r3",
+//     name: "Whole Grain Bread",
+//     price: "R 45.99",
+//     oldPrice: "R 54.99",
+//     discount: "15%",
+//     rating: "⭐⭐⭐⭐",
+//     image:
+//       "https://images.unsplash.com/photo-1533782654613-826a072dd6f3?q=80&w=1365&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+//   },
+//   // Add more recommended products as needed
+// ];
 
-const weeklyDeals = [
-  {
-    id: "d1",
-    name: "Fresh Vegetables Bundle",
-    price: "R 199.99",
-    oldPrice: "R 299.99",
-    saveAmount: "R 100",
-    image:
-      "https://plus.unsplash.com/premium_photo-1661376954615-26609d61d924?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    validUntil: "3 days left",
-  },
-  {
-    id: "d2",
-    name: "Fruit Box",
-    price: "R 249.99",
-    oldPrice: "R 349.99",
-    saveAmount: "R 100",
-    image:
-      "https://images.unsplash.com/photo-1583754744912-637265c87826?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    validUntil: "5 days left",
-  },
-  {
-    id: "d3",
-    name: "Fruit Box",
-    price: "R 249.99",
-    oldPrice: "R 349.99",
-    saveAmount: "R 100",
-    image:
-      "https://images.unsplash.com/photo-1583754744912-637265c87826?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    validUntil: "5 days left",
-  },
-  // Add more deals as needed
-];
+// const weeklyDeals = [
+//   {
+//     id: "d1",
+//     name: "Fresh Vegetables Bundle",
+//     price: "R 199.99",
+//     oldPrice: "R 299.99",
+//     saveAmount: "R 100",
+//     image:
+//       "https://plus.unsplash.com/premium_photo-1661376954615-26609d61d924?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+//     validUntil: "3 days left",
+//   },
+//   {
+//     id: "d2",
+//     name: "Fruit Box",
+//     price: "R 249.99",
+//     oldPrice: "R 349.99",
+//     saveAmount: "R 100",
+//     image:
+//       "https://images.unsplash.com/photo-1583754744912-637265c87826?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+//     validUntil: "5 days left",
+//   },
+//   {
+//     id: "d3",
+//     name: "Fruit Box",
+//     price: "R 249.99",
+//     oldPrice: "R 349.99",
+//     saveAmount: "R 100",
+//     image:
+//       "https://images.unsplash.com/photo-1583754744912-637265c87826?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+//     validUntil: "5 days left",
+//   },
+//   // Add more deals as needed
+// ];
 
 const BannerDot = ({ index, scrollX }) => {
   const inputRange = [(index - 1) * width, index * width, (index + 1) * width];
@@ -151,23 +151,42 @@ export default function Home() {
   // console.log("cart data length", cartData.length);
 
   useEffect(() => {
-    const fetchAllData = async () => {
+    const fetchAllTopDiscountProduct = async () => {
       try {
-        const [discountedResponse, productsResponse, shopsResponse] = await Promise.all([
-          getAllDiscountedProducts(),
-          getAllProducts(),
-          getAllShops()
-        ]);
-
-        setDiscountedProducts(discountedResponse.products || []);
-        setAllProducts(productsResponse.products || []);
-        setShopdata(shopsResponse.data || []);
+        const response = await getAllDiscountedProducts();
+        // console.log("API Response:", response);
+        setDiscountedProducts(response.products || []);
       } catch (error) {
-        console.error("Error fetching data", error);
+        console.error("Error fetching all products", error);
       }
     };
+    fetchAllTopDiscountProduct();
+  }, []);
 
-    fetchAllData();
+  useEffect(() => {
+    const fetchallproducts = async () => {
+      try {
+        const response = await getAllProducts();
+        setAllProducts(response.products);
+      } catch (error) {
+        console.error("Error fetching all products", error);
+      }
+    };
+    fetchallproducts();
+  }, []);
+
+  // console.log("productdata", productdata);
+  // console.log("allProducts", productdata.map((product) => product.category));
+
+  useEffect(() => {
+    const fetchAllShopdata = async () => {
+      try {
+        const response = await getAllShops();
+        setShopdata(response.data);
+        // console.log("Get All Shops", response.data);
+      } catch (error) {}
+    };
+    fetchAllShopdata();
   }, []);
 
   useState(() => {
@@ -197,15 +216,6 @@ export default function Home() {
     return Array.from(categoryMap.values());
   }, [productdata]);
 
-  // Utility Functions
-  const truncateText = (text, wordLimit = 3) => {
-    const words = text.split(" ");
-    return words.length > wordLimit 
-      ? words.slice(0, wordLimit).join(" ") + " ..." 
-      : text;
-  };
-
-  // Navigation Handlers
   const handleNavigate = () => {
     navigation.navigate("SearchTab", { foucesInput: true });
   };
@@ -284,36 +294,22 @@ export default function Home() {
     setRefreshing(false);
   }, []);
 
-  // Auto Scroll Handlers with Improved Logic
-  const startAutoScroll = useCallback(() => {
-    // Clear existing timer
-    if (autoScrollTimer.current) {
-      clearInterval(autoScrollTimer.current);
-    }
+  const handleBannerPress = useCallback((banner) => {
+    console.log("Banner pressed:", banner);
+  }, []);
 
-    // Only start auto-scroll if there are multiple items
-    if (discountedProducts.length > 1) {
-      autoScrollTimer.current = setInterval(() => {
-        // Ensure not in manual scroll mode and has multiple items
-        if (!isManualScroll.current && discountedProducts.length > 1) {
-          const nextIndex = (currentIndex + 1) % discountedProducts.length;
-          
-          flatListRef.current?.scrollToIndex({
-            index: nextIndex,
-            animated: true,
-          });
-        }
-      }, 3000);
-    }
-  }, [currentIndex, discountedProducts.length]);
+  const handleCategoryPress = useCallback((category) => {
+    navigation.navigate("CategoryDetails", {
+      category: JSON.stringify({
+        ...category,
+        items: category.items,
+      }),
+    });
+  }, []);
 
-  // Scroll Event Handlers with More Robust Logic
-  const handleScrollBegin = () => {
-    isManualScroll.current = true;
-    if (autoScrollTimer.current) {
-      clearInterval(autoScrollTimer.current);
-    }
-  };
+  const handleStorePress = useCallback((id) => {
+    console.log("Store pressed:", id);
+  }, []);
 
   const filteredCategories = useMemo(() => {
     if (!searchText) return categories;
@@ -478,6 +474,13 @@ export default function Home() {
                   <Text style={styles.badge}>{cartData.length}</Text>
                 )}
               </TouchableOpacity>
+
+              {/* <TouchableOpacity
+                style={styles.iconButton}
+                onPress={() => navigation.navigate("Notifications")}
+              >
+                <Ionicons name="notifications-outline" size={24} color="#FFF" />
+              </TouchableOpacity> */}
             </View>
           </View>
 
@@ -528,7 +531,7 @@ export default function Home() {
           </View>
         </View>
 
-        {/* Categories Section */}
+        {/* Categories */}
         <View style={styles.categoriesSection}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Categories</Text>
@@ -588,7 +591,7 @@ export default function Home() {
         {/* Stores Section */}
         <View style={styles.storesSection}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Popular Shops</Text>
+            <Text style={styles.sectionTitle}>Popular Shop</Text>
             <TouchableOpacity>
               <Text style={styles.seeAllText}>See all</Text>
             </TouchableOpacity>
@@ -598,31 +601,54 @@ export default function Home() {
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.storesScrollContent}
           >
-            {shopdata.map((item) => (
+            {shopdata.map((item) => {
+              const imgageUri = "https://via.placeholder.com/150";
+              // console.log("productdata", productdata);
+              return (
+                <TouchableOpacity
+                  key={item._id}
+                  style={styles.recommendedCard}
+                  onPress={() =>
+                    navigation.navigate("StoreDetails", {
+                      item: JSON.stringify(item._id),
+                    })
+                  }
+                >
+                  <Image
+                    source={{ uri: imgageUri }}
+                    style={styles.recommendedImage}
+                  />
+                  {/* <View style={styles.discountBadge}>
+                    <Text style={styles.discountText}>{product.discount}</Text>
+                  </View> */}
+                  <View style={styles.recommendedInfo}>
+                    <Text style={styles.recommendedName} numberOfLines={1}>
+                      {item.name.length > 20 ? "..." : item.name}
+                    </Text>
+
+                    <Text>{truncateText(item.description, 5)}</Text>
+                    <Text style={styles.ratingText}>
+                      {item.avgRating === 0 ? "No rating" : item.avgRating}
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              );
+            })}
+            {/* {productdata.map((item, index) => (
               <TouchableOpacity
-                key={item._id}
-                style={styles.recommendedCard}
-                onPress={() =>
-                  navigation.navigate("StoreDetails", {
-                    item: JSON.stringify(item._id),
-                  })
-                }
+                key={index}
+                style={styles.storeCard}
+                onPress={() => handleStorePress(item.id)}
               >
-                <Image
-                  source={{ uri: "https://via.placeholder.com/150" }}
-                  style={styles.recommendedImage}
-                />
-                <View style={styles.recommendedInfo}>
-                  <Text style={styles.recommendedName} numberOfLines={1}>
-                    {item.name}
-                  </Text>
-                  <Text>{truncateText(item.description, 5)}</Text>
-                  <Text style={styles.ratingText}>
-                    {item.avgRating === 0 ? "No rating" : item.avgRating}
-                  </Text>
+                <Image source={{ uri: item.image }} style={styles.storeImage} />
+                <View style={styles.storeInfo}>
+                  <Text style={styles.storeName}>{item.name}</Text>
+                  <View style={styles.storeRating}>
+                    <Text style={styles.ratingText}>{item.rating}</Text>
+                  </View>
                 </View>
               </TouchableOpacity>
-            ))}
+            ))} */}
           </ScrollView>
         </View>
 
