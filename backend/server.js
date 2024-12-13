@@ -9,6 +9,7 @@ const cartRouter = require('./src/router/cartRouter');
 const wishlistRouter = require('./src/router/wishlistRouter');
 const orderRouter = require('./src/router/orderRouter');
 const profileRouter = require('./src/router/profileRouter');
+const TransactionRouter = require('./src/router/transactionRouter');
 const mongoose = require('mongoose');
 const cors = require('cors');
 dotenv.config();
@@ -36,6 +37,7 @@ app.use('/api/cart', cartRouter);
 app.use('/api/wishlist', wishlistRouter);
 app.use('/api/order', orderRouter);
 app.use('/api/profile', profileRouter);
+app.use('/api/transaction', TransactionRouter);
 
 const uri = process.env.MONGO_URI;
 

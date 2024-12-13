@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   StyleSheet,
@@ -14,48 +14,88 @@ import {
   Text,
   useTheme,
   IconButton,
+  Menu,
 } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
+import { getAllTransactions } from "../../../service/transactionService";
 
 export default function WalletHistory() {
   const theme = useTheme();
-  const [searchhistory, setSearchhistory] = React.useState("");
+  const [searchhistory, setSearchhistory] = useState("");
   const [selectedTransaction, setSelectedTransaction] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
+  const [transactions, setTransactions] = useState([]);
+  const [filteredTransactions, setFilteredTransactions] = useState([]);
+  const [filterMenuVisible, setFilterMenuVisible] = useState(false);
+  const [sortMenuVisible, setSortMenuVisible] = useState(false);
+  const [currentFilter, setCurrentFilter] = useState("all");
+  const [currentSort, setCurrentSort] = useState("newest");
   const navigation = useNavigation();
 
-  const transactions = [
-    {
-      id: 1,
-      title: "Walmart",
-      date: "Today 10:30",
-      amount: -56.25,
-      icon: "shopping",
-      transactionNo: "23010412432431",
-    },
-    {
-      id: 2,
-      title: "Top up",
-      date: "Yesterday 02:15",
-      amount: 100.0,
-      icon: "plus-circle",
-      transactionNo: "23020456327821",
-    },
-    {
-      id: 3,
-      title: "Netflix",
-      date: "Today 12:22",
-      amount: -15.0,
-      icon: "television",
-      transactionNo: "23030687452367",
-    },
-  ];
+  useEffect(() => {
+    fetchTransactions();
+  }, []);
 
-  const filteredTransactions = transactions.filter((transaction) =>
-    transaction.title.toLowerCase().includes(searchhistory.toLowerCase())
-  );
+  useEffect(() => {
+    applyFiltersAndSort();
+  }, [transactions, searchhistory, currentFilter, currentSort]);
+
+  const fetchTransactions = async () => {
+    try {
+      const response = await getAllTransactions();
+      setTransactions(response.transactions);
+    } catch (error) {
+      console.error("Failed to fetch transactions", error);
+    }
+  };
+
+  const applyFiltersAndSort = () => {
+    let result = [...transactions];
+
+    // Search filter
+    if (searchhistory) {
+      result = result.filter((transaction) =>
+        transaction.merchantDetails[0].merchantName
+          .toLowerCase()
+          .includes(searchhistory.toLowerCase())
+      );
+    }
+
+    // Date filter
+    const now = new Date();
+    switch (currentFilter) {
+      case "thisWeek":
+        result = result.filter((transaction) => {
+          const transactionDate = new Date(transaction.createdAt);
+          const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+          return transactionDate >= oneWeekAgo;
+        });
+        break;
+      case "thisMonth":
+        result = result.filter((transaction) => {
+          const transactionDate = new Date(transaction.createdAt);
+          return (
+            transactionDate.getMonth() === now.getMonth() &&
+            transactionDate.getFullYear() === now.getFullYear()
+          );
+        });
+        break;
+      // "all" does nothing extra
+    }
+
+    // Sorting
+    result.sort((a, b) => {
+      const dateA = new Date(a.createdAt);
+      const dateB = new Date(b.createdAt);
+      return currentSort === "newest" 
+        ? dateB.getTime() - dateA.getTime() 
+        : dateA.getTime() - dateB.getTime();
+    });
+
+    setFilteredTransactions(result);
+  };
 
   const renderAmount = (amount) => {
     const color = amount > 0 ? "#4CAF50" : "#FF5252";
@@ -65,6 +105,17 @@ export default function WalletHistory() {
         {prefix}${Math.abs(amount).toFixed(2)}
       </Text>
     );
+  };
+
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
   };
 
   const openTransactionDetails = (transaction) => {
@@ -82,7 +133,7 @@ export default function WalletHistory() {
       <Appbar.Header style={styles.appbar}>
         <Appbar.BackAction onPress={() => navigation.navigate("Wallet")} />
         <Appbar.Content title="History" />
-        <TouchableOpacity onPress={() => navigation.navigate("cart")}>
+        <TouchableOpacity onPress={() => navigation.navigate("Cart")}>
           <Ionicons name="cart-outline" size={24} color="black" />
         </TouchableOpacity>
       </Appbar.Header>
@@ -91,28 +142,106 @@ export default function WalletHistory() {
         <Searchbar
           value={searchhistory}
           onChangeText={setSearchhistory}
-          placeholder="Search transactions history"
+          placeholder="Search transactions"
           style={styles.searchBar}
           iconColor={theme.colors.primary}
         />
-        <IconButton
-          icon="filter-variant"
-          size={24}
-          onPress={() => {}}
-          style={styles.filterButton}
-        />
+      
       </Surface>
 
       <ScrollView>
         <List.Section>
-          <List.Subheader>Transactions</List.Subheader>
+          <View style={styles.actionButtons}>
+
+          <List.Subheader>
+            {currentFilter === "all" 
+              ? "All Transactions" 
+              : currentFilter === "thisWeek" 
+                ? "Transactions This Week" 
+                : "Transactions This Month"}
+          </List.Subheader>
+          <View style={styles.actionButtons}>
+          {/* Filter Menu */}
+          <Menu
+            visible={filterMenuVisible}
+            onDismiss={() => setFilterMenuVisible(false)}
+            anchor={
+              <IconButton
+                icon="filter-variant"
+                size={24}
+                onPress={() => setFilterMenuVisible(true)}
+              />
+            }
+          >
+            <Menu.Item
+              onPress={() => {
+                setCurrentFilter("all");
+                setFilterMenuVisible(false);
+              }}
+              title="All Transactions"
+              selected={currentFilter === "all"}
+            />
+            <Menu.Item
+              onPress={() => {
+                setCurrentFilter("thisWeek");
+                setFilterMenuVisible(false);
+              }}
+              title="This Week"
+              selected={currentFilter === "thisWeek"}
+            />
+            <Menu.Item
+              onPress={() => {
+                setCurrentFilter("thisMonth");
+                setFilterMenuVisible(false);
+              }}
+              title="This Month"
+              selected={currentFilter === "thisMonth"}
+            />
+          </Menu>
+
+          {/* Sort Menu */}
+          <Menu
+            visible={sortMenuVisible}
+            onDismiss={() => setSortMenuVisible(false)}
+            anchor={
+              <IconButton
+                icon="sort"
+                size={24}
+                onPress={() => setSortMenuVisible(true)}
+              />
+            }
+          >
+            <Menu.Item
+              onPress={() => {
+                setCurrentSort("newest");
+                setSortMenuVisible(false);
+              }}
+              title="Newest First"
+              selected={currentSort === "newest"}
+            />
+            <Menu.Item
+              onPress={() => {
+                setCurrentSort("oldest");
+                setSortMenuVisible(false);
+              }}
+              title="Oldest First"
+              selected={currentSort === "oldest"}
+            />
+          </Menu>
+        </View>
+          </View>
           {filteredTransactions.map((transaction) => (
             <List.Item
-              key={transaction.id}
-              title={transaction.title}
-              description={transaction.date}
-              left={(props) => <List.Icon {...props} icon={transaction.icon} />}
-              right={() => renderAmount(transaction.amount)}
+              key={transaction._id}
+              title={transaction.merchantDetails[0].merchantName}
+              description={formatDate(transaction.createdAt)}
+              left={(props) => (
+                <List.Icon 
+                  {...props} 
+                  icon={transaction.totalAmount > 0 ? "arrow-up" : "arrow-down"} 
+                />
+              )}
+              right={() => renderAmount(transaction.totalAmount)}
               style={styles.listItem}
               onPress={() => openTransactionDetails(transaction)}
             />
@@ -132,16 +261,19 @@ export default function WalletHistory() {
             {selectedTransaction && (
               <>
                 <Text style={styles.modalTitle}>
-                  {selectedTransaction.title}
+                  {selectedTransaction.merchantDetails[0].merchantName}
                 </Text>
                 <Text style={styles.modalAmount}>
-                  {renderAmount(selectedTransaction.amount)}
+                  {renderAmount(selectedTransaction.totalAmount)}
                 </Text>
                 <Text style={styles.modalDetail}>
-                  Date: {selectedTransaction.date}
+                  Date: {formatDate(selectedTransaction.createdAt)}
                 </Text>
                 <Text style={styles.modalDetail}>
-                  Transaction No: {selectedTransaction.transactionNo}
+                  Transaction ID: {selectedTransaction._id}
+                </Text>
+                <Text style={styles.modalDetail}>
+                  Status: {selectedTransaction.status}
                 </Text>
               </>
             )}
@@ -178,8 +310,12 @@ const styles = StyleSheet.create({
     marginRight: 8,
     backgroundColor: "#f5f5f5",
   },
-  filterButton: {
-    margin: 0,
+  actionButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+   
+    backgroundColor: '#f5f5f5',
   },
   listItem: {
     backgroundColor: "#fff",
