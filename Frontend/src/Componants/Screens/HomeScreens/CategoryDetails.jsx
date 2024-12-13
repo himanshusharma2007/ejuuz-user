@@ -23,7 +23,6 @@ import Toast from "react-native-toast-message";
 
 const { width, height } = Dimensions.get("window");
 
-
 export default function CategoryDetails() {
   const navigation = useNavigation();
   const route = useRoute();
@@ -108,7 +107,9 @@ export default function CategoryDetails() {
     return (
       <TouchableOpacity
         onPress={() =>
-          navigation.navigate("ProductDetails", { item: JSON.stringify(item) })
+          navigation.navigate("ProductDetails", {
+            item: JSON.stringify(item._id),
+          })
         }
         style={styles.itemContainer}
       >

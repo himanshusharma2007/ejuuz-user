@@ -30,8 +30,108 @@ import {
   getAllProducts,
 } from "../../service/productService";
 import { getAllShops } from "../../service/shopservice";
+import authService from "../../service/authService";
+import { useSelector } from "react-redux";
+import { Badge } from "react-native-paper";
+import Categories from "../Screens/HomeScreens/Categories";
 
 const { width } = Dimensions.get("window");
+
+const recommendedProducts = [
+  {
+    id: "r1",
+    name: "Fresh Berries Mix",
+    price: "R 129.99",
+    oldPrice: "R 159.99",
+    discount: "20%",
+    rating: "⭐⭐⭐⭐½",
+    image:
+      "https://images.unsplash.com/photo-1613082410785-22292e8426e7?q=80&w=1287&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+  },
+  {
+    id: "r2",
+    name: "Oranges",
+    price: "R 89.99",
+    oldPrice: "R 99.99",
+    discount: "10%",
+    rating: "⭐⭐⭐⭐⭐",
+    image:
+      "https://plus.unsplash.com/premium_photo-1669631944923-75bbc991f223?q=80&w=1287&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+  },
+  {
+    id: "r3",
+    name: "Whole Grain Bread",
+    price: "R 45.99",
+    oldPrice: "R 54.99",
+    discount: "15%",
+    rating: "⭐⭐⭐⭐",
+    image:
+      "https://images.unsplash.com/photo-1533782654613-826a072dd6f3?q=80&w=1365&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+  },
+  // Add more recommended products as needed
+];
+
+const weeklyDeals = [
+  {
+    id: "d1",
+    name: "Fresh Vegetables Bundle",
+    price: "R 199.99",
+    oldPrice: "R 299.99",
+    saveAmount: "R 100",
+    image:
+      "https://plus.unsplash.com/premium_photo-1661376954615-26609d61d924?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    validUntil: "3 days left",
+  },
+  {
+    id: "d2",
+    name: "Fruit Box",
+    price: "R 249.99",
+    oldPrice: "R 349.99",
+    saveAmount: "R 100",
+    image:
+      "https://images.unsplash.com/photo-1583754744912-637265c87826?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    validUntil: "5 days left",
+  },
+  {
+    id: "d3",
+    name: "Fruit Box",
+    price: "R 249.99",
+    oldPrice: "R 349.99",
+    saveAmount: "R 100",
+    image:
+      "https://images.unsplash.com/photo-1583754744912-637265c87826?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    validUntil: "5 days left",
+  },
+  // Add more deals as needed
+];
+
+const BannerDot = ({ index, scrollX }) => {
+  const inputRange = [(index - 1) * width, index * width, (index + 1) * width];
+
+  const width_animated = scrollX.interpolate({
+    inputRange,
+    outputRange: [8, 16, 8],
+    extrapolate: "clamp",
+  });
+
+  const opacity = scrollX.interpolate({
+    inputRange,
+    outputRange: [0.3, 1, 0.3],
+    extrapolate: "clamp",
+  });
+
+  return (
+    <Animated.View
+      style={[
+        styles.dot,
+        {
+          width: width_animated,
+          opacity,
+        },
+      ]}
+    />
+  );
+};
 
 export default function Home() {
   const scrollX = useRef(new Animated.Value(0)).current;
@@ -41,37 +141,15 @@ export default function Home() {
   const [searchText, setSearchText] = useState("");
   const autoScrollTimer = useRef(null);
   const isManualScroll = useRef(false);
+
   const navigation = useNavigation();
   const [productdata, setAllProducts] = useState([]);
   const [discountedProducts, setDiscountedProducts] = useState([]);
   const [shopdata, setShopdata] = useState([]);
+  const cartData = useSelector((state) => state.cart.items);
 
-  // Hardcoded data
-  const recommendedProducts = [
-    {
-      id: "r1",
-      name: "Fresh Berries Mix",
-      price: "R 129.99",
-      oldPrice: "R 159.99",
-      discount: "20%",
-      rating: "⭐⭐⭐⭐½",
-      image: "https://images.unsplash.com/photo-1613082410785-22292e8426e7?q=80&w=1287"
-    },
-  ];
+  // console.log("cart data length", cartData.length);
 
-  const weeklyDeals = [
-    {
-      id: "d1",
-      name: "Fresh Vegetables Bundle",
-      price: "R 199.99",
-      oldPrice: "R 299.99",
-      saveAmount: "R 100",
-      image: "https://plus.unsplash.com/premium_photo-1661376954615-26609d61d924?q=80&w=1470",
-      validUntil: "3 days left"
-    },
-  ];
-
-  // Fetch Data Effects
   useEffect(() => {
     const fetchAllData = async () => {
       try {
@@ -92,7 +170,17 @@ export default function Home() {
     fetchAllData();
   }, []);
 
-  // Categories Computation
+  useState(() => {
+    const fetchcurentuser = async () => {
+      try {
+        const response = await authService.getCurrentUser();
+        console.log("current user is", response);
+      } catch (error) {
+        console.error("Error fetching product data:", error);
+      }
+    };
+    fetchcurentuser();
+  }, []);
   const categories = useMemo(() => {
     const categoryMap = new Map();
 
@@ -123,21 +211,68 @@ export default function Home() {
   };
 
   const handleProductPress = useCallback((product) => {
-    navigation.navigate("ProductDetails", { 
-      item: JSON.stringify(product) 
+    // router.push({
+    //   pathname: `/home/productdetails`,
+    //   params: { item: JSON.stringify(product) },
+    // });
+
+    navigation.navigate("ProductDetails", {
+      item: JSON.stringify(product._id),
     });
   }, []);
 
-  const handleCategoryPress = useCallback((category) => {
-    navigation.navigate("CategoryDetails", {
-      category: JSON.stringify({
-        ...category,
-        items: category.items,
-      }),
-    });
+  const handleDealPress = useCallback((deal) => {
+    navigation.navigate("ProductDetails", { item: JSON.stringify(deal._id) });
   }, []);
+  const startAutoScroll = useCallback(() => {
+    // Clear existing timer
+    if (autoScrollTimer.current) {
+      clearInterval(autoScrollTimer.current);
+    }
 
-  // Refresh Handler
+    // Only start auto-scroll if there are multiple items
+    if (discountedProducts.length > 1) {
+      autoScrollTimer.current = setInterval(() => {
+        // Ensure not in manual scroll mode and has multiple items
+        if (!isManualScroll.current && discountedProducts.length > 1) {
+          const nextIndex = (currentIndex + 1) % discountedProducts.length;
+
+          flatListRef.current?.scrollToIndex({
+            index: nextIndex,
+            animated: true,
+          });
+        }
+      }, 3000);
+    }
+  }, [currentIndex, discountedProducts.length]);
+
+  // Scroll Event Handlers with More Robust Logic
+  const handleScrollBegin = () => {
+    isManualScroll.current = true;
+    if (autoScrollTimer.current) {
+      clearInterval(autoScrollTimer.current);
+    }
+  };
+
+  const handleScrollEnd = () => {
+    // Reset manual scroll with a slight delay
+    setTimeout(() => {
+      isManualScroll.current = false;
+      startAutoScroll();
+    }, 500);
+  };
+
+  // Improved Viewability Configuration
+  const onViewableItemsChanged = useRef(({ viewableItems }) => {
+    if (viewableItems.length > 0) {
+      const newIndex = viewableItems[0].index;
+      setCurrentIndex(newIndex);
+    }
+  }).current;
+
+  const viewabilityConfig = useRef({
+    itemVisiblePercentThreshold: 50,
+  }).current;
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
     try {
@@ -180,44 +315,43 @@ export default function Home() {
     }
   };
 
-  const handleScrollEnd = () => {
-    // Reset manual scroll with a slight delay
-    setTimeout(() => {
-      isManualScroll.current = false;
-      startAutoScroll();
-    }, 500);
+  const filteredCategories = useMemo(() => {
+    if (!searchText) return categories;
+
+    return categories.filter(
+      (category) =>
+        category.category.toLowerCase().includes(searchText.toLowerCase()) ||
+        category.items.some((item) =>
+          item.name.toLowerCase().includes(searchText.toLowerCase())
+        )
+    );
+  }, [categories, searchText]);
+
+  const truncateText = (text, wordLimit) => {
+    const words = text.split(" ");
+    if (words.length > 3) {
+      return words.slice(0, 3).join(" ") + " ...";
+    }
+    return text;
   };
 
-  // Improved Viewability Configuration
-  const onViewableItemsChanged = useRef(({ viewableItems }) => {
-    if (viewableItems.length > 0) {
-      const newIndex = viewableItems[0].index;
-      setCurrentIndex(newIndex);
-    }
-  }).current;
-
-  const viewabilityConfig = useRef({
-    itemVisiblePercentThreshold: 50,
-  }).current;
-
-  // Dot Indicator Component with Smoother Animation
   const BannerDot = ({ index, scrollX }) => {
     const inputRange = [
-      (index - 1) * width, 
-      index * width, 
-      (index + 1) * width
+      (index - 1) * width,
+      index * width,
+      (index + 1) * width,
     ];
 
     const dotWidth = scrollX.interpolate({
       inputRange,
       outputRange: [8, 16, 8],
-      extrapolate: 'clamp'
+      extrapolate: "clamp",
     });
 
     const opacity = scrollX.interpolate({
       inputRange,
       outputRange: [0.5, 1, 0.5],
-      extrapolate: 'clamp'
+      extrapolate: "clamp",
     });
 
     return (
@@ -227,7 +361,7 @@ export default function Home() {
           {
             width: dotWidth,
             opacity,
-          }
+          },
         ]}
       />
     );
@@ -236,10 +370,7 @@ export default function Home() {
   // Banner Item Component
   const BannerItems = ({ item, onPress }) => {
     return (
-      <Pressable 
-        onPress={() => onPress(item)}
-        style={styles.bannerContainer}
-      >
+      <Pressable onPress={() => onPress(item)} style={styles.bannerContainer}>
         <View style={styles.bannerContent}>
           <View style={styles.bannerTextContainer}>
             <Text style={styles.discountText}>
@@ -259,10 +390,11 @@ export default function Home() {
             ]}
           >
             <Image
-              source={{ 
-                uri: item.images && item.images.length > 0 
-                  ? item.images[0].url 
-                  : "https://via.placeholder.com/300x200.png?text=No+Image" 
+              source={{
+                uri:
+                  item.images && item.images.length > 0
+                    ? item.images[0].url
+                    : "https://via.placeholder.com/300x200.png?text=No+Image",
               }}
               style={styles.bannerImage}
               resizeMode="cover"
@@ -283,6 +415,8 @@ export default function Home() {
       }
     };
   }, [currentIndex, startAutoScroll]);
+
+  // console.log("discountedProducts", discountedProducts);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -340,6 +474,9 @@ export default function Home() {
                 onPress={() => navigation.navigate("Cart")}
               >
                 <Ionicons name="cart-outline" size={24} color="#FFF" />
+                {cartData.length > 0 && (
+                  <Text style={styles.badge}>{cartData.length}</Text>
+                )}
               </TouchableOpacity>
             </View>
           </View>
@@ -352,18 +489,14 @@ export default function Home() {
             </Text>
             <Ionicons name="chevron-down" size={20} color="#FFF" />
           </TouchableOpacity>
-
-          {/* Banner Slider */}
+          {/* Banner slider */}
           <View>
             {discountedProducts.length > 0 ? (
               <FlatList
                 ref={flatListRef}
                 data={discountedProducts}
                 renderItem={({ item }) => (
-                  <BannerItems 
-                    item={item} 
-                    onPress={handleProductPress} 
-                  />
+                  <BannerItems item={item} onPress={handleProductPress} />
                 )}
                 keyExtractor={(item, index) => item._id || index.toString()}
                 horizontal
@@ -389,11 +522,7 @@ export default function Home() {
             )}
             <View style={styles.bannerDots}>
               {discountedProducts.map((_, index) => (
-                <BannerDot 
-                  key={index} 
-                  index={index} 
-                  scrollX={scrollX} 
-                />
+                <BannerDot key={index} index={index} scrollX={scrollX} />
               ))}
             </View>
           </View>
@@ -404,22 +533,56 @@ export default function Home() {
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Categories</Text>
           </View>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.categoryScrollContent}
-          >
-            {categories.map((category) => (
-              <TouchableOpacity
-                key={category.category}
-                style={styles.categoryItem}
-                onPress={() => handleCategoryPress(category)}
-                activeOpacity={0.7}
-              >
-                <Text style={styles.category}>{category.category}</Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
+          <View style={styles.categoriesGrid}>
+            {/* <FlatList
+              data={filteredCategories}
+              horizontal
+              style={{gap:10, marginHorizontal:10}}
+              keyExtractor={(category) => category.id}
+             renderItem={({ item }) => (
+               <TouchableOpacity  key={item.category}
+               style={[
+                 styles.categoryItem,
+                 { backgroundColor: item.categorycolor },
+               ]}
+               onPress={() => handleCategoryPress(category)}
+               activeOpacity={0.7}
+             >
+                  <Text style={styles.categoryIcon}>{item.categoryicon}</Text>
+                  <Text style={styles.category}>{item.category}</Text>
+
+             </TouchableOpacity>
+             )} 
+            /> */}
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.categoryScrollContent}
+            >
+              {filteredCategories.map((category) => (
+                <Categories
+                  key={category.category}
+                  category={category.category}
+                  onPress={() => handleCategoryPress(category)}
+                />
+              ))}
+
+              {/* <TouchableOpacity
+                   key={category.category}
+                   style={[
+                     styles.categoryItem,
+                      { backgroundColor: category.categorycolor },
+                   ]}
+                   onPress={() => handleCategoryPress(category)}
+                   activeOpacity={0.7}
+                 >
+                   <Text style={styles.categoryIcon}>
+                     {category.categoryicon}
+                   </Text>
+                   <Text style={styles.category}>{category.category}</Text>
+                 </TouchableOpacity> */}
+            </ScrollView>
+          </View>
         </View>
 
         {/* Stores Section */}
@@ -476,31 +639,45 @@ export default function Home() {
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.recommendedScrollContent}
           >
-            {recommendedProducts.map((product) => (
-              <TouchableOpacity
-                key={product.id}
-                style={styles.recommendedCard}
-                onPress={() => handleProductPress(product)}
-              >
-                <Image
-                  source={{ uri: product.image }}
-                  style={styles.recommendedImage}
-                />
-                <View style={styles.discountBadge}>
-                  <Text style={styles.discountText}>{product.discount}</Text>
-                </View>
-                <View style={styles.recommendedInfo}>
-                  <Text style={styles.recommendedName} numberOfLines={1}>
-                    {product.name}
-                  </Text>
-                  <View style={styles.priceContainer}>
-                    <Text style={styles.price}>{product.price}</Text>
-                    <Text style={styles.oldPrice}>{product.oldPrice}</Text>
+            {discountedProducts.map((product) => {
+              const imgageUri =
+                product.images[0]?.url || "https://via.placeholder.com/150";
+              return (
+                <TouchableOpacity
+                  key={product._id}
+                  style={styles.recommendedCard}
+                  onPress={() => handleProductPress(product)}
+                >
+                  <Image
+                    source={{ uri: imgageUri }}
+                    style={styles.recommendedImage}
+                  />
+                  {product.discount > 0 && (
+                    <View style={styles.discountBadge}>
+                      <Text style={styles.discountText}>
+                        {product.discount}%
+                      </Text>
+                    </View>
+                  )}
+                  <View style={styles.recommendedInfo}>
+                    <Text style={styles.recommendedName} numberOfLines={1}>
+                      {product.name}
+                    </Text>
+                    <View style={styles.priceContainer}>
+                      <Text style={styles.price}>R{product.price}</Text>
+                      <Text style={styles.oldPrice}>R{product.mrp}</Text>
+                    </View>
+                    <Text style={styles.ratingText}>
+                      {product.avgRating === 0
+                        ? `⭐ (5.0)`
+                        : product.avgRating > 0
+                        ? `⭐ (${product.avgRating.toFixed(1)})`
+                        : ""}
+                    </Text>
                   </View>
-                  <Text style={styles.ratingText}>{product.rating}</Text>
-                </View>
-              </TouchableOpacity>
-            ))}
+                </TouchableOpacity>
+              );
+            })}
           </ScrollView>
         </View>
 
@@ -513,62 +690,35 @@ export default function Home() {
             </TouchableOpacity>
           </View>
           <View style={styles.dealsGrid}>
-            {weeklyDeals.map((deal) => (
+            {[...discountedProducts].reverse().map((deal) => (
               <TouchableOpacity
-                key={deal.id}
+                key={deal._id}
                 style={styles.dealCard}
                 onPress={() => handleDealPress(deal)}
               >
-                <Image source={{ uri: deal.image }} style={styles.dealImage} />
+                <Image
+                  source={{
+                    uri:
+                      deal.images[0]?.url || "https://via.placeholder.com/150",
+                  }}
+                  style={styles.dealImage}
+                />
                 <View style={styles.dealInfo}>
                   <Text style={styles.dealName} numberOfLines={2}>
                     {deal.name}
                   </Text>
                   <View style={styles.dealPriceContainer}>
-                    <Text style={styles.dealPrice}>{deal.price}</Text>
-                    <Text style={styles.dealOldPrice}>{deal.oldPrice}</Text>
+                    <Text style={styles.dealPrice}>R{deal.price}</Text>
+                    <Text style={styles.dealOldPrice}>R{deal.mrp}</Text>
                   </View>
                   <View style={styles.dealBottom}>
-                    <Text style={styles.saveAmount}>
-                      Save {deal.saveAmount}
-                    </Text>
-                    <Text style={styles.validUntil}>{deal.validUntil}</Text>
+                    <Text style={styles.saveAmount}>{deal.discount}% OFF</Text>
+                    {/* <Text style={styles.validUntil}>{deal.discount}</Text> */}
                   </View>
                 </View>
               </TouchableOpacity>
             ))}
           </View>
-        </View>
-
-        {/* Recently Viewed Section */}
-        <View style={styles.recentlyViewedSection}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Recently Viewed</Text>
-            <TouchableOpacity>
-              <Text style={styles.seeAllText}>Clear all</Text>
-            </TouchableOpacity>
-          </View>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.recentlyViewedContent}
-          >
-            {/* {productdata.slice(0, 5).map((item) => (
-              <TouchableOpacity
-                key={item.id}
-                style={styles.recentlyViewedItem}
-                onPress={() => handleProductPress(item)}
-              >
-                <Image
-                  source={{ uri: item.image }}
-                  style={styles.recentlyViewedImage}
-                />
-                <Text style={styles.recentlyViewedName} numberOfLines={1}>
-                  {item.name}
-                </Text>
-              </TouchableOpacity>
-            ))} */}
-          </ScrollView>
         </View>
       </ScrollView>
     </SafeAreaView>

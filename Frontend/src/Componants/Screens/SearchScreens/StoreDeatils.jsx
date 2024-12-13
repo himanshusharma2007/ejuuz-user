@@ -19,10 +19,10 @@ import {
 } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useDispatch, useSelector } from "react-redux";
-import { 
-  addToCartAsync, 
-  addToWishlistAsync, 
-  removeFromWishlistAsync 
+import {
+  addToCartAsync,
+  addToWishlistAsync,
+  removeFromWishlistAsync,
 } from "../../../../redux/features/cartSlice";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { getShopById } from "../../../service/shopservice";
@@ -65,8 +65,8 @@ export default function StoreDeatils() {
   // Handle adding product to wishlist
   const handleAddToWishlist = (product) => {
     // Check if product is already in wishlist
-    const isInWishlist = wishlist.some(item => item._id === product._id);
-    
+    const isInWishlist = wishlist.some((item) => item._id === product._id);
+
     if (isInWishlist) {
       // If already in wishlist, remove it
       dispatch(removeFromWishlistAsync(product));
@@ -75,7 +75,6 @@ export default function StoreDeatils() {
       // If not in wishlist, add it
       dispatch(addToWishlistAsync(product));
       ToastAndroid.show("Added to Wishlist", ToastAndroid.SHORT);
-
     }
   };
 
@@ -97,7 +96,7 @@ export default function StoreDeatils() {
             style={styles.carouselIcon}
           />
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => navigation.navigate('Wishlist')}>
+        <TouchableOpacity onPress={() => navigation.navigate("Wishlist")}>
           <Image
             source={require("../../../images/wishlist.png")}
             style={styles.hearticon}
@@ -162,18 +161,20 @@ export default function StoreDeatils() {
   const renderProducts = ({ item }) => {
     const imageUri = item.images?.[0]?.url || "https://via.placeholder.com/150";
     const discountText = item.discount ? `${item.discount}% OFF` : null;
-    const ratingText = item.avgRating
-      ? `Rating: ${item.avgRating}`
-      : "";
+    const ratingText = item.avgRating ? `Rating: ${item.avgRating}` : "";
 
     // Check if product is in wishlist
-    const isInWishlist = wishlist.some(wishlistItem => wishlistItem._id === item._id);
+    const isInWishlist = wishlist.some(
+      (wishlistItem) => wishlistItem._id === item._id
+    );
 
     return (
       <TouchableOpacity
         style={styles.productCard}
         onPress={() =>
-          navigation.navigate("ProductDetails", { item: JSON.stringify(item) })
+          navigation.navigate("ProductDetails", {
+            item: JSON.stringify(item._id),
+          })
         }
       >
         <View style={styles.productImageContainer}>
@@ -187,21 +188,21 @@ export default function StoreDeatils() {
             <Text style={styles.productName}>
               {item.name || "Unnamed Product"}
             </Text>
-          <Text style={styles.productPrice}>R {item.price || "0.00"}</Text>
+            <Text style={styles.productPrice}>R {item.price || "0.00"}</Text>
           </View>
-            <View style={styles.ratingContainer}>
-              <Text style={styles.ratingText}>{ratingText}</Text>
-            </View>
+          <View style={styles.ratingContainer}>
+            <Text style={styles.ratingText}>{ratingText}</Text>
+          </View>
           <View style={styles.productFooter}>
             <View style={styles.productActions}>
               <TouchableOpacity
                 style={styles.wishlistButton}
                 onPress={() => handleAddToWishlist(item)}
               >
-                <MaterialCommunityIcons 
-                  name={isInWishlist ? "heart" : "heart-outline"} 
-                  size={20} 
-                  color={isInWishlist ? "#FF0000" : "#666"} 
+                <MaterialCommunityIcons
+                  name={isInWishlist ? "heart" : "heart-outline"}
+                  size={20}
+                  color={isInWishlist ? "#FF0000" : "#666"}
                 />
               </TouchableOpacity>
               <TouchableOpacity

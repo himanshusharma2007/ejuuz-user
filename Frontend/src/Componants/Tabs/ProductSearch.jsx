@@ -111,7 +111,7 @@ export default function ProductSearch() {
       elevation={4}
       onPress={() =>
         navigation.navigate("ProductDetails", {
-          item: JSON.stringify(item),
+          item: JSON.stringify(item._id),
         })
       }
     >

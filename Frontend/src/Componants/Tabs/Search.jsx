@@ -272,7 +272,7 @@ export default function Search() {
           <View>
             {index == 0 && (
               <View style={styles.searchResultsContainer}>
-                <Text
+                {/* <Text
                   style={{
                     fontSize: 24,
                     fontWeight: "600",
@@ -281,7 +281,7 @@ export default function Search() {
                   }}
                 >
                   Product
-                </Text>
+                </Text> */}
 
                 {loading ? (
                   <View style={styles.loadingContainer}>
@@ -402,7 +402,7 @@ const styles = StyleSheet.create({
   },
   searchResultsContainer: {
     padding: 10,
-    // alignItems: "center",
+    alignItems: "center",
     justifyContent: "center",
   },
 

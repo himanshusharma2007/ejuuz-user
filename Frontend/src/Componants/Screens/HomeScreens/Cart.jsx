@@ -22,7 +22,7 @@ export default function Cart() {
   const dispatch = useDispatch();
   const [totalItemQuantity, setTotalItemQuantity] = useState(0);
   const [totalItemPrice, setTotalItemPrice] = useState(0);
-  
+
   const cartData = useSelector((state) => state.cart.items);
   const navigation = useNavigation();
 
@@ -45,9 +45,15 @@ export default function Cart() {
   };
 
   const calculateTotalQuantityAndPrice = () => {
-    const totalQuantity = cartData.reduce((acc, item) => acc + item.quantity, 0);
-    const totalPrice = cartData.reduce((acc, item) => acc + (item.quantity * parseFloat(item.price)), 0);
-    
+    const totalQuantity = cartData.reduce(
+      (acc, item) => acc + item.quantity,
+      0
+    );
+    const totalPrice = cartData.reduce(
+      (acc, item) => acc + item.quantity * parseFloat(item.price),
+      0
+    );
+
     setTotalItemQuantity(totalQuantity);
     setTotalItemPrice(totalPrice);
   };
@@ -60,17 +66,17 @@ export default function Cart() {
     navigation.navigate("Checkout");
   };
 
-  const calculateItemTotal = (item) => {
-    // Safely calculate item total
-    const price = typeof item.price === 'string' 
-      ? parseFloat(item.price.replace('R ', '').trim()) 
-      : (parseFloat(item.price) || 0);
-    
-    return (item.quantity * price).toFixed(2);
+  const handleItemPress = (item) => {
+    navigation.navigate("ProductDetails", {
+      item: JSON.stringify(item.productId._id),
+    });
+    // console.log("cart handlepress ", {
+    //   item: JSON.stringify(item.productId._id),
+    // });
   };
 
   const renderCartItem = ({ item }) => (
-    <Card style={styles.cartItem}>
+    <Card style={styles.cartItem} onPress={() => handleItemPress(item)}>
       <View style={styles.itemContainer}>
         <Image
           source={{ uri: item.productId.images[0]?.url }}
@@ -89,12 +95,12 @@ export default function Cart() {
               <Icon name="delete-outline" size={24} color="#FF5252" />
             </TouchableOpacity>
           </View>
-          
+
           <View style={styles.priceContainer}>
             <Text style={styles.price}>R {item.productId.price}</Text>
             <Text style={styles.discount}>Upto 33% off</Text>
           </View>
-          
+
           <View style={styles.quantityContainer}>
             <TouchableOpacity
               onPress={() => decreaseItemQuantity(item.productId._id)}
@@ -110,7 +116,7 @@ export default function Cart() {
               <Icon name="plus" size={20} color="#333" />
             </TouchableOpacity>
           </View>
-          
+
           <View style={styles.orderTotalContainer}>
             <Text style={styles.orderTotalLabel}>Total Order:</Text>
             <Text style={styles.orderTotalAmount}>
@@ -144,18 +150,19 @@ export default function Cart() {
             contentContainerStyle={styles.cartList}
             showsVerticalScrollIndicator={false}
           />
-          
+
           <View style={styles.bottomBar}>
             <View style={styles.totalContainer}>
-             
               <View style={styles.totalPriceContainer}>
                 <Text style={styles.totalLabel}>Total Price</Text>
-                <Text style={styles.totalAmount}>R {totalItemPrice.toFixed(2)}</Text>
+                <Text style={styles.totalAmount}>
+                  R {totalItemPrice.toFixed(2)}
+                </Text>
               </View>
             </View>
-            
-            <TouchableOpacity 
-              style={styles.checkoutButton} 
+
+            <TouchableOpacity
+              style={styles.checkoutButton}
               onPress={Processtocheckout}
             >
               <Text style={styles.checkoutButtonText}>Checkout</Text>
