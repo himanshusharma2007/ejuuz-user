@@ -62,8 +62,6 @@ const userSlice = createSlice({
 // Export actions and selectors
 export const { setUser, clearUser } = userSlice.actions;
 export const selectUser = (state) => {
-  console.log('Full state:', state);
-  console.log('User slice:', state.user);
   return state.user;
 };
 export const selectIsAuthenticated = (state) => state.user.isAuthenticated;

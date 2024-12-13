@@ -4,7 +4,7 @@ const Transaction = require('../model/transactionModel');
 exports.getTransactionHistory = async (req, res) => {
     try {
         const customerId = req.user._id;
-        const transactions = await Transaction.find({ 
+        const transactions = await Transaction.find({
             customerId: customerId 
         }).populate({
             path: 'merchantDetails.merchantId',
