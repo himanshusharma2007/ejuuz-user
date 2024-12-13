@@ -33,130 +33,6 @@ import { getAllShops } from "../../service/shopservice";
 
 const { width } = Dimensions.get("window");
 
-const banners = [
-  {
-    id: "1",
-    title: "Special Offer",
-    discount: "25% OFF",
-    image:
-      "https://images.unsplash.com/photo-1598528738936-c50861cc75a9?q=80&w=1480&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    color: "#E3F2FD",
-  },
-  {
-    id: "2",
-    title: "Special Offer",
-    discount: "55% OFF",
-    image:
-      "https://images.unsplash.com/photo-1550344071-13ecada2a91d?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    color: "#E3F2FD",
-  },
-  {
-    id: "3",
-    title: "Special Offer",
-    discount: "15% OFF",
-    image:
-      "https://images.unsplash.com/photo-1498579397066-22750a3cb424?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    color: "#E3F2FD",
-  },
-  // ... other banner items
-];
-
-const recommendedProducts = [
-  {
-    id: "r1",
-    name: "Fresh Berries Mix",
-    price: "R 129.99",
-    oldPrice: "R 159.99",
-    discount: "20%",
-    rating: "⭐⭐⭐⭐½",
-    image:
-      "https://images.unsplash.com/photo-1613082410785-22292e8426e7?q=80&w=1287&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-  },
-  {
-    id: "r2",
-    name: "Oranges",
-    price: "R 89.99",
-    oldPrice: "R 99.99",
-    discount: "10%",
-    rating: "⭐⭐⭐⭐⭐",
-    image:
-      "https://plus.unsplash.com/premium_photo-1669631944923-75bbc991f223?q=80&w=1287&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-  },
-  {
-    id: "r3",
-    name: "Whole Grain Bread",
-    price: "R 45.99",
-    oldPrice: "R 54.99",
-    discount: "15%",
-    rating: "⭐⭐⭐⭐",
-    image:
-      "https://images.unsplash.com/photo-1533782654613-826a072dd6f3?q=80&w=1365&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-  },
-  // Add more recommended products as needed
-];
-
-const weeklyDeals = [
-  {
-    id: "d1",
-    name: "Fresh Vegetables Bundle",
-    price: "R 199.99",
-    oldPrice: "R 299.99",
-    saveAmount: "R 100",
-    image:
-      "https://plus.unsplash.com/premium_photo-1661376954615-26609d61d924?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    validUntil: "3 days left",
-  },
-  {
-    id: "d2",
-    name: "Fruit Box",
-    price: "R 249.99",
-    oldPrice: "R 349.99",
-    saveAmount: "R 100",
-    image:
-      "https://images.unsplash.com/photo-1583754744912-637265c87826?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    validUntil: "5 days left",
-  },
-  {
-    id: "d3",
-    name: "Fruit Box",
-    price: "R 249.99",
-    oldPrice: "R 349.99",
-    saveAmount: "R 100",
-    image:
-      "https://images.unsplash.com/photo-1583754744912-637265c87826?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    validUntil: "5 days left",
-  },
-  // Add more deals as needed
-];
-
-const BannerDot = ({ index, scrollX }) => {
-  const inputRange = [(index - 1) * width, index * width, (index + 1) * width];
-
-  const width_animated = scrollX.interpolate({
-    inputRange,
-    outputRange: [8, 16, 8],
-    extrapolate: "clamp",
-  });
-
-  const opacity = scrollX.interpolate({
-    inputRange,
-    outputRange: [0.3, 1, 0.3],
-    extrapolate: "clamp",
-  });
-
-  return (
-    <Animated.View
-      style={[
-        styles.dot,
-        {
-          width: width_animated,
-          opacity,
-        },
-      ]}
-    />
-  );
-};
-
 export default function Home() {
   const scrollX = useRef(new Animated.Value(0)).current;
   const flatListRef = useRef(null);
@@ -164,50 +40,59 @@ export default function Home() {
   const [refreshing, setRefreshing] = useState(false);
   const [searchText, setSearchText] = useState("");
   const autoScrollTimer = useRef(null);
+  const isManualScroll = useRef(false);
   const navigation = useNavigation();
   const [productdata, setAllProducts] = useState([]);
   const [discountedProducts, setDiscountedProducts] = useState([]);
   const [shopdata, setShopdata] = useState([]);
 
+  // Hardcoded data
+  const recommendedProducts = [
+    {
+      id: "r1",
+      name: "Fresh Berries Mix",
+      price: "R 129.99",
+      oldPrice: "R 159.99",
+      discount: "20%",
+      rating: "⭐⭐⭐⭐½",
+      image: "https://images.unsplash.com/photo-1613082410785-22292e8426e7?q=80&w=1287"
+    },
+  ];
+
+  const weeklyDeals = [
+    {
+      id: "d1",
+      name: "Fresh Vegetables Bundle",
+      price: "R 199.99",
+      oldPrice: "R 299.99",
+      saveAmount: "R 100",
+      image: "https://plus.unsplash.com/premium_photo-1661376954615-26609d61d924?q=80&w=1470",
+      validUntil: "3 days left"
+    },
+  ];
+
+  // Fetch Data Effects
   useEffect(() => {
-    const fetchAllTopDiscountProduct = async () => {
+    const fetchAllData = async () => {
       try {
-        const response = await getAllDiscountedProducts();
-        // console.log("API Response:", response);
-        setDiscountedProducts(response.products || []);
+        const [discountedResponse, productsResponse, shopsResponse] = await Promise.all([
+          getAllDiscountedProducts(),
+          getAllProducts(),
+          getAllShops()
+        ]);
+
+        setDiscountedProducts(discountedResponse.products || []);
+        setAllProducts(productsResponse.products || []);
+        setShopdata(shopsResponse.data || []);
       } catch (error) {
-        console.error("Error fetching all products", error);
+        console.error("Error fetching data", error);
       }
     };
-    fetchAllTopDiscountProduct();
+
+    fetchAllData();
   }, []);
 
-  useEffect(() => {
-    const fetchallproducts = async () => {
-      try {
-        const response = await getAllProducts();
-        setAllProducts(response.products);
-      } catch (error) {
-        console.error("Error fetching all products", error);
-      }
-    };
-    fetchallproducts();
-  }, []);
-
-  // console.log("productdata", productdata);
-  // console.log("allProducts", productdata.map((product) => product.category));
-
-  useEffect(() => {
-    const fetchAllShopdata = async () => {
-      try {
-        const response = await getAllShops();
-        setShopdata(response.data);
-        // console.log("Get All Shops", response.data);
-      } catch (error) {}
-    };
-    fetchAllShopdata();
-  }, []);
-
+  // Categories Computation
   const categories = useMemo(() => {
     const categoryMap = new Map();
 
@@ -224,72 +109,23 @@ export default function Home() {
     return Array.from(categoryMap.values());
   }, [productdata]);
 
+  // Utility Functions
+  const truncateText = (text, wordLimit = 3) => {
+    const words = text.split(" ");
+    return words.length > wordLimit 
+      ? words.slice(0, wordLimit).join(" ") + " ..." 
+      : text;
+  };
+
+  // Navigation Handlers
   const handleNavigate = () => {
     navigation.navigate("SearchTab", { foucesInput: true });
   };
 
   const handleProductPress = useCallback((product) => {
-    // router.push({
-    //   pathname: `/home/productdetails`,
-    //   params: { item: JSON.stringify(product) },
-    // });
-
-    navigation.navigate("ProductDetails", { item: JSON.stringify(product) });
-  }, []);
-
-  const handleDealPress = useCallback((deal) => {
-    navigation.navigate("ProductDetails", { item: JSON.stringify(deal) });
-  }, []);
-
-  const startAutoScroll = useCallback(() => {
-    if (discountedProducts.length === 0) return; // Prevent auto-scroll if no data
-    autoScrollTimer.current = setInterval(() => {
-      if (currentIndex < discountedProducts.length - 1) {
-        flatListRef.current?.scrollToIndex({
-          index: currentIndex + 1,
-          animated: true,
-        });
-      } else {
-        flatListRef.current?.scrollToIndex({
-          index: 0,
-          animated: true,
-        });
-      }
-    }, 3000);
-  }, [currentIndex, discountedProducts.length]);
-
-  useEffect(() => {
-    startAutoScroll();
-    return () => {
-      if (autoScrollTimer.current) {
-        clearInterval(autoScrollTimer.current);
-      }
-    };
-  }, [currentIndex, startAutoScroll]);
-
-  const onViewableItemsChanged = useRef(({ viewableItems }) => {
-    if (viewableItems.length > 0) {
-      setCurrentIndex(viewableItems[0].index);
-    }
-  }).current;
-
-  const viewabilityConfig = useRef({
-    itemVisiblePercentThreshold: 50,
-  }).current;
-
-  const handleRefresh = useCallback(async () => {
-    setRefreshing(true);
-    try {
-      const response = await getAllDiscountedProducts();
-      setDiscountedProducts(response.products || []);
-    } catch (error) {
-      console.error("Error refreshing data", error);
-    }
-    setRefreshing(false);
-  }, []);
-
-  const handleBannerPress = useCallback((banner) => {
-    console.log("Banner pressed:", banner);
+    navigation.navigate("ProductDetails", { 
+      item: JSON.stringify(product) 
+    });
   }, []);
 
   const handleCategoryPress = useCallback((category) => {
@@ -301,45 +137,117 @@ export default function Home() {
     });
   }, []);
 
-  const handleStorePress = useCallback((id) => {
-    console.log("Store pressed:", id);
+  // Refresh Handler
+  const handleRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      const response = await getAllDiscountedProducts();
+      setDiscountedProducts(response.products || []);
+    } catch (error) {
+      console.error("Error refreshing data", error);
+    }
+    setRefreshing(false);
   }, []);
 
-  const filteredCategories = useMemo(() => {
-    if (!searchText) return categories;
-
-    return categories.filter(
-      (category) =>
-        category.category.toLowerCase().includes(searchText.toLowerCase()) ||
-        category.items.some((item) =>
-          item.name.toLowerCase().includes(searchText.toLowerCase())
-        )
-    );
-  }, [categories, searchText]);
-
-  const truncateText = (text, wordLimit) => {
-    const words = text.split(" ");
-    if (words.length > 3) {
-      return words.slice(0, 3).join(" ") + " ...";
+  // Auto Scroll Handlers with Improved Logic
+  const startAutoScroll = useCallback(() => {
+    // Clear existing timer
+    if (autoScrollTimer.current) {
+      clearInterval(autoScrollTimer.current);
     }
-    return text;
+
+    // Only start auto-scroll if there are multiple items
+    if (discountedProducts.length > 1) {
+      autoScrollTimer.current = setInterval(() => {
+        // Ensure not in manual scroll mode and has multiple items
+        if (!isManualScroll.current && discountedProducts.length > 1) {
+          const nextIndex = (currentIndex + 1) % discountedProducts.length;
+          
+          flatListRef.current?.scrollToIndex({
+            index: nextIndex,
+            animated: true,
+          });
+        }
+      }, 3000);
+    }
+  }, [currentIndex, discountedProducts.length]);
+
+  // Scroll Event Handlers with More Robust Logic
+  const handleScrollBegin = () => {
+    isManualScroll.current = true;
+    if (autoScrollTimer.current) {
+      clearInterval(autoScrollTimer.current);
+    }
   };
 
-  const BannerItems = ({ item }) => {
-    const imageUri = item.images[0]?.url;
+  const handleScrollEnd = () => {
+    // Reset manual scroll with a slight delay
+    setTimeout(() => {
+      isManualScroll.current = false;
+      startAutoScroll();
+    }, 500);
+  };
+
+  // Improved Viewability Configuration
+  const onViewableItemsChanged = useRef(({ viewableItems }) => {
+    if (viewableItems.length > 0) {
+      const newIndex = viewableItems[0].index;
+      setCurrentIndex(newIndex);
+    }
+  }).current;
+
+  const viewabilityConfig = useRef({
+    itemVisiblePercentThreshold: 50,
+  }).current;
+
+  // Dot Indicator Component with Smoother Animation
+  const BannerDot = ({ index, scrollX }) => {
+    const inputRange = [
+      (index - 1) * width, 
+      index * width, 
+      (index + 1) * width
+    ];
+
+    const dotWidth = scrollX.interpolate({
+      inputRange,
+      outputRange: [8, 16, 8],
+      extrapolate: 'clamp'
+    });
+
+    const opacity = scrollX.interpolate({
+      inputRange,
+      outputRange: [0.5, 1, 0.5],
+      extrapolate: 'clamp'
+    });
+
     return (
-      <View style={styles.bannerContainer}>
-        <Pressable
-          onPress={() =>
-            navigation.navigate("ProductDetails", {
-              item: JSON.stringify(item),
-            })
+      <Animated.View
+        style={[
+          styles.dot,
+          {
+            width: dotWidth,
+            opacity,
           }
-          style={styles.bannerContent}
-        >
+        ]}
+      />
+    );
+  };
+
+  // Banner Item Component
+  const BannerItems = ({ item, onPress }) => {
+    return (
+      <Pressable 
+        onPress={() => onPress(item)}
+        style={styles.bannerContainer}
+      >
+        <View style={styles.bannerContent}>
           <View style={styles.bannerTextContainer}>
-            <Text style={styles.discountText}>{item.name}</Text>
-            <Text style={styles.discountAmount}>{item.discount}% OFF</Text>
+            <Text style={styles.discountText}>
+              {item.name || "Special Offer"}
+            </Text>
+            <Text style={styles.discountAmount}>
+              {item.discount ? `${item.discount}% OFF` : "Great Deals"}
+            </Text>
             <TouchableOpacity style={styles.seeDetailButton}>
               <Text style={styles.seeDetailButtonText}>See Detail</Text>
             </TouchableOpacity>
@@ -347,17 +255,34 @@ export default function Home() {
           <View
             style={[
               styles.bannerImageContainer,
-              { backgroundColor: item.color },
+              { backgroundColor: item.color || "#E3F2FD" },
             ]}
           >
-            <Image source={{ uri: imageUri }} style={styles.bannerImage} />
+            <Image
+              source={{ 
+                uri: item.images && item.images.length > 0 
+                  ? item.images[0].url 
+                  : "https://via.placeholder.com/300x200.png?text=No+Image" 
+              }}
+              style={styles.bannerImage}
+              resizeMode="cover"
+            />
           </View>
-        </Pressable>
-      </View>
+        </View>
+      </Pressable>
     );
   };
 
-  // console.log("discountedProducts", discountedProducts);
+  // Auto Scroll Effect with Enhanced Control
+  useEffect(() => {
+    startAutoScroll();
+
+    return () => {
+      if (autoScrollTimer.current) {
+        clearInterval(autoScrollTimer.current);
+      }
+    };
+  }, [currentIndex, startAutoScroll]);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -416,13 +341,6 @@ export default function Home() {
               >
                 <Ionicons name="cart-outline" size={24} color="#FFF" />
               </TouchableOpacity>
-
-              {/* <TouchableOpacity
-                style={styles.iconButton}
-                onPress={() => navigation.navigate("Notifications")}
-              >
-                <Ionicons name="notifications-outline" size={24} color="#FFF" />
-              </TouchableOpacity> */}
             </View>
           </View>
 
@@ -442,9 +360,12 @@ export default function Home() {
                 ref={flatListRef}
                 data={discountedProducts}
                 renderItem={({ item }) => (
-                  <BannerItems item={item} onPress={handleBannerPress} />
+                  <BannerItems 
+                    item={item} 
+                    onPress={handleProductPress} 
+                  />
                 )}
-                keyExtractor={(item) => item._id}
+                keyExtractor={(item, index) => item._id || index.toString()}
                 horizontal
                 pagingEnabled
                 showsHorizontalScrollIndicator={false}
@@ -452,85 +373,59 @@ export default function Home() {
                   [{ nativeEvent: { contentOffset: { x: scrollX } } }],
                   { useNativeDriver: false }
                 )}
+                onScrollBeginDrag={handleScrollBegin}
+                onScrollEndDrag={handleScrollEnd}
+                onMomentumScrollBegin={handleScrollBegin}
+                onMomentumScrollEnd={handleScrollEnd}
                 onViewableItemsChanged={onViewableItemsChanged}
                 viewabilityConfig={viewabilityConfig}
-                onMomentumScrollBegin={() => {
-                  if (autoScrollTimer.current) {
-                    clearInterval(autoScrollTimer.current);
-                  }
-                }}
-                onMomentumScrollEnd={startAutoScroll}
+                snapToAlignment="center"
+                decelerationRate="fast"
               />
             ) : (
-              <>
-                <Text style={{ textAlign: "center", marginTop: 20 }}>
-                  No deals available
-                </Text>
-              </>
+              <View style={styles.noBannersContainer}>
+                <Text style={styles.noBannersText}>No banners available</Text>
+              </View>
             )}
             <View style={styles.bannerDots}>
-              {banners.map((_, index) => (
-                <BannerDot key={index} index={index} scrollX={scrollX} />
+              {discountedProducts.map((_, index) => (
+                <BannerDot 
+                  key={index} 
+                  index={index} 
+                  scrollX={scrollX} 
+                />
               ))}
             </View>
           </View>
         </View>
 
-        {/* Categories */}
+        {/* Categories Section */}
         <View style={styles.categoriesSection}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Categories</Text>
           </View>
-          <View style={styles.categoriesGrid}>
-            {/* <FlatList
-              data={filteredCategories}
-              horizontal
-              style={{gap:10, marginHorizontal:10}}
-              keyExtractor={(category) => category.id}
-             renderItem={({ item }) => (
-               <TouchableOpacity  key={item.category}
-               style={[
-                 styles.categoryItem,
-                 { backgroundColor: item.categorycolor },
-               ]}
-               onPress={() => handleCategoryPress(category)}
-               activeOpacity={0.7}
-             >
-                  <Text style={styles.categoryIcon}>{item.categoryicon}</Text>
-                  <Text style={styles.category}>{item.category}</Text>
-
-             </TouchableOpacity>
-             )} 
-            /> */}
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.categoryScrollContent}
-            >
-              {filteredCategories.map((category) => (
-                <TouchableOpacity
-                  key={category.category}
-                  style={[
-                    styles.categoryItem,
-                    // { backgroundColor: category.categorycolor },
-                  ]}
-                  onPress={() => handleCategoryPress(category)}
-                  activeOpacity={0.7}
-                >
-                  {/* <Text style={styles.categoryIcon}>
-                    {category.categoryicon}
-                  </Text> */}
-                  <Text style={styles.category}>{category.category}</Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-          </View>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.categoryScrollContent}
+          >
+            {categories.map((category) => (
+              <TouchableOpacity
+                key={category.category}
+                style={styles.categoryItem}
+                onPress={() => handleCategoryPress(category)}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.category}>{category.category}</Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
         </View>
 
         {/* Stores Section */}
         <View style={styles.storesSection}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Popular Shop</Text>
+            <Text style={styles.sectionTitle}>Popular Shops</Text>
             <TouchableOpacity>
               <Text style={styles.seeAllText}>See all</Text>
             </TouchableOpacity>
@@ -540,54 +435,31 @@ export default function Home() {
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.storesScrollContent}
           >
-            {shopdata.map((item) => {
-              const imgageUri = "https://via.placeholder.com/150";
-              // console.log("productdata", productdata);
-              return (
-                <TouchableOpacity
-                  key={item._id}
-                  style={styles.recommendedCard}
-                  onPress={() =>
-                    navigation.navigate("StoreDetails", {
-                      item: JSON.stringify(item._id),
-                    })
-                  }
-                >
-                  <Image
-                    source={{ uri: imgageUri }}
-                    style={styles.recommendedImage}
-                  />
-                  {/* <View style={styles.discountBadge}>
-                    <Text style={styles.discountText}>{product.discount}</Text>
-                  </View> */}
-                  <View style={styles.recommendedInfo}>
-                    <Text style={styles.recommendedName} numberOfLines={1}>
-                      {item.name.length > 20 ? "..." : item.name}
-                    </Text>
-
-                    <Text>{truncateText(item.description, 5)}</Text>
-                    <Text style={styles.ratingText}>
-                      {item.avgRating === 0 ? "No rating" : item.avgRating}
-                    </Text>
-                  </View>
-                </TouchableOpacity>
-              );
-            })}
-            {/* {productdata.map((item, index) => (
+            {shopdata.map((item) => (
               <TouchableOpacity
-                key={index}
-                style={styles.storeCard}
-                onPress={() => handleStorePress(item.id)}
+                key={item._id}
+                style={styles.recommendedCard}
+                onPress={() =>
+                  navigation.navigate("StoreDetails", {
+                    item: JSON.stringify(item._id),
+                  })
+                }
               >
-                <Image source={{ uri: item.image }} style={styles.storeImage} />
-                <View style={styles.storeInfo}>
-                  <Text style={styles.storeName}>{item.name}</Text>
-                  <View style={styles.storeRating}>
-                    <Text style={styles.ratingText}>{item.rating}</Text>
-                  </View>
+                <Image
+                  source={{ uri: "https://via.placeholder.com/150" }}
+                  style={styles.recommendedImage}
+                />
+                <View style={styles.recommendedInfo}>
+                  <Text style={styles.recommendedName} numberOfLines={1}>
+                    {item.name}
+                  </Text>
+                  <Text>{truncateText(item.description, 5)}</Text>
+                  <Text style={styles.ratingText}>
+                    {item.avgRating === 0 ? "No rating" : item.avgRating}
+                  </Text>
                 </View>
               </TouchableOpacity>
-            ))} */}
+            ))}
           </ScrollView>
         </View>
 

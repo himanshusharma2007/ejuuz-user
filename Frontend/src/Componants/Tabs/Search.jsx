@@ -1,13 +1,13 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
+  StyleSheet,
   View,
   FlatList,
+  Image,
   TouchableOpacity,
   TextInput,
   SafeAreaView,
-  Image,
-  ActivityIndicator,
-  StatusBar
+  ImageBackground,
 } from "react-native";
 import {
   Appbar,
@@ -56,6 +56,7 @@ export default function Search() {
   const [shopdata, setShopdata] = useState([]);
   const navigation = useNavigation();
   const dispatch = useDispatch();
+  const route = useRoute();
   const inputRef = useRef(null);
 
   useEffect(() => {
@@ -144,48 +145,6 @@ export default function Search() {
     }
     return text;
   };
-
-  // const horizontalitems = [
-  //   {
-  //     id: "1",
-  //     name: "Leather Jacket",
-  //     price: "R 59.99 / kg",
-  //     rating: "⭐⭐⭐⭐⭐",
-  //     image: "https://via.placeholder.com/150",
-  //     description:
-  //       "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
-  //     quantity: 0,
-  //   },
-  //   {
-  //     id: "2",
-  //     name: "Running Shoes",
-  //     price: "R 79.99 / kg",
-  //     rating: "⭐⭐⭐⭐⭐",
-  //     image: "https://via.placeholder.com/150",
-  //     description:
-  //       "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
-  //     quantity: 0,
-  //   },
-  //   // {
-  //   //   id: "3",
-  //   //   name: "Smartwatch",
-  //   //   price: "R 199.99 / kg",
-  //   //   rating: "⭐⭐⭐⭐⭐",
-  //   //   image: "https://via.placeholder.com/150",
-  //   //   description:
-  //   //     "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
-  //   // },
-  //   {
-  //     id: "3",
-  //     name: "Leather Jacket",
-  //     price: "R 59.99 / kg",
-  //     rating: "⭐⭐⭐⭐⭐",
-  //     image: "https://via.placeholder.com/150",
-  //     description:
-  //       "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
-  //     quantity: 0,
-  //   },
-  // ];
 
   const horizontalrenderItem = ({ item }) => {
     const imageUri = item.images?.[0]?.url || "https://via.placeholder.com/150";
@@ -277,22 +236,13 @@ export default function Search() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar 
-        backgroundColor="#F9FAFB" 
-        barStyle="dark-content" 
-      />
+      {/* Custom Header */}
+      <Appbar.Header style={styles.header}>
+        <Appbar.BackAction onPress={() => navigation.goBack()} />
 
-      {/* Search and Cart Header */}
-      <View style={styles.headerContainer}>
-        <TouchableOpacity 
-          onPress={() => navigation.goBack()}
-          style={styles.backButton}
-        >
-          <Ionicons name="arrow-back" size={24} color="#333" />
-        </TouchableOpacity>
-
-        <View style={styles.searchInputContainer}>
-          <Feather name="search" size={20} color="#888" />
+        {/* Search Input */}
+        <View style={styles.searchContainer}>
+          <Ionicons name="search" size={20} color="#888" />
           <TextInput
             ref={inputRef}
             placeholder="Search products"
@@ -301,21 +251,17 @@ export default function Search() {
             value={searchQuery}
             onChangeText={setSearchQuery}
           />
-          <TouchableOpacity onPress={() => {}}>
-            <Feather name="filter" size={20} color="#888" />
+          <TouchableOpacity onPress={() => console.log("Filter pressed")}>
+            <Feather name="filter" size={24} color="#888" />
           </TouchableOpacity>
         </View>
 
-        <TouchableOpacity 
-          onPress={() => navigation.navigate("Cart")}
-          style={styles.cartIconContainer}
-        >
-          <MaterialIcons name="shopping-cart" size={24} color="#007AFF" />
-          {cartData.length > 0 && (
-            <View style={styles.cartBadge}>
-              <Text style={styles.cartBadgeText}>{cartData.length}</Text>
-            </View>
-          )}
+        {/* Cart with Red Dot */}
+        <TouchableOpacity onPress={() => navigation.navigate("Cart")}>
+          <View style={styles.cartContainer}>
+            <MaterialIcons name="shopping-cart" size={28} color="#007AFF" />
+            <Badge style={styles.cartBadge}>{cartdata.length}</Badge>
+          </View>
         </TouchableOpacity>
       </Appbar.Header>
       <FlatList
@@ -402,57 +348,57 @@ export default function Search() {
   );
 }
 
-const styles = {
+const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: "#fff",
   },
-  headerContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    backgroundColor: 'white',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+  header: {
+    backgroundColor: "#fdfdfd",
+    elevation: 4,
+    paddingHorizontal: 15,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
   },
-  backButton: {
-    marginRight: 12,
-  },
-  searchInputContainer: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#F3F4F6',
-    borderRadius: 12,
+  searchContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#eef1f7",
+    borderRadius: 25,
     paddingHorizontal: 12,
     paddingVertical: 8,
-    marginRight: 12,
+    flex: 1,
+    marginHorizontal: 10,
   },
+
   searchInput: {
     flex: 1,
-    marginHorizontal: 8,
+    height: 40,
+    marginLeft: 10,
     fontSize: 16,
-    color: '#333',
+    color: "#333",
   },
-  cartIconContainer: {
-    position: 'relative',
+  cartContainer: {
+    position: "relative",
+    marginRight: 10,
   },
   cartBadge: {
-    position: 'absolute',
-    top: -8,
-    right: -8,
-    backgroundColor: '#FF3B30',
-    borderRadius: 10,
-    width: 20,
-    height: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
+    position: "absolute",
+    top: -5,
+    right: -5,
+    backgroundColor: "red",
+    color: "#fff",
+    fontSize: 10,
+    fontWeight: "bold",
+    paddingHorizontal: 5,
+    borderRadius: 12,
   },
-  cartBadgeText: {
-    color: 'white',
-    fontSize: 12,
-    fontWeight: 'bold',
+
+  maincontent: {
+    padding: 10,
+    paddingBottom: 60,
   },
   searchResultsContainer: {
     padding: 10,
@@ -471,9 +417,10 @@ const styles = {
     shadowOpacity: 0.1,
     shadowRadius: 4,
   },
-  productListContainer: {
-    paddingHorizontal: 16,
-    paddingBottom: 16,
+  itemContent: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    // padding: 15,
   },
 
   itemImage: {
@@ -483,25 +430,24 @@ const styles = {
     borderRadius: 8,
     marginRight: 15,
   },
-  priceRatingContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
+  itemDetails: {
+    padding: 15,
+    flex: 1,
+    justifyContent: "center",
   },
-  productPrice: {
+  itemName: {
     fontSize: 18,
-    fontWeight: 'bold',
-    color: '#4CAF50',
+    fontWeight: "bold",
+    marginBottom: 5,
   },
-  ratingContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  itemPrice: {
+    fontSize: 16,
+    color: "#888",
+    marginBottom: 5,
   },
-  productRating: {
-    marginLeft: 4,
+  rating: {
     fontSize: 14,
-    color: '#666',
+    color: "#f4b400",
   },
   distance: {
     padding: 15,
@@ -608,4 +554,4 @@ const styles = {
     paddingHorizontal: 6,
     paddingVertical: 3,
   },
-};
+});
