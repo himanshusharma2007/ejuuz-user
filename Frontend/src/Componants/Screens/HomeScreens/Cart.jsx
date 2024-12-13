@@ -17,7 +17,7 @@ import {
 } from "../../../../redux/features/cartSlice";
 import { useNavigation } from "@react-navigation/native";
 import Toast from "react-native-toast-message";
-
+import { selectUser , selectUserData } from "../../../../redux/features/userSlice";
 export default function Cart() {
   const dispatch = useDispatch();
   const [totalItemQuantity, setTotalItemQuantity] = useState(0);
@@ -174,6 +174,7 @@ export default function Cart() {
     </SafeAreaView>
   );
 }
+
 
 const styles = StyleSheet.create({
   container: {

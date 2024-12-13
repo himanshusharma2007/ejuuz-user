@@ -134,7 +134,7 @@ exports.searchProducts = async (req, res) => {
     console.log('Searching products - searchProducts function called');
     console.log('Search keyword:', req.query.keyword);
 
-    const keyword = req.query.keyword;
+    const keyword = req.query.keyword.toLowerCase();
     
     const searchQuery = {
       status: "active",

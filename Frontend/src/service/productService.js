@@ -79,9 +79,21 @@ export const searchProducts = async (keyword) => {
 
     console.log("search", response.data);
 
-    return response.data;
+    // Return the products array from the response
+    return response.data.products || [];
   } catch (error) {
-    console.error("Error searching products", error);
+    console.error("Full Search Error:", error);
+    
+    // More detailed error logging
+    if (error.response) {
+      console.error("Error Response Data:", error.response.data);
+      console.error("Error Response Status:", error.response.status);
+    } else if (error.request) {
+      console.error("Error Request:", error.request);
+    } else {
+      console.error("Error Message:", error.message);
+    }
+
     throw error;
   }
 };

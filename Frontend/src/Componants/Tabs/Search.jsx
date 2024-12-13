@@ -146,48 +146,6 @@ export default function Search() {
     return text;
   };
 
-  // const horizontalitems = [
-  //   {
-  //     id: "1",
-  //     name: "Leather Jacket",
-  //     price: "R 59.99 / kg",
-  //     rating: "⭐⭐⭐⭐⭐",
-  //     image: "https://via.placeholder.com/150",
-  //     description:
-  //       "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
-  //     quantity: 0,
-  //   },
-  //   {
-  //     id: "2",
-  //     name: "Running Shoes",
-  //     price: "R 79.99 / kg",
-  //     rating: "⭐⭐⭐⭐⭐",
-  //     image: "https://via.placeholder.com/150",
-  //     description:
-  //       "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
-  //     quantity: 0,
-  //   },
-  //   // {
-  //   //   id: "3",
-  //   //   name: "Smartwatch",
-  //   //   price: "R 199.99 / kg",
-  //   //   rating: "⭐⭐⭐⭐⭐",
-  //   //   image: "https://via.placeholder.com/150",
-  //   //   description:
-  //   //     "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
-  //   // },
-  //   {
-  //     id: "3",
-  //     name: "Leather Jacket",
-  //     price: "R 59.99 / kg",
-  //     rating: "⭐⭐⭐⭐⭐",
-  //     image: "https://via.placeholder.com/150",
-  //     description:
-  //       "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
-  //     quantity: 0,
-  //   },
-  // ];
-
   const horizontalrenderItem = ({ item }) => {
     const imageUri = item.images?.[0]?.url || "https://via.placeholder.com/150";
     const discountText = item.discount ? `${item.discount}% OFF` : null;

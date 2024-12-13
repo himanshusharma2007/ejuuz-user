@@ -37,73 +37,73 @@ import Categories from "../Screens/HomeScreens/Categories";
 
 const { width } = Dimensions.get("window");
 
-const recommendedProducts = [
-  {
-    id: "r1",
-    name: "Fresh Berries Mix",
-    price: "R 129.99",
-    oldPrice: "R 159.99",
-    discount: "20%",
-    rating: "⭐⭐⭐⭐½",
-    image:
-      "https://images.unsplash.com/photo-1613082410785-22292e8426e7?q=80&w=1287&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-  },
-  {
-    id: "r2",
-    name: "Oranges",
-    price: "R 89.99",
-    oldPrice: "R 99.99",
-    discount: "10%",
-    rating: "⭐⭐⭐⭐⭐",
-    image:
-      "https://plus.unsplash.com/premium_photo-1669631944923-75bbc991f223?q=80&w=1287&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-  },
-  {
-    id: "r3",
-    name: "Whole Grain Bread",
-    price: "R 45.99",
-    oldPrice: "R 54.99",
-    discount: "15%",
-    rating: "⭐⭐⭐⭐",
-    image:
-      "https://images.unsplash.com/photo-1533782654613-826a072dd6f3?q=80&w=1365&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-  },
-  // Add more recommended products as needed
-];
+// const recommendedProducts = [
+//   {
+//     id: "r1",
+//     name: "Fresh Berries Mix",
+//     price: "R 129.99",
+//     oldPrice: "R 159.99",
+//     discount: "20%",
+//     rating: "⭐⭐⭐⭐½",
+//     image:
+//       "https://images.unsplash.com/photo-1613082410785-22292e8426e7?q=80&w=1287&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+//   },
+//   {
+//     id: "r2",
+//     name: "Oranges",
+//     price: "R 89.99",
+//     oldPrice: "R 99.99",
+//     discount: "10%",
+//     rating: "⭐⭐⭐⭐⭐",
+//     image:
+//       "https://plus.unsplash.com/premium_photo-1669631944923-75bbc991f223?q=80&w=1287&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+//   },
+//   {
+//     id: "r3",
+//     name: "Whole Grain Bread",
+//     price: "R 45.99",
+//     oldPrice: "R 54.99",
+//     discount: "15%",
+//     rating: "⭐⭐⭐⭐",
+//     image:
+//       "https://images.unsplash.com/photo-1533782654613-826a072dd6f3?q=80&w=1365&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+//   },
+//   // Add more recommended products as needed
+// ];
 
-const weeklyDeals = [
-  {
-    id: "d1",
-    name: "Fresh Vegetables Bundle",
-    price: "R 199.99",
-    oldPrice: "R 299.99",
-    saveAmount: "R 100",
-    image:
-      "https://plus.unsplash.com/premium_photo-1661376954615-26609d61d924?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    validUntil: "3 days left",
-  },
-  {
-    id: "d2",
-    name: "Fruit Box",
-    price: "R 249.99",
-    oldPrice: "R 349.99",
-    saveAmount: "R 100",
-    image:
-      "https://images.unsplash.com/photo-1583754744912-637265c87826?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    validUntil: "5 days left",
-  },
-  {
-    id: "d3",
-    name: "Fruit Box",
-    price: "R 249.99",
-    oldPrice: "R 349.99",
-    saveAmount: "R 100",
-    image:
-      "https://images.unsplash.com/photo-1583754744912-637265c87826?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    validUntil: "5 days left",
-  },
-  // Add more deals as needed
-];
+// const weeklyDeals = [
+//   {
+//     id: "d1",
+//     name: "Fresh Vegetables Bundle",
+//     price: "R 199.99",
+//     oldPrice: "R 299.99",
+//     saveAmount: "R 100",
+//     image:
+//       "https://plus.unsplash.com/premium_photo-1661376954615-26609d61d924?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+//     validUntil: "3 days left",
+//   },
+//   {
+//     id: "d2",
+//     name: "Fruit Box",
+//     price: "R 249.99",
+//     oldPrice: "R 349.99",
+//     saveAmount: "R 100",
+//     image:
+//       "https://images.unsplash.com/photo-1583754744912-637265c87826?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+//     validUntil: "5 days left",
+//   },
+//   {
+//     id: "d3",
+//     name: "Fruit Box",
+//     price: "R 249.99",
+//     oldPrice: "R 349.99",
+//     saveAmount: "R 100",
+//     image:
+//       "https://images.unsplash.com/photo-1583754744912-637265c87826?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+//     validUntil: "5 days left",
+//   },
+//   // Add more deals as needed
+// ];
 
 const BannerDot = ({ index, scrollX }) => {
   const inputRange = [(index - 1) * width, index * width, (index + 1) * width];
@@ -615,7 +615,7 @@ export default function Home() {
                   }
                 >
                   <Image
-                    source={{ uri: imgageUri }}
+                    source={{ uri: item.products[0]?.images[0]?.url || imgageUri }}
                     style={styles.recommendedImage}
                   />
                   {/* <View style={styles.discountBadge}>

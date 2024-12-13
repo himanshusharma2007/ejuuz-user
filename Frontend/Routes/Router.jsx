@@ -361,7 +361,8 @@ const ProfileStack = () => {
           },
         }}
       />
-
+     
+    
       <Stack.Screen
         name="Help"
         component={Help}
@@ -574,3 +575,4 @@ const styles = StyleSheet.create({
     marginBottom: 0,
   },
 });
+ 
