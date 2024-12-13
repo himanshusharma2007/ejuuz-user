@@ -98,8 +98,8 @@ export default function WalletHistory() {
   };
 
   const renderAmount = (amount) => {
-    const color = amount > 0 ? "#4CAF50" : "#FF5252";
-    const prefix = amount > 0 ? "+" : "";
+    const color = amount > 0 ?  "#FF5252" : "#4CAF50";
+    const prefix = amount > 0 ? "-" : "+";
     return (
       <Text style={[styles.amount, { color }]}>
         {prefix}${Math.abs(amount).toFixed(2)}
@@ -297,6 +297,7 @@ const styles = StyleSheet.create({
   },
   appbar: {
     backgroundColor: "#fff",
+    paddingRight:16
   },
   searchContainer: {
     flexDirection: "row",

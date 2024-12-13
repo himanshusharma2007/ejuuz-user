@@ -6,56 +6,55 @@ import {
   SafeAreaView,
   ScrollView,
   TouchableOpacity,
-  Image,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useNavigation } from "@react-navigation/native";
 import { useDispatch, useSelector } from "react-redux";
 import { selectUser } from "../../../redux/features/userSlice";
+import { getAllTransactions } from "../../service/transactionService"; // Import the transaction service
 
 export default function Wallet() {
   const [activeTab, setActiveTab] = useState("Account");
   const [balance, setBalance] = useState(0);
+  const [transactions, setTransactions] = useState([]);
   const navigation = useNavigation();
   const user = useSelector(selectUser);
-  console.log("user in wallet ",user);
-  // Mock Data
- useEffect(()=>{
-  setBalance(user?.walletBalance || 0);
- },[user.walletBalance])
+
+  useEffect(() => {
+    // Set wallet balance
+    setBalance(user?.walletBalance || 0);
+
+    // Fetch transactions
+    fetchTransactions();
+  }, [user]);
+
+  const fetchTransactions = async () => {
+    try {
+      const response = await getAllTransactions();
+      // Take the 3 most recent transactions
+      const recentTransactions = response.transactions
+        .slice(0, 3)
+        .map(transaction => ({
+          id: transaction._id,
+          type: transaction.totalAmount > 0 ? "credit" : "debit",
+          amount: Math.abs(transaction.totalAmount),
+          name: transaction.merchantDetails[0].merchantName,
+          icon: transaction.totalAmount > 0 ? "⬆️" : "🏪",
+          timestamp: new Date(transaction.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        }));
+      
+      setTransactions(recentTransactions);
+    } catch (error) {
+      console.error("Failed to fetch transactions", error);
+    }
+  };
+
   const recentContacts = [
     { id: 1, name: "Ali", avatar: "🤠" },
     { id: 2, name: "Steve", avatar: "👨🏾" },
     { id: 3, name: "Ahmed", avatar: "👨🏽" },
     { id: 4, name: "Mike", avatar: "👨" },
-  ];
-
-  const transactions = [
-    {
-      id: 1,
-      type: "debit",
-      amount: 835.25,
-      name: "Walmart",
-      icon: "🏪",
-      timestamp: "10:45 AM",
-    },
-    {
-      id: 2,
-      type: "credit",
-      amount: 450.0,
-      name: "Top up",
-      icon: "⬆️",
-      timestamp: "09:30 AM",
-    },
-    {
-      id: 3,
-      type: "credit",
-      amount: 450.0,
-      name: "Top up",
-      icon: "⬆️",
-      timestamp: "09:30 AM",
-    },
   ];
 
   return (
@@ -194,11 +193,11 @@ export default function Wallet() {
                 style={[
                   styles.transactionAmount,
                   transaction.type === "debit"
-                    ? styles.debitAmount
-                    : styles.creditAmount,
+                    ? styles.creditAmount
+                    :styles.debitAmount
                 ]}
               >
-                {transaction.type === "debit" ? "-" : "+"}R
+                {transaction.type === "debit" ? "+" : "-"}R
                 {transaction.amount.toFixed(2)}
               </Text>
             </TouchableOpacity>
