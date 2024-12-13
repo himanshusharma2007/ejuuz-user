@@ -140,6 +140,8 @@ export default function Home() {
   const [refreshing, setRefreshing] = useState(false);
   const [searchText, setSearchText] = useState("");
   const autoScrollTimer = useRef(null);
+  const isManualScroll = useRef(false);
+
   const navigation = useNavigation();
   const [productdata, setAllProducts] = useState([]);
   const [discountedProducts, setDiscountedProducts] = useState([]);
@@ -232,43 +234,55 @@ export default function Home() {
   const handleDealPress = useCallback((deal) => {
     navigation.navigate("ProductDetails", { item: JSON.stringify(deal._id) });
   }, []);
-
   const startAutoScroll = useCallback(() => {
-    if (discountedProducts.length === 0) return; // Prevent auto-scroll if no data
-    autoScrollTimer.current = setInterval(() => {
-      if (currentIndex < discountedProducts.length - 1) {
-        flatListRef.current?.scrollToIndex({
-          index: currentIndex + 1,
-          animated: true,
-        });
-      } else {
-        flatListRef.current?.scrollToIndex({
-          index: 0,
-          animated: true,
-        });
-      }
-    }, 3000);
+    // Clear existing timer
+    if (autoScrollTimer.current) {
+      clearInterval(autoScrollTimer.current);
+    }
+
+    // Only start auto-scroll if there are multiple items
+    if (discountedProducts.length > 1) {
+      autoScrollTimer.current = setInterval(() => {
+        // Ensure not in manual scroll mode and has multiple items
+        if (!isManualScroll.current && discountedProducts.length > 1) {
+          const nextIndex = (currentIndex + 1) % discountedProducts.length;
+
+          flatListRef.current?.scrollToIndex({
+            index: nextIndex,
+            animated: true,
+          });
+        }
+      }, 3000);
+    }
   }, [currentIndex, discountedProducts.length]);
 
-  useEffect(() => {
-    startAutoScroll();
-    return () => {
-      if (autoScrollTimer.current) {
-        clearInterval(autoScrollTimer.current);
-      }
-    };
-  }, [currentIndex, startAutoScroll]);
+  // Scroll Event Handlers with More Robust Logic
+  const handleScrollBegin = () => {
+    isManualScroll.current = true;
+    if (autoScrollTimer.current) {
+      clearInterval(autoScrollTimer.current);
+    }
+  };
 
+  const handleScrollEnd = () => {
+    // Reset manual scroll with a slight delay
+    setTimeout(() => {
+      isManualScroll.current = false;
+      startAutoScroll();
+    }, 500);
+  };
+
+  // Improved Viewability Configuration
   const onViewableItemsChanged = useRef(({ viewableItems }) => {
     if (viewableItems.length > 0) {
-      setCurrentIndex(viewableItems[0].index);
+      const newIndex = viewableItems[0].index;
+      setCurrentIndex(newIndex);
     }
   }).current;
 
   const viewabilityConfig = useRef({
     itemVisiblePercentThreshold: 50,
   }).current;
-
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
     try {
@@ -317,21 +331,50 @@ export default function Home() {
     return text;
   };
 
-  const BannerItems = ({ item }) => {
-    const imageUri = item.images[0]?.url;
+  const BannerDot = ({ index, scrollX }) => {
+    const inputRange = [
+      (index - 1) * width,
+      index * width,
+      (index + 1) * width,
+    ];
+
+    const dotWidth = scrollX.interpolate({
+      inputRange,
+      outputRange: [8, 16, 8],
+      extrapolate: "clamp",
+    });
+
+    const opacity = scrollX.interpolate({
+      inputRange,
+      outputRange: [0.5, 1, 0.5],
+      extrapolate: "clamp",
+    });
+
     return (
-      <View style={styles.bannerContainer}>
-        <Pressable
-          onPress={() =>
-            navigation.navigate("ProductDetails", {
-              item: JSON.stringify(item._id),
-            })
-          }
-          style={styles.bannerContent}
-        >
+      <Animated.View
+        style={[
+          styles.dot,
+          {
+            width: dotWidth,
+            opacity,
+          },
+        ]}
+      />
+    );
+  };
+
+  // Banner Item Component
+  const BannerItems = ({ item, onPress }) => {
+    return (
+      <Pressable onPress={() => onPress(item)} style={styles.bannerContainer}>
+        <View style={styles.bannerContent}>
           <View style={styles.bannerTextContainer}>
-            <Text style={styles.discountText}>{item.name}</Text>
-            <Text style={styles.discountAmount}>{item.discount}% OFF</Text>
+            <Text style={styles.discountText}>
+              {item.name || "Special Offer"}
+            </Text>
+            <Text style={styles.discountAmount}>
+              {item.discount ? `${item.discount}% OFF` : "Great Deals"}
+            </Text>
             <TouchableOpacity style={styles.seeDetailButton}>
               <Text style={styles.seeDetailButtonText}>See Detail</Text>
             </TouchableOpacity>
@@ -339,15 +382,35 @@ export default function Home() {
           <View
             style={[
               styles.bannerImageContainer,
-              { backgroundColor: item.color },
+              { backgroundColor: item.color || "#E3F2FD" },
             ]}
           >
-            <Image source={{ uri: imageUri }} style={styles.bannerImage} />
+            <Image
+              source={{
+                uri:
+                  item.images && item.images.length > 0
+                    ? item.images[0].url
+                    : "https://via.placeholder.com/300x200.png?text=No+Image",
+              }}
+              style={styles.bannerImage}
+              resizeMode="cover"
+            />
           </View>
-        </Pressable>
-      </View>
+        </View>
+      </Pressable>
     );
   };
+
+  // Auto Scroll Effect with Enhanced Control
+  useEffect(() => {
+    startAutoScroll();
+
+    return () => {
+      if (autoScrollTimer.current) {
+        clearInterval(autoScrollTimer.current);
+      }
+    };
+  }, [currentIndex, startAutoScroll]);
 
   // console.log("discountedProducts", discountedProducts);
 
@@ -429,17 +492,16 @@ export default function Home() {
             </Text>
             <Ionicons name="chevron-down" size={20} color="#FFF" />
           </TouchableOpacity>
-
-          {/* Banner Slider */}
+          {/* Banner slider */}
           <View>
             {discountedProducts.length > 0 ? (
               <FlatList
                 ref={flatListRef}
                 data={discountedProducts}
                 renderItem={({ item }) => (
-                  <BannerItems item={item} onPress={handleBannerPress} />
+                  <BannerItems item={item} onPress={handleProductPress} />
                 )}
-                keyExtractor={(item) => item._id}
+                keyExtractor={(item, index) => item._id || index.toString()}
                 horizontal
                 pagingEnabled
                 showsHorizontalScrollIndicator={false}
@@ -447,21 +509,19 @@ export default function Home() {
                   [{ nativeEvent: { contentOffset: { x: scrollX } } }],
                   { useNativeDriver: false }
                 )}
+                onScrollBeginDrag={handleScrollBegin}
+                onScrollEndDrag={handleScrollEnd}
+                onMomentumScrollBegin={handleScrollBegin}
+                onMomentumScrollEnd={handleScrollEnd}
                 onViewableItemsChanged={onViewableItemsChanged}
                 viewabilityConfig={viewabilityConfig}
-                onMomentumScrollBegin={() => {
-                  if (autoScrollTimer.current) {
-                    clearInterval(autoScrollTimer.current);
-                  }
-                }}
-                onMomentumScrollEnd={startAutoScroll}
+                snapToAlignment="center"
+                decelerationRate="fast"
               />
             ) : (
-              <>
-                <Text style={{ textAlign: "center", marginTop: 20 }}>
-                  No deals available
-                </Text>
-              </>
+              <View style={styles.noBannersContainer}>
+                <Text style={styles.noBannersText}>No banners available</Text>
+              </View>
             )}
             <View style={styles.bannerDots}>
               {discountedProducts.map((_, index) => (
