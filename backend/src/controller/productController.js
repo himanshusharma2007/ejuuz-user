@@ -133,7 +133,7 @@ exports.searchProducts = async (req, res) => {
     console.log('Searching products - searchProducts function called');
     console.log('Search keyword:', req.query.keyword);
 
-    const keyword = req.query.keyword;
+    const keyword = req.query.keyword.toLowerCase();
     
     const searchQuery = {
       status: "active",
@@ -148,7 +148,7 @@ exports.searchProducts = async (req, res) => {
       .populate('shopId', 'name');
 
     console.log(`Found ${products.length} products matching search criteria`);
-    
+    console.log('Products:', products);
     res.status(200).json({
       success: true,
       count: products.length,

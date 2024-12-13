@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   StyleSheet,
   View,
@@ -16,13 +16,21 @@ import {
   addToCart,
   AddItemtoWishlist,
 } from "../../../redux/features/cartSlice";
-import { useNavigation } from "@react-navigation/native";
+import { useFocusEffect, useNavigation, useRoute } from "@react-navigation/native";
 import Toast from "react-native-toast-message";
 
 export default function Search() {
   const [searchQuery, setSearchQuery] = useState("");
   const navigation = useNavigation();
   const dispatch = useDispatch();
+  const route = useRoute();
+  const inputRef = useRef(null);
+
+  useFocusEffect(
+    useCallback(() => {
+      inputRef.current?.focus();
+    }, [])
+  );
 
   const additemtowishlist = (item) => {
     dispatch(AddItemtoWishlist(item));
@@ -199,6 +207,7 @@ export default function Search() {
         <View style={styles.searchContainer}>
           <Ionicons name="search" size={20} color="#888" />
           <TextInput
+            ref={inputRef}
             placeholder="Search"
             style={styles.searchInput}
             value={searchQuery}

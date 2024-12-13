@@ -21,6 +21,8 @@ import {
 } from "react-native-paper";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
+import authService from "../service/authService";
+import axios from "axios";
 
 const { width, height } = Dimensions.get("window");
 
@@ -33,11 +35,42 @@ const countryCodes = [
 ];
 
 export default function GetStarted() {
-  const [phoneNumber, setPhoneNumber] = useState("8020003421");
+  const [phoneNumber, setPhoneNumber] = useState("");
   const [selectedCountry, setSelectedCountry] = useState(countryCodes[0]);
   const [visible, setVisible] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [error, setError] = useState(""); // Error state
   const navigation = useNavigation();
+
+  const validatePhoneNumber = () => {
+    if (!phoneNumber) {
+      setError("Phone number is required.");
+      return false;
+    }
+
+    if (!/^\d+$/.test(phoneNumber)) {
+      setError("Phone number must contain only digits.");
+      return false;
+    }
+
+    if (phoneNumber.length < selectedCountry.minLength) {
+      setError(
+        `Phone number must be at least ${selectedCountry.minLength} digits.`
+      );
+      return false;
+    }
+
+    setError("");
+    return true;
+  };
+
+  const handleSubmit = async () => {
+    if (validatePhoneNumber()) {
+      const res = await authService.sendOtp(selectedCountry.code + phoneNumber);
+      console.log(res);
+      navigation.navigate("OtpPage", {phoneNumber: selectedCountry.code + phoneNumber});
+    }
+  };
 
   const showModal = () => setVisible(true);
   const hideModal = () => setVisible(false);
@@ -94,11 +127,8 @@ export default function GetStarted() {
               theme={{ colors: { primary: "#002E6E" } }}
             />
           </View>
-          <TouchableOpacity
-            style={styles.btn}
-            activeOpacity={0.8}
-            onPress={() => navigation.navigate("OtpPage")}
-          >
+          {error ? <Text style={styles.errorText}>{error}</Text> : null}
+          <TouchableOpacity style={styles.btn} onPress={handleSubmit}>
             <Text style={styles.btnText}>SEND VIA SMS</Text>
           </TouchableOpacity>
         </View>

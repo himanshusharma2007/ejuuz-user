@@ -202,7 +202,8 @@ export const styles = StyleSheet.create({
     gap: 6,
   },
   categoryItem: {
-    width: (width - 64) / 5,
+    width: 90,
+    height:30,
     aspectRatio: 1,
     alignItems: "center",
     justifyContent: "center",
