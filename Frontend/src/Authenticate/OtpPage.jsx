@@ -15,6 +15,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import authService from "../service/authService";
 import { useNavigation } from "@react-navigation/native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const { width, height } = Dimensions.get("window");
 
