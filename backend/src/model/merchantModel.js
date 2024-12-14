@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const { encrypt, decrypt } = require("../../utils/cryptoFunc");
+const { encrypt, decrypt, isEncrypted } = require("../../utils/cryptoFunc");
 
 // Schema for Merchant Information
 const merchantSchema = new mongoose.Schema({
@@ -27,6 +27,12 @@ const merchantSchema = new mongoose.Schema({
     type: String,
     trime: true,
     default: null,
+  },
+  paymentPin:{
+    type: String,
+    default: null,
+    minlength: [4, "Pin must be at least 4 characters long."],
+    select: false,
   },
   password: {
     type: String,
@@ -130,7 +136,7 @@ const merchantSchema = new mongoose.Schema({
       required: [true, "Tax document file public ID is required."]
     }
   },
-  payoutBalance: {
+  walletBalance: {
     type: Number,
     default: 0,
     min: [0, "Payout balance cannot be negative."]
@@ -146,19 +152,41 @@ const merchantSchema = new mongoose.Schema({
 // Middleware to encrypt bank information before saving
 merchantSchema.pre("save", function (next) {
   if (this.isModified("bankInformation")) {
-    this.bankInformation.branchCode = encrypt(this.bankInformation.branchCode);
-    this.bankInformation.accountType = encrypt(this.bankInformation.accountType);
-    this.bankInformation.accountHolder = encrypt(this.bankInformation.accountHolder);
-    this.bankInformation.bankName = encrypt(this.bankInformation.bankName);
-    this.bankInformation.branchName = encrypt(this.bankInformation.branchName);
-    this.bankInformation.accountNumber = encrypt(this.bankInformation.accountNumber);
-    this.govId.url = encrypt(this.govId.url)
-    this.govId.public_id = encrypt(this.govId.public_id)
-    this.businessLicense.url = encrypt(this.businessLicense.url)
-    this.businessLicense.public_id = encrypt(this.businessLicense.public_id)
-    this.taxDocument.url = encrypt(this.taxDocument.url)
-    this.taxDocument.public_id = encrypt(this.taxDocument.public_id)
+    const fieldsToEncrypt = ["branchCode", "accountType", "accountHolder", "bankName", "branchName", "accountNumber"];
+    fieldsToEncrypt.forEach((field) => {
+      if (!isEncrypted(this.bankInformation[field])) {
+        this.bankInformation[field] = encrypt(this.bankInformation[field]);
+      }
+    });
   }
+
+  if (this.isModified("govId")) {
+    if (!isEncrypted(this.govId.url)) {
+      this.govId.url = encrypt(this.govId.url);
+    }
+    if (!isEncrypted(this.govId.public_id)) {
+      this.govId.public_id = encrypt(this.govId.public_id);
+    }
+  }
+
+  if (this.isModified("businessLicense")) {
+    if (!isEncrypted(this.businessLicense.url)) {
+      this.businessLicense.url = encrypt(this.businessLicense.url);
+    }
+    if (!isEncrypted(this.businessLicense.public_id)) {
+      this.businessLicense.public_id = encrypt(this.businessLicense.public_id);
+    }
+  }
+
+  if (this.isModified("taxDocument")) {
+    if (!isEncrypted(this.taxDocument.url)) {
+      this.taxDocument.url = encrypt(this.taxDocument.url);
+    }
+    if (!isEncrypted(this.taxDocument.public_id)) {
+      this.taxDocument.public_id = encrypt(this.taxDocument.public_id);
+    }
+  }
+
   next();
 });
 

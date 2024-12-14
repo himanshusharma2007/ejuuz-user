@@ -19,7 +19,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
-import { getAllTransactions } from "../../../service/transactionService";
+import walletService  from "../../../service/walletService ";
 
 export default function WalletHistory() {
   const theme = useTheme();
@@ -44,8 +44,10 @@ export default function WalletHistory() {
 
   const fetchTransactions = async () => {
     try {
-      const response = await getAllTransactions();
-      setTransactions(response.transactions);
+      console.log("Fetching transactions...");
+      const response = await walletService.getAllWalletTransactions();
+      console.log("Fetched transactions:", response);
+      setTransactions(response);
     } catch (error) {
       console.error("Failed to fetch transactions", error);
     }
@@ -56,11 +58,13 @@ export default function WalletHistory() {
 
     // Search filter
     if (searchhistory) {
-      result = result.filter((transaction) =>
-        transaction.merchantDetails[0].merchantName
-          .toLowerCase()
-          .includes(searchhistory.toLowerCase())
-      );
+      result = result.filter((transaction) => {
+        // Search across from and to names
+        const fromName = transaction.from?.name?.toLowerCase() || '';
+        const toName = transaction.to?.name?.toLowerCase() || '';
+        return fromName.includes(searchhistory.toLowerCase()) || 
+               toName.includes(searchhistory.toLowerCase());
+      });
     }
 
     // Date filter
@@ -89,17 +93,26 @@ export default function WalletHistory() {
     result.sort((a, b) => {
       const dateA = new Date(a.createdAt);
       const dateB = new Date(b.createdAt);
-      return currentSort === "newest" 
-        ? dateB.getTime() - dateA.getTime() 
+      return currentSort === "newest"
+        ? dateB.getTime() - dateA.getTime()
         : dateA.getTime() - dateB.getTime();
     });
 
     setFilteredTransactions(result);
   };
 
-  const renderAmount = (amount) => {
-    const color = amount > 0 ?  "#FF5252" : "#4CAF50";
-    const prefix = amount > 0 ? "-" : "+";
+  const renderAmount = (transaction) => {
+    let amount = transaction.amount;
+    let color = "#4CAF50"; // default green for incoming
+    let prefix = "+";
+
+    // Determine color and prefix based on transaction type
+    if (transaction.transactionType === "WITHDRAW" || 
+        (transaction.fromModel === "Customer" && transaction.transactionType === "TRANSFER")) {
+      color = "#FF5252"; // red for outgoing
+      prefix = "-";
+    }
+
     return (
       <Text style={[styles.amount, { color }]}>
         {prefix}${Math.abs(amount).toFixed(2)}
@@ -109,13 +122,26 @@ export default function WalletHistory() {
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
-    return date.toLocaleString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+    return date.toLocaleString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
+  };
+
+  const getTransactionTitle = (transaction) => {
+    switch (transaction.transactionType) {
+      case "TRANSFER":
+        return `Transfer to ${transaction.to?.name || 'Unknown'}`;
+      case "ADD":
+        return `Wallet Top-up`;
+      case "WITHDRAW":
+        return "Wallet Withdrawal";
+      default:
+        return "Transaction";
+    }
   };
 
   const openTransactionDetails = (transaction) => {
@@ -146,102 +172,103 @@ export default function WalletHistory() {
           style={styles.searchBar}
           iconColor={theme.colors.primary}
         />
-      
       </Surface>
 
       <ScrollView>
         <List.Section>
           <View style={styles.actionButtons}>
-
-          <List.Subheader>
-            {currentFilter === "all" 
-              ? "All Transactions" 
-              : currentFilter === "thisWeek" 
-                ? "Transactions This Week" 
+            <List.Subheader>
+              {currentFilter === "all"
+                ? "All Transactions"
+                : currentFilter === "thisWeek"
+                ? "Transactions This Week"
                 : "Transactions This Month"}
-          </List.Subheader>
-          <View style={styles.actionButtons}>
-          {/* Filter Menu */}
-          <Menu
-            visible={filterMenuVisible}
-            onDismiss={() => setFilterMenuVisible(false)}
-            anchor={
-              <IconButton
-                icon="filter-variant"
-                size={24}
-                onPress={() => setFilterMenuVisible(true)}
-              />
-            }
-          >
-            <Menu.Item
-              onPress={() => {
-                setCurrentFilter("all");
-                setFilterMenuVisible(false);
-              }}
-              title="All Transactions"
-              selected={currentFilter === "all"}
-            />
-            <Menu.Item
-              onPress={() => {
-                setCurrentFilter("thisWeek");
-                setFilterMenuVisible(false);
-              }}
-              title="This Week"
-              selected={currentFilter === "thisWeek"}
-            />
-            <Menu.Item
-              onPress={() => {
-                setCurrentFilter("thisMonth");
-                setFilterMenuVisible(false);
-              }}
-              title="This Month"
-              selected={currentFilter === "thisMonth"}
-            />
-          </Menu>
+            </List.Subheader>
+            <View style={styles.actionButtons}>
+              {/* Filter Menu */}
+              <Menu
+                visible={filterMenuVisible}
+                onDismiss={() => setFilterMenuVisible(false)}
+                anchor={
+                  <IconButton
+                    icon="filter-variant"
+                    size={24}
+                    onPress={() => setFilterMenuVisible(true)}
+                  />
+                }
+              >
+                <Menu.Item
+                  onPress={() => {
+                    setCurrentFilter("all");
+                    setFilterMenuVisible(false);
+                  }}
+                  title="All Transactions"
+                  selected={currentFilter === "all"}
+                />
+                <Menu.Item
+                  onPress={() => {
+                    setCurrentFilter("thisWeek");
+                    setFilterMenuVisible(false);
+                  }}
+                  title="This Week"
+                  selected={currentFilter === "thisWeek"}
+                />
+                <Menu.Item
+                  onPress={() => {
+                    setCurrentFilter("thisMonth");
+                    setFilterMenuVisible(false);
+                  }}
+                  title="This Month"
+                  selected={currentFilter === "thisMonth"}
+                />
+              </Menu>
 
-          {/* Sort Menu */}
-          <Menu
-            visible={sortMenuVisible}
-            onDismiss={() => setSortMenuVisible(false)}
-            anchor={
-              <IconButton
-                icon="sort"
-                size={24}
-                onPress={() => setSortMenuVisible(true)}
-              />
-            }
-          >
-            <Menu.Item
-              onPress={() => {
-                setCurrentSort("newest");
-                setSortMenuVisible(false);
-              }}
-              title="Newest First"
-              selected={currentSort === "newest"}
-            />
-            <Menu.Item
-              onPress={() => {
-                setCurrentSort("oldest");
-                setSortMenuVisible(false);
-              }}
-              title="Oldest First"
-              selected={currentSort === "oldest"}
-            />
-          </Menu>
-        </View>
+              {/* Sort Menu */}
+              <Menu
+                visible={sortMenuVisible}
+                onDismiss={() => setSortMenuVisible(false)}
+                anchor={
+                  <IconButton
+                    icon="sort"
+                    size={24}
+                    onPress={() => setSortMenuVisible(true)}
+                  />
+                }
+              >
+                <Menu.Item
+                  onPress={() => {
+                    setCurrentSort("newest");
+                    setSortMenuVisible(false);
+                  }}
+                  title="Newest First"
+                  selected={currentSort === "newest"}
+                />
+                <Menu.Item
+                  onPress={() => {
+                    setCurrentSort("oldest");
+                    setSortMenuVisible(false);
+                  }}
+                  title="Oldest First"
+                  selected={currentSort === "oldest"}
+                />
+              </Menu>
+            </View>
           </View>
           {filteredTransactions.map((transaction) => (
             <List.Item
               key={transaction._id}
-              title={transaction.merchantDetails[0].merchantName}
+              title={getTransactionTitle(transaction)}
               description={formatDate(transaction.createdAt)}
               left={(props) => (
-                <List.Icon 
-                  {...props} 
-                  icon={transaction.totalAmount > 0 ? "arrow-up" : "arrow-down"} 
+                <List.Icon
+                  {...props}
+                  icon={transaction.transactionType === "ADD" || 
+                        (transaction.toModel === "Customer" && transaction.transactionType === "TRANSFER") 
+                        ? "arrow-down" 
+                        : "arrow-up"}
                 />
               )}
-              right={() => renderAmount(transaction.totalAmount)}
+              right={() => renderAmount(transaction)}
               style={styles.listItem}
               onPress={() => openTransactionDetails(transaction)}
             />
@@ -261,10 +288,10 @@ export default function WalletHistory() {
             {selectedTransaction && (
               <>
                 <Text style={styles.modalTitle}>
-                  {selectedTransaction.merchantDetails[0].merchantName}
+                  {getTransactionTitle(selectedTransaction)}
                 </Text>
                 <Text style={styles.modalAmount}>
-                  {renderAmount(selectedTransaction.totalAmount)}
+                  {renderAmount(selectedTransaction)}
                 </Text>
                 <Text style={styles.modalDetail}>
                   Date: {formatDate(selectedTransaction.createdAt)}
@@ -273,8 +300,18 @@ export default function WalletHistory() {
                   Transaction ID: {selectedTransaction._id}
                 </Text>
                 <Text style={styles.modalDetail}>
-                  Status: {selectedTransaction.status}
+                  Type: {selectedTransaction.transactionType}
                 </Text>
+                {selectedTransaction.from && (
+                  <Text style={styles.modalDetail}>
+                    From: {selectedTransaction.from.name}
+                  </Text>
+                )}
+                {selectedTransaction.to && (
+                  <Text style={styles.modalDetail}>
+                    To: {selectedTransaction.to.name}
+                  </Text>
+                )}
               </>
             )}
             <TouchableOpacity
@@ -290,6 +327,7 @@ export default function WalletHistory() {
   );
 }
 
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -297,7 +335,7 @@ const styles = StyleSheet.create({
   },
   appbar: {
     backgroundColor: "#fff",
-    paddingRight:16
+    paddingRight: 16,
   },
   searchContainer: {
     flexDirection: "row",
@@ -312,11 +350,11 @@ const styles = StyleSheet.create({
     backgroundColor: "#f5f5f5",
   },
   actionButtons: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-   
-    backgroundColor: '#f5f5f5',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+
+    backgroundColor: "#f5f5f5",
   },
   listItem: {
     backgroundColor: "#fff",

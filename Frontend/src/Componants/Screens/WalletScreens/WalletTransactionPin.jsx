@@ -1,20 +1,24 @@
-import React, { useState, useRef } from "react";
+import React, { useState } from "react";
 import {
-  View,
   StyleSheet,
+  View,
+  Text,
   TouchableOpacity,
-  Animated,
-  Easing,
+  SafeAreaView,
 } from "react-native";
-import { Text, Button } from "react-native-paper";
-import { AntDesign } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
+import { useRoute, useNavigation } from "@react-navigation/native";
+import walletService from "../../../service/walletService ";
+import { fetchUser } from "../../../../redux/features/userSlice";
+import { useDispatch } from "react-redux";
 
-export default function WalletTransactionPin() {
+const WalletTransactionPin = () => {
   const [pin, setPin] = useState("");
   const maxLength = 6;
-  const fadeValue = useRef(new Animated.Value(1)).current;
+  const dispatch = useDispatch();
+  const route = useRoute();
   const navigation = useNavigation();
+  const { amount, isWithdraw, isTopUp } = route.params;
+  console.log(amount, "amount");
 
   const handleNumberPress = (num) => {
     if (pin.length < maxLength) {
@@ -26,10 +30,24 @@ export default function WalletTransactionPin() {
     setPin(pin.slice(0, -1));
   };
 
-  const handleDone = () => {
-    navigation.navigate("PaymentDone", { pin });
-    // Start scale animation for checkmark
+  const handleDone = async () => {
+    try {
+      if (pin.length === maxLength) {
+        if (amount && isTopUp) {
+          await walletService.addMoney(amount);
+        } else if (amount && isWithdraw) {
+          await walletService.withdrawMoney(amount);
+        }
+        dispatch(fetchUser());
+        navigation.navigate("PaymentDone", { pin, amount });
+      } else {
+        console.error("Pin length does not match the required length.");
+      }
+    } catch (error) {
+      console.error("An error occurred while processing the transaction:", error.message);
+    }
   };
+  
 
   const renderPinDots = () => {
     const dots = [];
@@ -44,127 +62,123 @@ export default function WalletTransactionPin() {
   };
 
   return (
-    <View style={styles.container}>
-      <Animated.View style={[styles.contentContainer, { opacity: fadeValue }]}>
-        <Text style={styles.title}>Enter Your Transition Pin</Text>
+    <SafeAreaView style={styles.container}>
+      <View style={styles.content}>
+        <Text style={styles.title}>Enter Your Transaction Pin</Text>
 
         <View style={styles.pinContainer}>{renderPinDots()}</View>
 
         <View style={styles.keypadContainer}>
-          {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
+          {[1, 2, 3, 4, 5, 6, 7, 8, 9, ".", 0, "⌫"].map((item, index) => (
             <TouchableOpacity
-              key={num}
+              key={index}
               style={styles.keypadButton}
-              onPress={() => handleNumberPress(num.toString())}
+              onPress={() => {
+                if (item === "⌫") {
+                  handleBackspace();
+                } else if (item !== ".") {
+                  handleNumberPress(item.toString());
+                }
+              }}
             >
-              <Text style={styles.keypadText}>{num}</Text>
+              <Text style={styles.keypadText}>{item}</Text>
             </TouchableOpacity>
           ))}
-
-          <TouchableOpacity style={styles.keypadButton}>
-            <Text style={styles.keypadText}>.</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.keypadButton}
-            onPress={() => handleNumberPress("0")}
-          >
-            <Text style={styles.keypadText}>0</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.keypadButton}
-            onPress={handleBackspace}
-          >
-            <Text style={styles.keypadText}>⌫</Text>
-          </TouchableOpacity>
         </View>
 
-        <Button
-          mode="contained"
-          style={styles.doneButton}
-          disabled={pin.length !== maxLength}
-          labelStyle={styles.doneButtonText}
+        <TouchableOpacity
+          style={[
+            styles.button,
+            pin.length !== maxLength && styles.buttonDisabled,
+          ]}
           onPress={handleDone}
+          disabled={pin.length !== maxLength}
         >
-          Done
-        </Button>
-      </Animated.View>
-    </View>
+          <Text style={styles.buttonText}>Done</Text>
+        </TouchableOpacity>
+      </View>
+    </SafeAreaView>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: "#F5F7FA",
   },
-  contentContainer: {
+  content: {
     flex: 1,
-    padding: 20,
+    padding: 24,
+    justifyContent: "space-between",
   },
   title: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: "bold",
+    color: "#002E6E",
     textAlign: "center",
-    marginTop: 40,
-    marginBottom: 30,
+    marginBottom: 16,
+  },
+  amountText: {
+    fontSize: 18,
+    textAlign: "center",
+    marginBottom: 32,
+    color: "#666666",
+  },
+  amountValue: {
+    fontWeight: "bold",
+    color: "#002E6E",
   },
   pinContainer: {
     flexDirection: "row",
     justifyContent: "center",
-    marginBottom: 50,
+    marginBottom: 32,
   },
   dotContainer: {
-    padding: 10,
-    marginHorizontal: 6,
+    padding: 8,
+    marginHorizontal: 8,
   },
   dot: {
     width: 12,
     height: 12,
     borderRadius: 6,
     borderWidth: 1,
-    borderColor: "#ccc",
+    borderColor: "#002E6E",
     backgroundColor: "transparent",
   },
   dotFilled: {
-    backgroundColor: "#000",
-    borderColor: "#000",
+    backgroundColor: "#002E6E",
   },
   keypadContainer: {
     flexDirection: "row",
     flexWrap: "wrap",
     justifyContent: "center",
-    marginBottom: 30,
+    marginBottom: 32,
   },
   keypadButton: {
     width: "30%",
-    aspectRatio: 1.5,
+    aspectRatio: 2,
     justifyContent: "center",
     alignItems: "center",
-    marginVertical: 10,
+    marginVertical: 8,
   },
   keypadText: {
     fontSize: 24,
+    color: "#002E6E",
   },
-  doneButton: {
-    marginTop: 20,
-    paddingVertical: 8,
-    backgroundColor: "#003087",
-  },
-  doneButtonText: {
-    fontSize: 16,
-    color: "#fff",
-  },
-  successContainer: {
-    ...StyleSheet.absoluteFillObject,
-    justifyContent: "center",
+  button: {
+    backgroundColor: "#002E6E",
+    padding: 16,
+    borderRadius: 12,
     alignItems: "center",
-    backgroundColor: "#fff",
   },
-  successText: {
-    fontSize: 24,
-    fontWeight: "bold",
-    marginTop: 20,
+  buttonDisabled: {
+    opacity: 0.6,
+  },
+  buttonText: {
+    color: "#FFFFFF",
+    fontSize: 18,
+    fontWeight: "600",
   },
 });
+
+export default WalletTransactionPin;

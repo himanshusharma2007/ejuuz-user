@@ -53,6 +53,7 @@ import {
   fetchCartAsync,
   fetchWishlistAsync,
 } from "../redux/features/cartSlice";
+import TopUpScreen from "../src/Componants/Screens/WalletScreens/TopUpScreen";
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -292,6 +293,14 @@ const WalletStack = () => {
           headerTitle: "",
         }}
       />
+      <Stack.Screen
+        name="TopUp"
+        component={TopUpScreen}
+        options={{
+          headerShown: false,
+          headerTitle: "",
+        }}
+      />
 
       <Stack.Screen
         name="WalletHistory"
@@ -430,7 +439,8 @@ function getTabbarVisibility(route) {
     routeName === "OtpPage" ||
     routeName === "Cart" ||
     routeName === "Orders" ||
-    routeName === "SearchTab"
+    routeName === "SearchTab" ||
+    routeName === "TopUp"
   ) {
     return "none";
   }
