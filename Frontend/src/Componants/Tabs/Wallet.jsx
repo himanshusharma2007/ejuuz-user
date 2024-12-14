@@ -12,7 +12,8 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useNavigation } from "@react-navigation/native";
 import { useDispatch, useSelector } from "react-redux";
 import { selectUser } from "../../../redux/features/userSlice";
-import { getAllTransactions } from "../../service/transactionService"; // Import the transaction service
+import walletService from "../../service/walletService "; // Import the transaction service
+import { List } from "react-native-paper";
 
 export default function Wallet() {
   const [activeTab, setActiveTab] = useState("Account");
@@ -31,21 +32,10 @@ export default function Wallet() {
 
   const fetchTransactions = async () => {
     try {
-      const response = await getAllTransactions();
+      const response = await walletService.getAllWalletTransactions();
+      console.log("response.transactions", response);
       // Take the 3 most recent transactions
-      const recentTransactions = response.transactions
-        .slice(0, 3)
-        .map((transaction) => ({
-          id: transaction._id,
-          type: transaction.totalAmount > 0 ? "credit" : "debit",
-          amount: Math.abs(transaction.totalAmount),
-          name: transaction.merchantDetails[0].merchantName,
-          icon: transaction.totalAmount > 0 ? "⬆️" : "🏪",
-          timestamp: new Date(transaction.createdAt).toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit",
-          }),
-        }));
+      const recentTransactions = response.slice(0, 3);
 
       setTransactions(recentTransactions);
     } catch (error) {
@@ -59,7 +49,50 @@ export default function Wallet() {
     { id: 3, name: "Ahmed", avatar: "👨🏽" },
     { id: 4, name: "Mike", avatar: "👨" },
   ];
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
 
+  const getTransactionTitle = (transaction) => {
+    switch (transaction.transactionType) {
+      case "TRANSFER":
+        return `Transfer to ${transaction.to?.name || "Unknown"}`;
+      case "ADD":
+        return `Wallet Top-up`;
+      case "WITHDRAW":
+        return "Wallet Withdrawal";
+      default:
+        return "Transaction";
+    }
+  };
+  const renderAmount = (transaction) => {
+    let amount = transaction.amount;
+    let color = "#4CAF50"; // default green for incoming
+    let prefix = "+";
+
+    // Determine color and prefix based on transaction type
+    if (
+      transaction.transactionType === "WITHDRAW" ||
+      (transaction.fromModel === "Customer" &&
+        transaction.transactionType === "TRANSFER")
+    ) {
+      color = "#FF5252"; // red for outgoing
+      prefix = "-";
+    }
+
+    return (
+      <Text style={[styles.amount, { color }]}>
+        {prefix}${Math.abs(amount).toFixed(2)}
+      </Text>
+    );
+  };
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView
@@ -77,12 +110,30 @@ export default function Wallet() {
           <Text style={styles.balanceAmount}>R{balance.toFixed(2)}</Text>
 
           <View style={styles.actions}>
-            <TouchableOpacity style={styles.action}>
+            <TouchableOpacity
+              onPress={() =>
+                navigation.navigate("TopUp", {
+                  title: "Top Up",
+                  subtitle: "Top up money in your wallet",
+                  isTopUp: true,
+                })
+              }
+              style={styles.action}
+            >
               <Ionicons name="arrow-up" size={24} color="white" />
               <Text style={styles.actionText}>Top up</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.action}>
+            <TouchableOpacity
+              style={styles.action}
+              onPress={() =>
+                navigation.navigate("TopUp", {
+                  title: "Withdraw",
+                  subtitle: "Withdraw money from your wallet",
+                  isWithdraw: true,
+                })
+              }
+            >
               <Ionicons name="arrow-down" size={24} color="white" />
               <Text style={styles.actionText}>Withdraw</Text>
             </TouchableOpacity>
@@ -180,30 +231,25 @@ export default function Wallet() {
           </View>
 
           {transactions.map((transaction) => (
-            <TouchableOpacity key={transaction.id} style={styles.transaction}>
-              <View style={styles.transactionInfo}>
-                <View style={styles.transactionIcon}>
-                  <Text style={styles.iconText}>{transaction.icon}</Text>
-                </View>
-                <View>
-                  <Text style={styles.transactionName}>{transaction.name}</Text>
-                  <Text style={styles.transactionTime}>
-                    {transaction.timestamp}
-                  </Text>
-                </View>
-              </View>
-              <Text
-                style={[
-                  styles.transactionAmount,
-                  transaction.type === "debit"
-                    ? styles.creditAmount
-                    : styles.debitAmount,
-                ]}
-              >
-                {transaction.type === "debit" ? "+" : "-"}R
-                {transaction.amount.toFixed(2)}
-              </Text>
-            </TouchableOpacity>
+            <List.Item
+              key={transaction._id}
+              title={getTransactionTitle(transaction)}
+              description={formatDate(transaction.createdAt)}
+              left={(props) => (
+                <List.Icon
+                  {...props}
+                  icon={
+                    transaction.transactionType === "ADD" ||
+                    (transaction.toModel === "Customer" &&
+                      transaction.transactionType === "TRANSFER")
+                      ? "arrow-down"
+                      : "arrow-up"
+                  }
+                />
+              )}
+              right={() => renderAmount(transaction)}
+              style={styles.listItem}
+            />
           ))}
         </View>
       </ScrollView>
