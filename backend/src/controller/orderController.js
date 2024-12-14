@@ -18,8 +18,7 @@ exports.placeOrder = async (req, res) => {
 
   const session = await mongoose.startSession();
   session.startTransaction();
-  const session = await mongoose.startSession();
-  session.startTransaction();
+
 
   try {
     const customerId = req.user._id;
