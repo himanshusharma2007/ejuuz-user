@@ -25,7 +25,6 @@ const menuOptions = [
         title: "Orders",
         icon: "📦",
         navigate: "Orders",
-        badge: "2",
       },
       {
         id: "transactions",
@@ -38,7 +37,6 @@ const menuOptions = [
         title: "Wishlist",
         icon: "❤️",
         navigate: "Wishlist",
-        badge: "5",
       },
     ],
   },
@@ -51,7 +49,6 @@ const menuOptions = [
         title: "Manage Account",
         icon: "👤",
         navigate: "Setting",
-        // navigate: "/profile/account",
       },
       {
         id: "wallet",

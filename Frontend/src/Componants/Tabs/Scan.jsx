@@ -4,35 +4,105 @@ import {
   Text,
   View,
   TouchableOpacity,
-  FlatList,
   Alert,
   Linking,
   TextInput,
   ScrollView,
+  Dimensions,
+  Image,
+  Animated,
+  Platform,
+  StatusBar,
 } from "react-native";
 import { BarCodeScanner } from "expo-barcode-scanner";
-
 import * as ImagePicker from "expo-image-picker";
+import * as Contacts from "expo-contacts";
+import { Ionicons } from "@expo/vector-icons";
+import { useNavigation } from "@react-navigation/native"; // Make sure to install this
 
 export default function Scan() {
+  const navigation = useNavigation();
   const [hasPermission, setHasPermission] = useState(null);
   const [scannedData, setScannedData] = useState([]);
+  const [searchText, setSearchText] = useState("");
+  const [recentContacts, setRecentContacts] = useState([]);
+  
+  // Animated values for corner pop effect
+  const [topLeftScale] = useState(new Animated.Value(1));
+  const [topRightScale] = useState(new Animated.Value(1));
+  const [bottomLeftScale] = useState(new Animated.Value(1));
+  const [bottomRightScale] = useState(new Animated.Value(1));
 
-  const recentContacts = [
-    { id: 1, name: "Ali", avatar: "🤠" },
-    { id: 2, name: "Steve", avatar: "👨🏾" },
-    { id: 3, name: "Ahmed", avatar: "👨🏽" },
-    { id: 4, name: "Mike", avatar: "👨" },
-    { id: 5, name: "Ahmed", avatar: "👨🏽" },
-    { id: 6, name: "Mike", avatar: "👨" },
-  ];
+  // Animation function for corner pop effect
+  const animateCorner = (animatedValue) => {
+    Animated.sequence([
+      Animated.timing(animatedValue, {
+        toValue: 1.2,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+      Animated.timing(animatedValue, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      })
+    ]).start();
+  };
 
   useEffect(() => {
     (async () => {
+      // Camera Permission
       const { status } = await BarCodeScanner.requestPermissionsAsync();
       setHasPermission(status === "granted");
+
+      // Contacts Permission
+      const { status: contactStatus } = await Contacts.requestPermissionsAsync();
+      if (contactStatus === "granted") {
+        await fetchRecentContacts();
+      }
     })();
   }, []);
+
+  // Fetch recent contacts from phone
+  const fetchRecentContacts = async () => {
+    try {
+      const { data } = await Contacts.getContactsAsync({
+        fields: [
+          Contacts.Fields.Name, 
+          Contacts.Fields.Image, 
+          Contacts.Fields.PhoneNumbers
+        ],
+        pageSize: 10, // Limit to 10 contacts
+      });
+
+      // Transform contacts to match the existing structure
+      const formattedContacts = data.map((contact, index) => ({
+        id: contact.id || index,
+        name: contact.name,
+        avatar: contact.image 
+          ? { uri: contact.image.uri } 
+          : getRandomEmoji(),
+        phoneNumber: contact.phoneNumbers?.[0]?.number || ''
+      }));
+
+      setRecentContacts(formattedContacts);
+    } catch (error) {
+      console.error("Error fetching contacts", error);
+      Alert.alert("Error", "Could not fetch contacts");
+    }
+  };
+
+  // Function to get a random emoji as a fallback
+  const getRandomEmoji = () => {
+    const emojis = ['🤠', '👨', '👩', '👧', '👦', '👴', '👵'];
+    return emojis[Math.floor(Math.random() * emojis.length)];
+  };
+
+  // Function to generate random pastel colors
+  const getRandomPastelColor = () => {
+    const hue = Math.floor(Math.random() * 360);
+    return `hsla(${hue}, 70%, 80%, 0.7)`;
+  };
 
   const handleBarCodeScanned = ({ type, data }) => {
     setScannedData([...scannedData, { type, data }]);
@@ -64,7 +134,7 @@ export default function Scan() {
     }
 
     const pickerResult = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaType,
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
       quality: 1,
     });
 
@@ -76,108 +146,250 @@ export default function Scan() {
     }
   };
 
+  // Handle contact selection
+  const handleContactSelect = (contact) => {
+    Alert.alert(
+      "Contact Selected", 
+      `Name: ${contact.name}\nPhone: ${contact.phoneNumber}`
+    );
+  };
+
   if (hasPermission === null) {
-    return <Text>Requesting camera permission...</Text>;
+    return (
+      <View style={styles.loadingContainer}>
+        <Text style={styles.loadingText}>Requesting camera permission...</Text>
+      </View>
+    );
   }
   if (hasPermission === false) {
-    return <Text>No access to camera</Text>;
+    return (
+      <View style={styles.loadingContainer}>
+        <Text style={styles.loadingText}>No access to camera</Text>
+      </View>
+    );
   }
 
   return (
     <View style={styles.container}>
-      <View style={styles.scannerContainer}>
-        <BarCodeScanner
-          onBarCodeScanned={handleBarCodeScanned}
-          style={[StyleSheet.absoluteFillObject, styles.scanner]}
-        />
-      </View>
-      {/* <View style={styles.recentContainer}>
-        <FlatList
-          data={scannedData}
-          keyExtractor={(item, index) => index.toString()}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.recentItemsContainer}
-          renderItem={({ item }) => (
-            <View style={styles.recentItem}>
-              <Text style={styles.recentItemText}>{item.data}</Text>
-            </View>
-          )}
-        />
-      </View> */}
-      <View style={styles.buttonContainer}>
-        <TouchableOpacity
-          style={styles.uploadButton}
-          onPress={handleUploadFromGallery}
+      <StatusBar barStyle="dark-content" />
+      {/* Navigation Header */}
+      <View style={styles.header}>
+        <TouchableOpacity 
+          style={styles.backButton} 
+          onPress={() => navigation.goBack()}
         >
-          <Text style={styles.uploadButtonText}>Upload from gallery</Text>
+          <Ionicons name="arrow-back" size={24} color="black" />
         </TouchableOpacity>
-      </View>
-      <View style={styles.inputContainer}>
-        <TextInput placeholder="Enter mobile number or name" />
+        <Text style={styles.headerTitle}>Scan QR</Text>
       </View>
 
-      <View style={styles.recentContainer}>
-        <Text style={styles.recentText}>Recent</Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          {recentContacts.map((contact) => (
-            <TouchableOpacity key={contact.id} style={styles.contactItem}>
-              <View style={styles.avatar}>
-                <Text style={styles.avatarText}>{contact.avatar}</Text>
-              </View>
-              <Text style={styles.contactName}>{contact.name}</Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-      </View>
+      <ScrollView 
+        style={styles.scrollContainer}
+        contentContainerStyle={styles.scrollViewContent}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.scannerContainer}>
+          <BarCodeScanner
+            onBarCodeScanned={handleBarCodeScanned}
+            style={[StyleSheet.absoluteFillObject, styles.scanner]}
+          />
+          <View style={styles.scanOverlay}>
+            <View style={styles.scannerFrame}>
+              <Animated.View 
+                style={[
+                  styles.corner, 
+                  styles.topLeftCorner,
+                  { transform: [{ scale: topLeftScale }] }
+                ]}
+                onTouchEnd={() => animateCorner(topLeftScale)}
+              />
+              <Animated.View 
+                style={[
+                  styles.corner, 
+                  styles.topRightCorner,
+                  { transform: [{ scale: topRightScale }] }
+                ]}
+                onTouchEnd={() => animateCorner(topRightScale)}
+              />
+              <Animated.View 
+                style={[
+                  styles.corner, 
+                  styles.bottomLeftCorner,
+                  { transform: [{ scale: bottomLeftScale }] }
+                ]}
+                onTouchEnd={() => animateCorner(bottomLeftScale)}
+              />
+              <Animated.View 
+                style={[
+                  styles.corner, 
+                  styles.bottomRightCorner,
+                  { transform: [{ scale: bottomRightScale }] }
+                ]}
+                onTouchEnd={() => animateCorner(bottomRightScale)}
+              />
+            </View>
+          </View>
+        </View>
+
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity
+            style={styles.uploadButton}
+            onPress={handleUploadFromGallery}
+          >
+            <Ionicons name="cloud-upload" size={24} color="white" />
+            <Text style={styles.uploadButtonText}>Upload from gallery</Text>
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.inputContainer}>
+          <Ionicons name="search" size={20} color="gray" style={styles.searchIcon} />
+          <TextInput
+            placeholder="Enter mobile number or name"
+            style={styles.searchInput}
+            value={searchText}
+            onChangeText={setSearchText}
+          />
+        </View>
+
+        <View style={styles.recentContainer}>
+          <Text style={styles.recentText}>Recent Contacts</Text>
+          <ScrollView 
+            horizontal 
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.contactScrollContainer}
+          >
+            {recentContacts.map((contact) => (
+              <TouchableOpacity 
+                key={contact.id} 
+                style={styles.contactItem}
+                onPress={() => handleContactSelect(contact)}
+              >
+                <View 
+                  style={[
+                    styles.avatar, 
+                    { 
+                      backgroundColor: contact.avatar.uri 
+                        ? 'transparent' 
+                        : getRandomPastelColor() 
+                    }
+                  ]}
+                >
+                  {contact.avatar.uri ? (
+                    <Image 
+                      source={contact.avatar} 
+                      style={styles.avatarImage} 
+                    />
+                  ) : (
+                    <Text style={styles.avatarText}>{contact.avatar}</Text>
+                  )}
+                </View>
+                <Text style={styles.contactName} numberOfLines={1}>
+                  {contact.name}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+          <View style={styles.emptyContactItem}></View>
+        </View>
+      </ScrollView>
     </View>
   );
 }
 
+const { width, height } = Dimensions.get('window');
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
-    // alignItems: "center",
-    // justifyContent: "center",
+    backgroundColor: "#F5F5F5",
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingTop: Platform.OS === 'ios' ? 50 : 20,
+    paddingHorizontal: 20,
+    backgroundColor: 'transparent',
+    paddingBottom: 10,
+  },
+  backButton: {
+    marginRight: 15,
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  scrollContainer: {
+    flex: 1,
+  },
+  scrollViewContent: {
+    flexGrow: 1,
+    paddingBottom: 120,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#F5F5F5',
+  },
+  loadingText: {
+    fontSize: 18,
+    color: '#333',
   },
   scannerContainer: {
-    height: "60%",
+    height: height * 0.6, 
     width: "100%",
-    backgroundColor: "#000",
     borderBottomLeftRadius: 20,
     borderBottomRightRadius: 20,
-    // alignItems: "center",
-    // justifyContent: "center",
-    justifyContent: "center",
+    overflow: 'hidden',
+    position: 'relative',
   },
-
   scanner: {
     width: "100%",
-    margin: "auto",
-    height: "99.3%",
-    borderRadius: 20,
+    height: "100%",
   },
-  // recentContainer: {
-  //   position: "absolute",
-  //   bottom: 80,
-  //   height: 80,
-  //   width: "100%",
-  //   backgroundColor: "rgba(44, 44, 44, 0.5)",
-  //   alignItems: "center",
-  //   justifyContent: "center",
-  // },
-  recentItemsContainer: {
-    paddingHorizontal: 16,
+  scanOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'transparent',
   },
-  recentItem: {
-    marginHorizontal: 8,
-    alignItems: "center",
+  scannerFrame: {
+    width: width * 0.7,
+    height: width * 0.7,
+    position: 'relative',
+    backgroundColor: 'transparent',
   },
-  recentItemText: {
-    color: "#fff",
-    marginTop: 4,
-    fontSize: 12,
+  corner: {
+    position: 'absolute',
+    width: 30,
+    height: 30,
+    borderColor: 'white',
+    borderWidth: 3,
+  },
+  topLeftCorner: {
+    top: 0,
+    left: 0,
+    borderRightWidth: 0,
+    borderBottomWidth: 0,
+  },
+  topRightCorner: {
+    top: 0,
+    right: 0,
+    borderLeftWidth: 0,
+    borderBottomWidth: 0,
+  },
+  bottomLeftCorner: {
+    bottom: 0,
+    left: 0,
+    borderRightWidth: 0,
+    borderTopWidth: 0,
+  },
+  bottomRightCorner: {
+    bottom: 0,
+    right: 0,
+    borderLeftWidth: 0,
+    borderTopWidth: 0,
   },
   buttonContainer: {
     position: "relative",
@@ -186,56 +398,82 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   uploadButton: {
-    backgroundColor: "#D73642",
+    backgroundColor: "#002E6E",
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 24,
+    flexDirection: 'row',
+    alignItems: 'center',
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
   uploadButtonText: {
     color: "#fff",
     fontSize: 16,
     fontWeight: "bold",
+    marginLeft: 10,
   },
   inputContainer: {
     alignSelf: "center",
     width: "90%",
-    padding: 10,
-    borderWidth: 1,
-    borderColor: "black",
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'white',
     borderRadius: 10,
-    height: 60,
-    justifyContent: "center",
-    alignItems: "flex-start",
+    paddingHorizontal: 15,
+    height: 50,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+  searchIcon: {
+    marginRight: 10,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 16,
   },
   recentContainer: {
     width: "100%",
     paddingVertical: 20,
+    marginBottom: 30
   },
   recentText: {
     fontSize: 20,
     fontWeight: "bold",
-    marginTop: 0,
     marginLeft: 20,
     marginBottom: 10,
+    color: '#333',
+  },
+  contactScrollContainer: {
+    paddingHorizontal: 15,
   },
   contactItem: {
     alignItems: "center",
-    marginRight: 10,
+    marginRight: 15,
+    width: 100,
   },
   avatar: {
     width: 80,
     height: 80,
     borderRadius: 50,
-    backgroundColor: "lightgreen",
     alignItems: "center",
     justifyContent: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 3,
   },
-  addAvatar: {
-    backgroundColor: "#6B46C1",
-  },
-  addAvatarText: {
-    color: "white",
-    fontSize: 24,
+  avatarImage: {
+    width: 80,
+    height: 80,
+    borderRadius: 50,
   },
   avatarText: {
     fontSize: 40,
@@ -243,5 +481,10 @@ const styles = StyleSheet.create({
   contactName: {
     marginTop: 5,
     fontSize: 12,
+    color: '#666',
+    textAlign: 'center',
   },
+  emptyContactItem: {
+    width: 20, // Ensures some extra space at the end of horizontal scroll
+  }
 });
