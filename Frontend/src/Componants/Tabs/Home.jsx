@@ -13,6 +13,10 @@ import {
   Animated,
   RefreshControl,
   Pressable,
+  BackHandler,
+  Alert,
+  StyleSheet,
+  ActivityIndicator,
 } from "react-native";
 import React, {
   useRef,
@@ -34,76 +38,10 @@ import authService from "../../service/authService";
 import { useSelector } from "react-redux";
 import { Badge } from "react-native-paper";
 import Categories from "../Screens/HomeScreens/Categories";
+import ContentLoader, { Rect, Circle } from "react-content-loader/native";
+import LoadingIndicator from "./LoadingIndicator";
 
 const { width } = Dimensions.get("window");
-
-// const recommendedProducts = [
-//   {
-//     id: "r1",
-//     name: "Fresh Berries Mix",
-//     price: "R 129.99",
-//     oldPrice: "R 159.99",
-//     discount: "20%",
-//     rating: "⭐⭐⭐⭐½",
-//     image:
-//       "https://images.unsplash.com/photo-1613082410785-22292e8426e7?q=80&w=1287&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-//   },
-//   {
-//     id: "r2",
-//     name: "Oranges",
-//     price: "R 89.99",
-//     oldPrice: "R 99.99",
-//     discount: "10%",
-//     rating: "⭐⭐⭐⭐⭐",
-//     image:
-//       "https://plus.unsplash.com/premium_photo-1669631944923-75bbc991f223?q=80&w=1287&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-//   },
-//   {
-//     id: "r3",
-//     name: "Whole Grain Bread",
-//     price: "R 45.99",
-//     oldPrice: "R 54.99",
-//     discount: "15%",
-//     rating: "⭐⭐⭐⭐",
-//     image:
-//       "https://images.unsplash.com/photo-1533782654613-826a072dd6f3?q=80&w=1365&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-//   },
-//   // Add more recommended products as needed
-// ];
-
-// const weeklyDeals = [
-//   {
-//     id: "d1",
-//     name: "Fresh Vegetables Bundle",
-//     price: "R 199.99",
-//     oldPrice: "R 299.99",
-//     saveAmount: "R 100",
-//     image:
-//       "https://plus.unsplash.com/premium_photo-1661376954615-26609d61d924?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-//     validUntil: "3 days left",
-//   },
-//   {
-//     id: "d2",
-//     name: "Fruit Box",
-//     price: "R 249.99",
-//     oldPrice: "R 349.99",
-//     saveAmount: "R 100",
-//     image:
-//       "https://images.unsplash.com/photo-1583754744912-637265c87826?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-//     validUntil: "5 days left",
-//   },
-//   {
-//     id: "d3",
-//     name: "Fruit Box",
-//     price: "R 249.99",
-//     oldPrice: "R 349.99",
-//     saveAmount: "R 100",
-//     image:
-//       "https://images.unsplash.com/photo-1583754744912-637265c87826?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-//     validUntil: "5 days left",
-//   },
-//   // Add more deals as needed
-// ];
 
 const BannerDot = ({ index, scrollX }) => {
   const inputRange = [(index - 1) * width, index * width, (index + 1) * width];
@@ -141,6 +79,7 @@ export default function Home() {
   const [searchText, setSearchText] = useState("");
   const autoScrollTimer = useRef(null);
   const isManualScroll = useRef(false);
+  const [loading, setLoading] = useState(true);
 
   const navigation = useNavigation();
   const [productdata, setAllProducts] = useState([]);
@@ -148,58 +87,50 @@ export default function Home() {
   const [shopdata, setShopdata] = useState([]);
   const cartData = useSelector((state) => state.cart.items);
 
-  // console.log("cart data length", cartData.length);
-
   useEffect(() => {
-    const fetchAllTopDiscountProduct = async () => {
+    const fetchData = async () => {
+      setLoading(true);
       try {
-        const response = await getAllDiscountedProducts();
-        // console.log("API Response:", response);
-        setDiscountedProducts(response.products || []);
+        const [discountedResponse, productsResponse, shopsResponse] =
+          await Promise.all([
+            getAllDiscountedProducts(),
+            getAllProducts(),
+            getAllShops(),
+          ]);
+        setDiscountedProducts(discountedResponse.products || []);
+        setAllProducts(productsResponse.products);
+        setShopdata(shopsResponse.data);
       } catch (error) {
-        console.error("Error fetching all products", error);
+        console.error("Error fetching data", error);
+      } finally {
+        setLoading(false);
       }
     };
-    fetchAllTopDiscountProduct();
+
+    fetchData();
   }, []);
 
   useEffect(() => {
-    const fetchallproducts = async () => {
-      try {
-        const response = await getAllProducts();
-        setAllProducts(response.products);
-      } catch (error) {
-        console.error("Error fetching all products", error);
-      }
+    const backAction = () => {
+      Alert.alert("Hold on!", "Are you sure you want to exit?", [
+        {
+          text: "Cancel",
+          onPress: () => null,
+          style: "cancel",
+        },
+        { text: "YES", onPress: () => BackHandler.exitApp() },
+      ]);
+      return true;
     };
-    fetchallproducts();
+
+    const backHandler = BackHandler.addEventListener(
+      "hardwareBackPress",
+      backAction
+    );
+
+    return () => backHandler.remove();
   }, []);
 
-  // console.log("productdata", productdata);
-  // console.log("allProducts", productdata.map((product) => product.category));
-
-  useEffect(() => {
-    const fetchAllShopdata = async () => {
-      try {
-        const response = await getAllShops();
-        setShopdata(response.data);
-        // console.log("Get All Shops", response.data);
-      } catch (error) {}
-    };
-    fetchAllShopdata();
-  }, []);
-
-  useState(() => {
-    const fetchcurentuser = async () => {
-      try {
-        const response = await authService.getCurrentUser();
-        console.log("current user is", response);
-      } catch (error) {
-        console.error("Error fetching product data:", error);
-      }
-    };
-    fetchcurentuser();
-  }, []);
   const categories = useMemo(() => {
     const categoryMap = new Map();
 
@@ -221,11 +152,6 @@ export default function Home() {
   };
 
   const handleProductPress = useCallback((product) => {
-    // router.push({
-    //   pathname: `/home/productdetails`,
-    //   params: { item: JSON.stringify(product) },
-    // });
-
     navigation.navigate("ProductDetails", {
       item: JSON.stringify(product._id),
     });
@@ -234,16 +160,14 @@ export default function Home() {
   const handleDealPress = useCallback((deal) => {
     navigation.navigate("ProductDetails", { item: JSON.stringify(deal._id) });
   }, []);
+
   const startAutoScroll = useCallback(() => {
-    // Clear existing timer
     if (autoScrollTimer.current) {
       clearInterval(autoScrollTimer.current);
     }
 
-    // Only start auto-scroll if there are multiple items
     if (discountedProducts.length > 1) {
       autoScrollTimer.current = setInterval(() => {
-        // Ensure not in manual scroll mode and has multiple items
         if (!isManualScroll.current && discountedProducts.length > 1) {
           const nextIndex = (currentIndex + 1) % discountedProducts.length;
 
@@ -256,7 +180,6 @@ export default function Home() {
     }
   }, [currentIndex, discountedProducts.length]);
 
-  // Scroll Event Handlers with More Robust Logic
   const handleScrollBegin = () => {
     isManualScroll.current = true;
     if (autoScrollTimer.current) {
@@ -265,14 +188,12 @@ export default function Home() {
   };
 
   const handleScrollEnd = () => {
-    // Reset manual scroll with a slight delay
     setTimeout(() => {
       isManualScroll.current = false;
       startAutoScroll();
     }, 500);
   };
 
-  // Improved Viewability Configuration
   const onViewableItemsChanged = useRef(({ viewableItems }) => {
     if (viewableItems.length > 0) {
       const newIndex = viewableItems[0].index;
@@ -283,6 +204,7 @@ export default function Home() {
   const viewabilityConfig = useRef({
     itemVisiblePercentThreshold: 50,
   }).current;
+
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
     try {
@@ -331,39 +253,6 @@ export default function Home() {
     return text;
   };
 
-  const BannerDot = ({ index, scrollX }) => {
-    const inputRange = [
-      (index - 1) * width,
-      index * width,
-      (index + 1) * width,
-    ];
-
-    const dotWidth = scrollX.interpolate({
-      inputRange,
-      outputRange: [8, 16, 8],
-      extrapolate: "clamp",
-    });
-
-    const opacity = scrollX.interpolate({
-      inputRange,
-      outputRange: [0.5, 1, 0.5],
-      extrapolate: "clamp",
-    });
-
-    return (
-      <Animated.View
-        style={[
-          styles.dot,
-          {
-            width: dotWidth,
-            opacity,
-          },
-        ]}
-      />
-    );
-  };
-
-  // Banner Item Component
   const BannerItems = ({ item, onPress }) => {
     return (
       <Pressable onPress={() => onPress(item)} style={styles.bannerContainer}>
@@ -401,7 +290,6 @@ export default function Home() {
     );
   };
 
-  // Auto Scroll Effect with Enhanced Control
   useEffect(() => {
     startAutoScroll();
 
@@ -411,8 +299,6 @@ export default function Home() {
       }
     };
   }, [currentIndex, startAutoScroll]);
-
-  // console.log("discountedProducts", discountedProducts);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -427,7 +313,6 @@ export default function Home() {
         }
       >
         <View style={styles.curve}>
-          {/* Logo and Header */}
           <View style={styles.logoContainer}>
             <Image
               source={require("../../../src/images/ejuuzlogo.png")}
@@ -436,7 +321,6 @@ export default function Home() {
             />
           </View>
 
-          {/* Header */}
           <View style={styles.header}>
             <View style={styles.searchContainer}>
               <Ionicons
@@ -474,17 +358,9 @@ export default function Home() {
                   <Text style={styles.badge}>{cartData.length}</Text>
                 )}
               </TouchableOpacity>
-
-              {/* <TouchableOpacity
-                style={styles.iconButton}
-                onPress={() => navigation.navigate("Notifications")}
-              >
-                <Ionicons name="notifications-outline" size={24} color="#FFF" />
-              </TouchableOpacity> */}
             </View>
           </View>
 
-          {/* Location Bar */}
           <TouchableOpacity style={styles.locationBar}>
             <Ionicons name="location-outline" size={20} color="#FFF" />
             <Text style={styles.locationText} numberOfLines={1}>
@@ -492,106 +368,192 @@ export default function Home() {
             </Text>
             <Ionicons name="chevron-down" size={20} color="#FFF" />
           </TouchableOpacity>
-          {/* Banner slider */}
+
           <View>
-            {discountedProducts.length > 0 ? (
-              <FlatList
-                ref={flatListRef}
-                data={discountedProducts}
-                renderItem={({ item }) => (
-                  <BannerItems item={item} onPress={handleProductPress} />
-                )}
-                keyExtractor={(item, index) => item._id || index.toString()}
-                horizontal
-                pagingEnabled
-                showsHorizontalScrollIndicator={false}
-                onScroll={Animated.event(
-                  [{ nativeEvent: { contentOffset: { x: scrollX } } }],
-                  { useNativeDriver: false }
-                )}
-                onScrollBeginDrag={handleScrollBegin}
-                onScrollEndDrag={handleScrollEnd}
-                onMomentumScrollBegin={handleScrollBegin}
-                onMomentumScrollEnd={handleScrollEnd}
-                onViewableItemsChanged={onViewableItemsChanged}
-                viewabilityConfig={viewabilityConfig}
-                snapToAlignment="center"
-                decelerationRate="fast"
-              />
-            ) : (
-              <View style={styles.noBannersContainer}>
-                <Text style={styles.noBannersText}>No banners available</Text>
+            {loading ? (
+              <View style={styles.contentContainerStyle}>
+                <View style={styles.loadingContainer}>
+                  <ContentLoader
+                    speed={2}
+                    width={width - 40}
+                    height={200}
+                    viewBox="0 0 300 200"
+                    backgroundColor="#f3f3f3"
+                    foregroundColor="#ecebeb"
+                  >
+                    <Rect
+                      x="2"
+                      y="10"
+                      rx="10"
+                      ry="10"
+                      width="120"
+                      height="40"
+                    />
+                    <Rect
+                      x="4"
+                      y="70"
+                      rx="20"
+                      ry="20"
+                      width="120"
+                      height="40"
+                    />
+
+                    <Circle cx="30" cy="30" r="50" y={25} x={230} />
+                  </ContentLoader>
+                </View>
               </View>
+            ) : (
+              // <LoadingIndicator />
+              <>
+                {discountedProducts.length > 0 ? (
+                  <FlatList
+                    ref={flatListRef}
+                    data={discountedProducts}
+                    renderItem={({ item }) => (
+                      <BannerItems item={item} onPress={handleProductPress} />
+                    )}
+                    keyExtractor={(item, index) => item._id || index.toString()}
+                    horizontal
+                    pagingEnabled
+                    showsHorizontalScrollIndicator={false}
+                    onScroll={Animated.event(
+                      [{ nativeEvent: { contentOffset: { x: scrollX } } }],
+                      { useNativeDriver: false }
+                    )}
+                    onScrollBeginDrag={handleScrollBegin}
+                    onScrollEndDrag={handleScrollEnd}
+                    onMomentumScrollBegin={handleScrollBegin}
+                    onMomentumScrollEnd={handleScrollEnd}
+                    onViewableItemsChanged={onViewableItemsChanged}
+                    viewabilityConfig={viewabilityConfig}
+                    snapToAlignment="center"
+                    decelerationRate="fast"
+                  />
+                ) : (
+                  <View style={styles.noBannersContainer}>
+                    <Text style={styles.noBannersText}>
+                      No banners available
+                    </Text>
+                  </View>
+                )}
+                <View style={styles.bannerDots}>
+                  {discountedProducts.map((_, index) => (
+                    <BannerDot key={index} index={index} scrollX={scrollX} />
+                  ))}
+                </View>
+              </>
             )}
-            <View style={styles.bannerDots}>
-              {discountedProducts.map((_, index) => (
-                <BannerDot key={index} index={index} scrollX={scrollX} />
-              ))}
-            </View>
           </View>
         </View>
 
-        {/* Categories */}
         <View style={styles.categoriesSection}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Categories</Text>
+            {loading ? (
+              <>
+                <ContentLoader
+                  speed={2}
+                  width={100}
+                  height={20}
+                  viewBox={`0 0 100 20`}
+                  backgroundColor="#f3f3f3"
+                  foregroundColor="#ecebeb"
+                >
+                  <Rect x="0" y="0" rx="10" ry="10" width="97" height="20" />
+                </ContentLoader>
+              </>
+            ) : (
+              <>
+                <Text style={styles.sectionTitle}>Categories</Text>
+              </>
+            )}
           </View>
           <View style={styles.categoriesGrid}>
-            {/* <FlatList
-              data={filteredCategories}
-              horizontal
-              style={{gap:10, marginHorizontal:10}}
-              keyExtractor={(category) => category.id}
-             renderItem={({ item }) => (
-               <TouchableOpacity  key={item.category}
-               style={[
-                 styles.categoryItem,
-                 { backgroundColor: item.categorycolor },
-               ]}
-               onPress={() => handleCategoryPress(category)}
-               activeOpacity={0.7}
-             >
-                  <Text style={styles.categoryIcon}>{item.categoryicon}</Text>
-                  <Text style={styles.category}>{item.category}</Text>
-
-             </TouchableOpacity>
-             )} 
-            /> */}
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={styles.categoryScrollContent}
             >
-              {filteredCategories.map((category) => (
-                <Categories
-                  key={category.category}
-                  category={category.category}
-                  onPress={() => handleCategoryPress(category)}
-                />
-              ))}
-
-              {/* <TouchableOpacity
-                   key={category.category}
-                   style={[
-                     styles.categoryItem,
-                      { backgroundColor: category.categorycolor },
-                   ]}
-                   onPress={() => handleCategoryPress(category)}
-                   activeOpacity={0.7}
-                 >
-                   <Text style={styles.categoryIcon}>
-                     {category.categoryicon}
-                   </Text>
-                   <Text style={styles.category}>{category.category}</Text>
-                 </TouchableOpacity> */}
+              {loading ? (
+                <View style={styles.CategorycontentContainerStyle}>
+                  <View style={styles.CategoryloadingContainer}>
+                    <ContentLoader
+                      speed={2}
+                      width={width - 40}
+                      height={60}
+                      viewBox={`0 0 ${width - 40} 60`}
+                      backgroundColor="#f3f3f3"
+                      foregroundColor="#ecebeb"
+                    >
+                      <Rect
+                        x="0"
+                        y="0"
+                        rx="10"
+                        ry="10"
+                        width="97"
+                        height="55"
+                      />
+                      <Rect
+                        x="110"
+                        y="0"
+                        rx="10"
+                        ry="10"
+                        width="97"
+                        height="55"
+                      />
+                      <Rect
+                        x="220"
+                        y="0"
+                        rx="10"
+                        ry="10"
+                        width="97"
+                        height="55"
+                      />
+                      <Rect
+                        x="330"
+                        y="0"
+                        rx="10"
+                        ry="10"
+                        width="97"
+                        height="55"
+                      />
+                    </ContentLoader>
+                  </View>
+                </View>
+              ) : (
+                <>
+                  {filteredCategories.map((category) => (
+                    <Categories
+                      key={category.category}
+                      category={category.category}
+                      onPress={() => handleCategoryPress(category)}
+                    />
+                  ))}
+                </>
+              )}
             </ScrollView>
           </View>
         </View>
 
-        {/* Stores Section */}
         <View style={styles.storesSection}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Popular Shop</Text>
+            {loading ? (
+              <>
+                <ContentLoader
+                  speed={2}
+                  width={130}
+                  height={20}
+                  viewBox={`0 0 130 20`}
+                  backgroundColor="#f3f3f3"
+                  foregroundColor="#ecebeb"
+                >
+                  <Rect x="0" y="0" rx="10" ry="10" width="107" height="20" />
+                </ContentLoader>
+              </>
+            ) : (
+              <>
+                <Text style={styles.sectionTitle}>Popular Shop</Text>
+              </>
+            )}
             <TouchableOpacity>
               <Text style={styles.seeAllText}>See all</Text>
             </TouchableOpacity>
@@ -601,61 +563,221 @@ export default function Home() {
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.storesScrollContent}
           >
-            {shopdata.map((item) => {
-              const imgageUri = "https://via.placeholder.com/150";
-              // console.log("productdata", productdata);
-              return (
-                <TouchableOpacity
-                  key={item._id}
-                  style={styles.recommendedCard}
-                  onPress={() =>
-                    navigation.navigate("StoreDetails", {
-                      item: JSON.stringify(item._id),
-                    })
-                  }
-                >
-                  <Image
-                    source={{ uri: item.products[0]?.images[0]?.url || imgageUri }}
-                    style={styles.recommendedImage}
-                  />
-                  {/* <View style={styles.discountBadge}>
-                    <Text style={styles.discountText}>{product.discount}</Text>
-                  </View> */}
-                  <View style={styles.recommendedInfo}>
-                    <Text style={styles.recommendedName} numberOfLines={1}>
-                      {item.name.length > 20 ? "..." : item.name}
-                    </Text>
+            {loading ? (
+              <View style={styles.PopularcontentContainerStyle}>
+                <View style={styles.PopularloadingContainer}>
+                  <ContentLoader
+                    speed={2}
+                    width={140}
+                    height={230}
+                    viewBox="0 0 140 230"
+                    backgroundColor="#f3f3f3"
+                    foregroundColor="#ecebeb"
+                  >
+                    <Rect
+                      x="0"
+                      y="0"
+                      rx="10"
+                      ry="10"
+                      width="140"
+                      height="130"
+                    />
+                    <Rect
+                      x="0"
+                      y="140"
+                      rx="10"
+                      ry="10"
+                      width="100"
+                      height="20"
+                    />
+                    <Rect
+                      x="0"
+                      y="165"
+                      rx="10"
+                      ry="10"
+                      width="50"
+                      height="20"
+                    />
+                    <Rect
+                      x="60"
+                      y="165"
+                      rx="10"
+                      ry="10"
+                      width="50"
+                      height="20"
+                    />
+                    <Rect
+                      x="0"
+                      y="191"
+                      rx="10"
+                      ry="10"
+                      width="90"
+                      height="20"
+                    />
+                  </ContentLoader>
 
-                    <Text>{truncateText(item.description, 5)}</Text>
-                    <Text style={styles.ratingText}>
-                      {item.avgRating === 0 ? "No rating" : item.avgRating}
-                    </Text>
-                  </View>
-                </TouchableOpacity>
-              );
-            })}
-            {/* {productdata.map((item, index) => (
-              <TouchableOpacity
-                key={index}
-                style={styles.storeCard}
-                onPress={() => handleStorePress(item.id)}
-              >
-                <Image source={{ uri: item.image }} style={styles.storeImage} />
-                <View style={styles.storeInfo}>
-                  <Text style={styles.storeName}>{item.name}</Text>
-                  <View style={styles.storeRating}>
-                    <Text style={styles.ratingText}>{item.rating}</Text>
-                  </View>
+                  <ContentLoader
+                    speed={2}
+                    width={140}
+                    height={230}
+                    viewBox="0 0 140 230"
+                    backgroundColor="#f3f3f3"
+                    foregroundColor="#ecebeb"
+                  >
+                    <Rect
+                      x="0"
+                      y="0"
+                      rx="10"
+                      ry="10"
+                      width="140"
+                      height="130"
+                    />
+                    <Rect
+                      x="0"
+                      y="140"
+                      rx="10"
+                      ry="10"
+                      width="100"
+                      height="20"
+                    />
+                    <Rect
+                      x="0"
+                      y="165"
+                      rx="10"
+                      ry="10"
+                      width="50"
+                      height="20"
+                    />
+                    <Rect
+                      x="60"
+                      y="165"
+                      rx="10"
+                      ry="10"
+                      width="50"
+                      height="20"
+                    />
+                    <Rect
+                      x="0"
+                      y="191"
+                      rx="10"
+                      ry="10"
+                      width="90"
+                      height="20"
+                    />
+                  </ContentLoader>
+
+                  <ContentLoader
+                    speed={2}
+                    width={140}
+                    height={230}
+                    viewBox="0 0 140 230"
+                    backgroundColor="#f3f3f3"
+                    foregroundColor="#ecebeb"
+                  >
+                    <Rect
+                      x="0"
+                      y="0"
+                      rx="10"
+                      ry="10"
+                      width="140"
+                      height="130"
+                    />
+                    <Rect
+                      x="0"
+                      y="140"
+                      rx="10"
+                      ry="10"
+                      width="100"
+                      height="20"
+                    />
+                    <Rect
+                      x="0"
+                      y="165"
+                      rx="10"
+                      ry="10"
+                      width="50"
+                      height="20"
+                    />
+                    <Rect
+                      x="60"
+                      y="165"
+                      rx="10"
+                      ry="10"
+                      width="50"
+                      height="20"
+                    />
+                    <Rect
+                      x="0"
+                      y="191"
+                      rx="10"
+                      ry="10"
+                      width="90"
+                      height="20"
+                    />
+                  </ContentLoader>
                 </View>
-              </TouchableOpacity>
-            ))} */}
+              </View>
+            ) : (
+              <>
+                {shopdata.map((item) => {
+                  const imgageUri = "https://via.placeholder.com/150";
+                  return (
+                    <TouchableOpacity
+                      key={item._id}
+                      style={styles.recommendedCard}
+                      onPress={() =>
+                        navigation.navigate("SearchTab", {
+                          screen: "StoreDetails",
+                          params: {
+                            item: JSON.stringify(item._id),
+                          },
+                        })
+                      }
+                    >
+                      <Image
+                        source={{
+                          uri: item.products[0]?.images[0]?.url || imgageUri,
+                        }}
+                        style={styles.recommendedImage}
+                      />
+                      <View style={styles.recommendedInfo}>
+                        <Text style={styles.recommendedName} numberOfLines={1}>
+                          {item.name.length > 20 ? "..." : item.name}
+                        </Text>
+
+                        <Text>{truncateText(item.description, 5)}</Text>
+                        <Text style={styles.ratingText}>
+                          {item.avgRating === 0 ? "No rating" : item.avgRating}
+                        </Text>
+                      </View>
+                    </TouchableOpacity>
+                  );
+                })}
+              </>
+            )}
           </ScrollView>
         </View>
 
-        {/* Recommended Section */}
         <View style={styles.recommendedSection}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Recommended for You</Text>
+            {loading ? (
+              <>
+                <ContentLoader
+                  speed={2}
+                  width={150}
+                  height={20}
+                  viewBox={`0 0 150 20`}
+                  backgroundColor="#f3f3f3"
+                  foregroundColor="#ecebeb"
+                >
+                  <Rect x="0" y="0" rx="10" ry="10" width="125" height="20" />
+                </ContentLoader>
+              </>
+            ) : (
+              <>
+                <Text style={styles.sectionTitle}>Recommended for You</Text>
+              </>
+            )}
             <TouchableOpacity>
               <Text style={styles.seeAllText}>See all</Text>
             </TouchableOpacity>
@@ -665,87 +787,250 @@ export default function Home() {
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.recommendedScrollContent}
           >
-            {discountedProducts.map((product) => {
-              const imgageUri =
-                product.images[0]?.url || "https://via.placeholder.com/150";
-              return (
-                <TouchableOpacity
-                  key={product._id}
-                  style={styles.recommendedCard}
-                  onPress={() => handleProductPress(product)}
-                >
-                  <Image
-                    source={{ uri: imgageUri }}
-                    style={styles.recommendedImage}
-                  />
-                  {product.discount > 0 && (
-                    <View style={styles.discountBadge}>
-                      <Text style={styles.discountText}>
-                        {product.discount}%
-                      </Text>
-                    </View>
-                  )}
-                  <View style={styles.recommendedInfo}>
-                    <Text style={styles.recommendedName} numberOfLines={1}>
-                      {product.name}
-                    </Text>
-                    <View style={styles.priceContainer}>
-                      <Text style={styles.price}>R{product.price}</Text>
-                      <Text style={styles.oldPrice}>R{product.mrp}</Text>
-                    </View>
-                    <Text style={styles.ratingText}>
-                      {product.avgRating === 0
-                        ? `⭐ (5.0)`
-                        : product.avgRating > 0
-                        ? `⭐ (${product.avgRating.toFixed(1)})`
-                        : ""}
-                    </Text>
-                  </View>
-                </TouchableOpacity>
-              );
-            })}
+            {loading ? (
+              <View style={styles.PopularcontentContainerStyle}>
+                <View style={styles.PopularloadingContainer}>
+                  <ContentLoader
+                    speed={2}
+                    width={140}
+                    height={230}
+                    viewBox="0 0 140 230"
+                    backgroundColor="#f3f3f3"
+                    foregroundColor="#ecebeb"
+                  >
+                    <Rect
+                      x="0"
+                      y="0"
+                      rx="10"
+                      ry="10"
+                      width="140"
+                      height="130"
+                    />
+                    <Rect
+                      x="0"
+                      y="140"
+                      rx="10"
+                      ry="10"
+                      width="100"
+                      height="20"
+                    />
+                    <Rect
+                      x="0"
+                      y="165"
+                      rx="10"
+                      ry="10"
+                      width="50"
+                      height="20"
+                    />
+                    <Rect
+                      x="60"
+                      y="165"
+                      rx="10"
+                      ry="10"
+                      width="50"
+                      height="20"
+                    />
+                    <Rect
+                      x="0"
+                      y="191"
+                      rx="10"
+                      ry="10"
+                      width="90"
+                      height="20"
+                    />
+                  </ContentLoader>
+
+                  <ContentLoader
+                    speed={2}
+                    width={140}
+                    height={230}
+                    viewBox="0 0 140 230"
+                    backgroundColor="#f3f3f3"
+                    foregroundColor="#ecebeb"
+                  >
+                    <Rect
+                      x="0"
+                      y="0"
+                      rx="10"
+                      ry="10"
+                      width="140"
+                      height="130"
+                    />
+                    <Rect
+                      x="0"
+                      y="140"
+                      rx="10"
+                      ry="10"
+                      width="100"
+                      height="20"
+                    />
+                    <Rect
+                      x="0"
+                      y="165"
+                      rx="10"
+                      ry="10"
+                      width="50"
+                      height="20"
+                    />
+                    <Rect
+                      x="60"
+                      y="165"
+                      rx="10"
+                      ry="10"
+                      width="50"
+                      height="20"
+                    />
+                    <Rect
+                      x="0"
+                      y="191"
+                      rx="10"
+                      ry="10"
+                      width="90"
+                      height="20"
+                    />
+                  </ContentLoader>
+
+                  <ContentLoader
+                    speed={2}
+                    width={140}
+                    height={230}
+                    viewBox="0 0 140 230"
+                    backgroundColor="#f3f3f3"
+                    foregroundColor="#ecebeb"
+                  >
+                    <Rect
+                      x="0"
+                      y="0"
+                      rx="10"
+                      ry="10"
+                      width="140"
+                      height="130"
+                    />
+                    <Rect
+                      x="0"
+                      y="140"
+                      rx="10"
+                      ry="10"
+                      width="100"
+                      height="20"
+                    />
+                    <Rect
+                      x="0"
+                      y="165"
+                      rx="10"
+                      ry="10"
+                      width="50"
+                      height="20"
+                    />
+                    <Rect
+                      x="60"
+                      y="165"
+                      rx="10"
+                      ry="10"
+                      width="50"
+                      height="20"
+                    />
+                    <Rect
+                      x="0"
+                      y="191"
+                      rx="10"
+                      ry="10"
+                      width="90"
+                      height="20"
+                    />
+                  </ContentLoader>
+                </View>
+              </View>
+            ) : (
+              <>
+                {discountedProducts.map((product) => {
+                  const imgageUri =
+                    product.images[0]?.url || "https://via.placeholder.com/150";
+                  return (
+                    <TouchableOpacity
+                      key={product._id}
+                      style={styles.recommendedCard}
+                      onPress={() => handleProductPress(product)}
+                    >
+                      <Image
+                        source={{ uri: imgageUri }}
+                        style={styles.recommendedImage}
+                      />
+                      {product.discount > 0 && (
+                        <View style={styles.discountBadge}>
+                          <Text style={styles.discountText}>
+                            {product.discount}%
+                          </Text>
+                        </View>
+                      )}
+                      <View style={styles.recommendedInfo}>
+                        <Text style={styles.recommendedName} numberOfLines={1}>
+                          {product.name}
+                        </Text>
+                        <View style={styles.priceContainer}>
+                          <Text style={styles.price}>R{product.price}</Text>
+                          <Text style={styles.oldPrice}>R{product.mrp}</Text>
+                        </View>
+                        <Text style={styles.ratingText}>
+                          {product.avgRating === 0
+                            ? `⭐ (5.0)`
+                            : product.avgRating > 0
+                            ? `⭐ (${product.avgRating.toFixed(1)})`
+                            : ""}
+                        </Text>
+                      </View>
+                    </TouchableOpacity>
+                  );
+                })}
+              </>
+            )}
           </ScrollView>
         </View>
 
-        {/* Weekly Deals Section */}
-        <View style={styles.dealsSection}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Weekly Deals</Text>
-            <TouchableOpacity>
-              <Text style={styles.seeAllText}>See all</Text>
-            </TouchableOpacity>
-          </View>
-          <View style={styles.dealsGrid}>
-            {[...discountedProducts].reverse().map((deal) => (
-              <TouchableOpacity
-                key={deal._id}
-                style={styles.dealCard}
-                onPress={() => handleDealPress(deal)}
-              >
-                <Image
-                  source={{
-                    uri:
-                      deal.images[0]?.url || "https://via.placeholder.com/150",
-                  }}
-                  style={styles.dealImage}
-                />
-                <View style={styles.dealInfo}>
-                  <Text style={styles.dealName} numberOfLines={2}>
-                    {deal.name}
-                  </Text>
-                  <View style={styles.dealPriceContainer}>
-                    <Text style={styles.dealPrice}>R{deal.price}</Text>
-                    <Text style={styles.dealOldPrice}>R{deal.mrp}</Text>
-                  </View>
-                  <View style={styles.dealBottom}>
-                    <Text style={styles.saveAmount}>{deal.discount}% OFF</Text>
-                    {/* <Text style={styles.validUntil}>{deal.discount}</Text> */}
-                  </View>
-                </View>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </View>
+        {loading ? null : (
+          <>
+            <View style={styles.dealsSection}>
+              <View style={styles.sectionHeader}>
+                <Text style={styles.sectionTitle}>Weekly Deals</Text>
+                <TouchableOpacity>
+                  <Text style={styles.seeAllText}>See all</Text>
+                </TouchableOpacity>
+              </View>
+              <View style={styles.dealsGrid}>
+                {[...discountedProducts].reverse().map((deal) => (
+                  <TouchableOpacity
+                    key={deal._id}
+                    style={styles.dealCard}
+                    onPress={() => handleDealPress(deal)}
+                  >
+                    <Image
+                      source={{
+                        uri:
+                          deal.images[0]?.url ||
+                          "https://via.placeholder.com/150",
+                      }}
+                      style={styles.dealImage}
+                    />
+                    <View style={styles.dealInfo}>
+                      <Text style={styles.dealName} numberOfLines={2}>
+                        {deal.name}
+                      </Text>
+                      <View style={styles.dealPriceContainer}>
+                        <Text style={styles.dealPrice}>R{deal.price}</Text>
+                        <Text style={styles.dealOldPrice}>R{deal.mrp}</Text>
+                      </View>
+                      <View style={styles.dealBottom}>
+                        <Text style={styles.saveAmount}>
+                          {deal.discount}% OFF
+                        </Text>
+                      </View>
+                    </View>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+          </>
+        )}
       </ScrollView>
     </SafeAreaView>
   );

@@ -1,4 +1,4 @@
-import { Image, Pressable, StyleSheet, View } from "react-native";
+import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 import React, { useEffect, useState } from "react";
 
 import {
@@ -47,7 +47,7 @@ import Help from "../src/Componants/Screens/ProfileScreens/help";
 import ContactUs from "../src/Componants/Screens/ProfileScreens/contactus";
 import About from "../src/Componants/Screens/ProfileScreens/about";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { fetchUser } from "../redux/features/userSlice";
 import {
   fetchCartAsync,
@@ -206,7 +206,10 @@ const HomeStack = () => {
 const SearchStack = () => {
   const navigation = useNavigation();
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Navigator
+      initialRouteName="Search" // Explicitly set default screen
+      screenOptions={{ headerShown: false }}
+    >
       <Stack.Screen name="Search" component={Search} />
       <Stack.Screen
         name="StoreDetails"
@@ -232,6 +235,7 @@ const SearchStack = () => {
 // Wallet Stack
 const WalletStack = () => {
   const navigation = useNavigation();
+  const cartdata = useSelector((state) => state.cart.items);
   return (
     <Stack.Navigator>
       <Stack.Screen
@@ -247,7 +251,11 @@ const WalletStack = () => {
               style={{ marginRight: 10 }}
               onPress={() => navigation.navigate("Cart")}
             >
-              <Ionicons name="cart-outline" size={24} color="black" />
+              <View style={styles.cartContainer}>
+                <Ionicons name="cart-outline" size={24} color="#000" />
+
+                <Text style={styles.badge}>{cartdata.length}</Text>
+              </View>
             </TouchableOpacity>
           ),
         }}
@@ -361,8 +369,7 @@ const ProfileStack = () => {
           },
         }}
       />
-     
-    
+
       <Stack.Screen
         name="Help"
         component={Help}
@@ -553,6 +560,19 @@ const styles = StyleSheet.create({
     position: "relative",
     marginRight: 10,
   },
+  badge: {
+    padding: 3,
+    borderRadius: 50,
+    width: 16,
+    height: 16,
+    textAlign: "center",
+    position: "absolute",
+    top: -4,
+    right: -8,
+    backgroundColor: "red",
+    color: "white",
+    fontSize: 10,
+  },
   cartBadge: {
     position: "absolute",
     top: -5,
@@ -575,4 +595,3 @@ const styles = StyleSheet.create({
     marginBottom: 0,
   },
 });
- 

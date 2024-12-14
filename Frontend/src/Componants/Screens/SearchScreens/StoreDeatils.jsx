@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
   Dimensions,
   ToastAndroid,
+  ActivityIndicator,
 } from "react-native";
 import { Text, IconButton, Badge } from "react-native-paper";
 import {
@@ -36,6 +37,7 @@ export default function StoreDeatils() {
   const { item } = route.params;
   const storeId = JSON.parse(item);
   const storeData = JSON.parse(item);
+  const [loading, setLoading] = useState(true);
 
   const dispatch = useDispatch();
   const navigation = useNavigation();
@@ -47,10 +49,13 @@ export default function StoreDeatils() {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        setLoading(true);
         const response = await getShopById(storeId);
         setstoredata(response.data);
       } catch (error) {
         console.error("Error fetching product data:", error);
+      } finally {
+        setLoading(false);
       }
     };
     fetchData();
@@ -77,6 +82,14 @@ export default function StoreDeatils() {
       ToastAndroid.show("Added to Wishlist", ToastAndroid.SHORT);
     }
   };
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#000" />
+      </View>
+    );
+  }
 
   const StoreHeader = () => (
     <Card style={styles.bannerCard}>
@@ -281,6 +294,12 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     flex: 1,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#F5F5F5",
   },
   bannerCard: {
     margin: 0,

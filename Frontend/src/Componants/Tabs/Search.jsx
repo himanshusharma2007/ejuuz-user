@@ -82,7 +82,7 @@ export default function Search() {
       setLoading(true);
       const products = await searchProducts({ keyword: searchQuery });
       console.log("Search results:", products); // Debugging
-      setProductResults(products.products);
+      setProductResults(products);
 
       if (!recentSearches.includes(searchQuery)) {
         setRecentSearches((prev) => [searchQuery, ...prev].slice(0, 5));
@@ -259,8 +259,10 @@ export default function Search() {
         {/* Cart with Red Dot */}
         <TouchableOpacity onPress={() => navigation.navigate("Cart")}>
           <View style={styles.cartContainer}>
-            <MaterialIcons name="shopping-cart" size={28} color="#007AFF" />
-            <Badge style={styles.cartBadge}>{cartdata.length}</Badge>
+            <Ionicons name="cart-outline" size={24} color="#000" />
+            {cartdata.length === 0 ? null : (
+              <Text style={styles.badge}>{cartdata.length}</Text>
+            )}
           </View>
         </TouchableOpacity>
       </Appbar.Header>
@@ -384,16 +386,18 @@ const styles = StyleSheet.create({
     position: "relative",
     marginRight: 10,
   },
-  cartBadge: {
+  badge: {
+    padding: 3,
+    borderRadius: 50,
+    width: 16,
+    height: 16,
+    textAlign: "center",
     position: "absolute",
-    top: -5,
-    right: -5,
+    top: -4,
+    right: -8,
     backgroundColor: "red",
-    color: "#fff",
+    color: "white",
     fontSize: 10,
-    fontWeight: "bold",
-    paddingHorizontal: 5,
-    borderRadius: 12,
   },
 
   maincontent: {

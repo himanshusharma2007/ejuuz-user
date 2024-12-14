@@ -27,37 +27,45 @@ export default function Orders() {
       setLoading(true);
       const response = await getCustomerOrders();
       if (response.status === "success" && response.data) {
-        setOrders(response.data);
+        setOrders(response.data.length > 0 ? response.data : []); // Ensure array is always set
+      } else {
+        setOrders([]); // Handle case where no orders are returned
       }
-      setLoading(false);
     } catch (err) {
       console.error("Failed to fetch orders:", err);
+      setOrders([]); // Default to empty array on error
       setError(err);
+    } finally {
       setLoading(false);
     }
   };
 
+  console.log("orders", orders);
   const renderItem = ({ item }) => {
     // Extract first product details
     const firstProduct = item.products[0]?.productId || {};
-    
+
     return (
       <Card style={styles.itemCard}>
         <View style={styles.itemContent}>
-          <Image 
-            source={{ uri: firstProduct.images[0]?.url || "https://via.placeholder.com/150" }} 
-            style={styles.itemImage} 
+          <Image
+            source={{
+              uri:
+                firstProduct.images[0]?.url ||
+                "https://via.placeholder.com/150",
+            }}
+            style={styles.itemImage}
           />
           <View style={styles.itemDetails}>
             <Text style={styles.status}>{item.status}</Text>
             <Text style={styles.itemName}>
-              {firstProduct.name || 'Unknown Product'}
+              {firstProduct.name || "Unknown Product"}
             </Text>
             <Text style={styles.itemPrice}>
-              R {firstProduct.price?.toLocaleString() || '0'} / item
+              R {firstProduct.price?.toLocaleString() || "0"} / item
             </Text>
             <Text style={styles.orderDetails}>
-              Total Amount: R {item.totalAmount?.toLocaleString() || '0'}
+              Total Amount: R {item.totalAmount?.toLocaleString() || "0"}
             </Text>
           </View>
           <IconButton
@@ -124,33 +132,33 @@ const styles = StyleSheet.create({
   },
   loadingContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   errorContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     padding: 20,
   },
   errorText: {
     fontSize: 18,
-    color: 'red',
+    color: "red",
     marginBottom: 10,
   },
   retryButton: {
     padding: 10,
-    backgroundColor: '#f0f0f0',
+    backgroundColor: "#f0f0f0",
     borderRadius: 5,
   },
   emptyContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   emptyText: {
     fontSize: 18,
-    color: '#888',
+    color: "#888",
   },
   searchContainer: {
     marginTop: 20,

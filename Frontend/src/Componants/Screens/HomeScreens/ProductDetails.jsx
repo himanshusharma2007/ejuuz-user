@@ -10,6 +10,7 @@ import {
   StatusBar,
   Modal,
   Pressable,
+  ActivityIndicator,
 } from "react-native";
 import { Text, Button, Surface, Chip } from "react-native-paper";
 import { useDispatch, useSelector } from "react-redux";
@@ -36,6 +37,7 @@ export default function ProductDetails() {
   const { item } = route.params;
   const dispatch = useDispatch();
   const [productData, setProductData] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   // Get wishlist from Redux store
   const wishlist = useSelector((state) => state.cart.wishlist);
@@ -55,16 +57,27 @@ export default function ProductDetails() {
   useEffect(() => {
     const fetchProduct = async () => {
       try {
+        setLoading(true);
         const response = await getProductById(productdataWithId);
         console.log("response", response.product);
         setProductData(response.product);
       } catch (error) {
         console.error("Error fetching product data:", error);
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchProduct();
   }, [productdataWithId]);
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#000" />
+      </View>
+    );
+  }
 
   // useEffect(() => {
   //   setQuantity(productData?.quantity || null);

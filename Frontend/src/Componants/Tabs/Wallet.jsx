@@ -35,15 +35,18 @@ export default function Wallet() {
       // Take the 3 most recent transactions
       const recentTransactions = response.transactions
         .slice(0, 3)
-        .map(transaction => ({
+        .map((transaction) => ({
           id: transaction._id,
           type: transaction.totalAmount > 0 ? "credit" : "debit",
           amount: Math.abs(transaction.totalAmount),
           name: transaction.merchantDetails[0].merchantName,
           icon: transaction.totalAmount > 0 ? "⬆️" : "🏪",
-          timestamp: new Date(transaction.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+          timestamp: new Date(transaction.createdAt).toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
         }));
-      
+
       setTransactions(recentTransactions);
     } catch (error) {
       console.error("Failed to fetch transactions", error);
@@ -194,7 +197,7 @@ export default function Wallet() {
                   styles.transactionAmount,
                   transaction.type === "debit"
                     ? styles.creditAmount
-                    :styles.debitAmount
+                    : styles.debitAmount,
                 ]}
               >
                 {transaction.type === "debit" ? "+" : "-"}R

@@ -12,6 +12,18 @@ import OtpPage from "./src/Authenticate/OtpPage";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Router from "./Routes/Router";
 
+function RouterStack() {
+  const Stack = createStackNavigator();
+  return (
+    <Stack.Navigator>
+      <Stack.Screen
+        name="Router"
+        component={Router}
+        options={{ headerShown: false }}
+      />
+    </Stack.Navigator>
+  );
+}
 function AuthStack() {
   const Stack = createStackNavigator();
   return (
@@ -32,7 +44,7 @@ function AuthStack() {
       />
       <Stack.Screen
         name="/"
-        component={Router}
+        component={RouterStack}
         options={{ headerShown: false }}
       />
     </Stack.Navigator>

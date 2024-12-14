@@ -7,6 +7,51 @@ export const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#F8F9FA",
   },
+  contentContainerStyle: {
+    // backgroundColor: "#F8F9FA",
+    // flex: 1
+    flexDirection: "column",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  loadingContainer: {
+    height: 150,
+    backgroundColor: "white",
+    // borderWidth: 0.3, // Border width
+    // borderColor: "gray", // Border color
+    borderRadius: 10, // Border radius
+    overflow: "hidden", // Ensures content is clipped to border radius
+    // paddingVertical: 20,
+    paddingTop: 20,
+    // paddingBottom: 0,
+  },
+  CategorycontentContainerStyle: {
+    flexDirection: "column",
+    justifyContent: "flex-start",
+    alignItems: "flex-start",
+  },
+  CategoryloadingContainer: {
+    height: 60,
+    borderRadius: 10,
+    overflow: "hidden",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  PopularcontentContainerStyle: {
+    flexDirection: "row", // Arrange loaders in a row
+    flexWrap: "wrap", // Allow wrapping to the next line if space is insufficient
+    justifyContent: "space-between", // Add space between loaders
+    alignItems: "flex-start", // Align loaders to the top
+    paddingHorizontal: 10, // Add horizontal padding
+  },
+
+  PopularloadingContainer: {
+    borderRadius: 10,
+    overflow: "hidden",
+    flexDirection: "row", // Ensure items align in a row
+    gap: 10,
+  },
+
   scrollView: {
     flex: 1,
   },

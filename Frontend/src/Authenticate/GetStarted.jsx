@@ -23,6 +23,7 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import authService from "../service/authService";
 import axios from "axios";
+import Toast from "react-native-toast-message";
 
 const { width, height } = Dimensions.get("window");
 
@@ -39,36 +40,61 @@ export default function GetStarted() {
   const [selectedCountry, setSelectedCountry] = useState(countryCodes[0]);
   const [visible, setVisible] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [error, setError] = useState(""); // Error state
   const navigation = useNavigation();
 
   const validatePhoneNumber = () => {
     if (!phoneNumber) {
-      setError("Phone number is required.");
+      Toast.show({
+        type: "error",
+        text1: "Error",
+        text2: "Phone number is required.",
+      });
       return false;
     }
 
     if (!/^\d+$/.test(phoneNumber)) {
-      setError("Phone number must contain only digits.");
+      Toast.show({
+        type: "error",
+        text1: "Error",
+        text2: "Phone number must contain only digits.",
+      });
       return false;
     }
 
-    if (phoneNumber.length < selectedCountry.minLength) {
-      setError(
-        `Phone number must be at least ${selectedCountry.minLength} digits.`
-      );
+    if (phoneNumber.length !== 10) {
+      Toast.show({
+        type: "error",
+        text1: "Error",
+        text2: "Phone number must be exactly 10 digits.",
+      });
       return false;
     }
 
-    setError("");
     return true;
   };
 
   const handleSubmit = async () => {
     if (validatePhoneNumber()) {
-      const res = await authService.sendOtp(selectedCountry.code + phoneNumber);
-      console.log(res);
-      navigation.navigate("OtpPage", {phoneNumber: selectedCountry.code + phoneNumber});
+      try {
+        const res = await authService.sendOtp(
+          selectedCountry.code + phoneNumber
+        );
+        console.log(res);
+        Toast.show({
+          type: "success",
+          text1: "Success",
+          text2: "OTP sent successfully!",
+        });
+        navigation.navigate("OtpPage", {
+          phoneNumber: selectedCountry.code + phoneNumber,
+        });
+      } catch (error) {
+        Toast.show({
+          type: "error",
+          text1: "Error",
+          text2: "Failed to send OTP. Please try again.",
+        });
+      }
     }
   };
 
@@ -127,7 +153,6 @@ export default function GetStarted() {
               theme={{ colors: { primary: "#002E6E" } }}
             />
           </View>
-          {error ? <Text style={styles.errorText}>{error}</Text> : null}
           <TouchableOpacity style={styles.btn} onPress={handleSubmit}>
             <Text style={styles.btnText}>SEND VIA SMS</Text>
           </TouchableOpacity>
