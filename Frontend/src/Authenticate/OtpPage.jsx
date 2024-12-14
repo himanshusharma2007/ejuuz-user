@@ -55,6 +55,8 @@ const OtpPage = () => {
 
       navigation.navigate("Home",{screen:"HomeStack"});
       setIsVerified(true);
+      await AsyncStorage.setItem("isLoggedIn", JSON.stringify(true));
+      navigation.navigate("/"); // Navigate to Router instead of "/"
       setError("");
     } catch (error) {
       setError(error.message || "Invalid OTP. Please try again.");

@@ -88,7 +88,7 @@ const menuOptions = [
       },
     ],
   },
-];              
+];
 
 const userStats = [
   { id: "orders", label: "Orders", value: "28" },
@@ -122,16 +122,14 @@ export default function Profile() {
     AsyncStorage.setItem("accesstoken", "");
     AsyncStorage.setItem("isLoggedIn", "");
     console.log("user logged out");
-    navigation.navigate("Auth");
+    navigation.navigate("GetStarted");
   }
   const renderMenuItem = (item) => (
     <TouchableOpacity
       style={styles.option}
       onPress={() => {
         if (item.id === "wallet" || item.id === "transactions") {
-          navigation.navigate("WalletTab", {
-            screen: item.navigate,
-          })
+          navigation.navigate("WalletTab", { screen: item.navigate });
         } else {
           navigation.navigate(item.navigate);
         }

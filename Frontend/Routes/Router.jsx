@@ -53,6 +53,7 @@ import {
   fetchCartAsync,
   fetchWishlistAsync,
 } from "../redux/features/cartSlice";
+import TopUpScreen from "../src/Componants/Screens/WalletScreens/TopUpScreen";
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -172,7 +173,7 @@ const HomeStack = () => {
       <Stack.Screen name="UniqueQR" component={UniqueQR} />
 
       <Stack.Screen
-        name="Auth"
+        name="GetStarted"
         component={GetStarted}
         options={{ headerShown: false }}
       />
@@ -287,6 +288,14 @@ const WalletStack = () => {
       <Stack.Screen
         name="PaymentDone"
         component={PaymentDone}
+        options={{
+          headerShown: false,
+          headerTitle: "",
+        }}
+      />
+      <Stack.Screen
+        name="TopUp"
+        component={TopUpScreen}
         options={{
           headerShown: false,
           headerTitle: "",
@@ -426,10 +435,12 @@ function getTabbarVisibility(route) {
     routeName === "WalletTransactionPin" ||
     routeName === "PaymentDone" ||
     routeName === "Auth" ||
+    routeName === "GetStarted" ||
     routeName === "OtpPage" ||
     routeName === "Cart" ||
     routeName === "Orders" ||
-    routeName === "SearchTab"
+    routeName === "SearchTab" ||
+    routeName === "TopUp"
   ) {
     return "none";
   }
@@ -437,7 +448,13 @@ function getTabbarVisibility(route) {
 }
 
 // Tab Navigator
-const TabNavigator = () => {
+export default function Router() {
+  const dispatch = useDispatch();
+  useEffect(() => {
+    dispatch(fetchUser());
+    dispatch(fetchCartAsync());
+    dispatch(fetchWishlistAsync());
+  }, [dispatch]);
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
@@ -532,39 +549,9 @@ const TabNavigator = () => {
       />
     </Tab.Navigator>
   );
-};
+}
 
 // Root Navigator
-export default function Router() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-
-  async function getdata() {
-    const data = await AsyncStorage.getItem("isLoggedIn");
-    console.log(data, "at app.jsx");
-    setIsLoggedIn(data);
-  }
-
-  useEffect(() => {
-    getdata();
-  }, []);
-  const dispatch = useDispatch();
-  useEffect(() => {
-    dispatch(fetchUser());
-    dispatch(fetchCartAsync());
-    dispatch(fetchWishlistAsync());
-  }, [dispatch]);
-  return (
-    <NavigationContainer>
-      <Stack.Navigator screenOptions={{ headerShown: false }}>
-        {isLoggedIn ? (
-          <Stack.Screen name="MainStack" component={TabNavigator} />
-        ) : (
-          <Stack.Screen name="Auths" component={AuthStack} />
-        )}
-      </Stack.Navigator>
-    </NavigationContainer>
-  );
-}
 
 const styles = StyleSheet.create({
   heartIcon: {

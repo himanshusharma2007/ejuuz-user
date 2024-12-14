@@ -1,5 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import api from "./api";
+import { useNavigation } from "@react-navigation/native";
 
 class AuthService {
   async sendOtp(phoneNumber) {
@@ -9,7 +10,6 @@ class AuthService {
       const numberToken = response.data.data;
       console.log(numberToken);
       await AsyncStorage.setItem("accesstoken", numberToken);
-      AsyncStorage.setItem("isLoggedIn", JSON.stringify(true));
 
       return response.data;
     } catch (error) {
@@ -18,6 +18,7 @@ class AuthService {
   }
 
   async verifyOtp(otp) {
+    // const navigation = useNavigation();
     try {
       // Retrieve phone number from AsyncStorage
       const numberToken = await AsyncStorage.getItem("accesstoken");
@@ -38,6 +39,8 @@ class AuthService {
       );
 
       console.log(response.data);
+      // navigation.navigate("/");
+
       return response.data;
     } catch (error) {
       throw this.handleError(error);
