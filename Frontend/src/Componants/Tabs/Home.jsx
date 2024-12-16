@@ -111,25 +111,33 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    const backAction = () => {
-      Alert.alert("Hold on!", "Are you sure you want to exit?", [
-        {
-          text: "Cancel",
-          onPress: () => null,
-          style: "cancel",
-        },
-        { text: "YES", onPress: () => BackHandler.exitApp() },
-      ]);
-      return true;
+    const backHandler = () => {
+      Alert.alert(
+        "Exit Help",
+        "Are you sure you want to exit this page?",
+        [
+          {
+            text: "Cancel",
+            style: "cancel",
+          },
+          {
+            text: "Yes",
+            onPress: () => navigation.goBack(), // Navigate back
+          },
+        ],
+        { cancelable: false }
+      );
+      return true; // Prevent default back behavior
     };
 
-    const backHandler = BackHandler.addEventListener(
-      "hardwareBackPress",
-      backAction
-    );
+    // Add back handler listener
+    BackHandler.addEventListener("hardwareBackPress", backHandler);
 
-    return () => backHandler.remove();
-  }, []);
+    // Clean up the listener when component unmounts
+    return () => {
+      BackHandler.removeEventListener("hardwareBackPress", backHandler);
+    };
+  }, [navigation]);
 
   const categories = useMemo(() => {
     const categoryMap = new Map();
