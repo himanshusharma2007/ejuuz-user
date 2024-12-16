@@ -38,12 +38,12 @@ export const getOrderById = async (orderId) => {
     try {
       const accessToken = await AsyncStorage.getItem("accesstoken");
   
-      const response = await api.post(`/order/${orderId}`,{
+      const response = await api.get(`/order/${orderId}`,{
         headers: {
           Authorization: `Bearer ${accessToken}`,
         },
       });
-    console.log('response', response.data)
+    console.log('response in getOrderById', response.data)
       return response.data;
     } catch (error) {
       console.error("Error getOrderById", error);

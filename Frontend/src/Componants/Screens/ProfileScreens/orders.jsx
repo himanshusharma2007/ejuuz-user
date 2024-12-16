@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   FlatList,
   Image,
@@ -8,18 +8,46 @@ import {
   TouchableOpacity,
   View,
   ActivityIndicator,
+  Dimensions,
+  Platform,
+  StatusBar,
 } from "react-native";
 import { Card, IconButton } from "react-native-paper";
 import { Feather, Ionicons } from "@expo/vector-icons";
 import { getCustomerOrders } from "../../../service/orderService";
+import { useNavigation } from "@react-navigation/native";
+
+// Responsive utility functions
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
+const guidelineBaseWidth = 350;
+const guidelineBaseHeight = 680;
+
+const scale = (size) => (SCREEN_WIDTH / guidelineBaseWidth) * size;
+const verticalScale = (size) => (SCREEN_HEIGHT / guidelineBaseHeight) * size;
+const moderateScale = (size, factor = 0.5) => 
+  size + (scale(size) - size) * factor;
 
 export default function Orders() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
+  // Memoized responsive styles
+  const styles = useMemo(() => createStyles(), [SCREEN_WIDTH, SCREEN_HEIGHT]);
+
+  const navigation = useNavigation();
   useEffect(() => {
     fetchOrders();
+    
+    // Handle dimension changes
+    const subscription = Dimensions.addEventListener('change', () => {
+      // Force re-render to adjust layout
+      setOrders([...orders]);
+    });
+
+    // Cleanup
+    return () => subscription.remove();
   }, []);
 
   const fetchOrders = async () => {
@@ -27,38 +55,46 @@ export default function Orders() {
       setLoading(true);
       const response = await getCustomerOrders();
       if (response.status === "success" && response.data) {
-        setOrders(response.data.length > 0 ? response.data : []); // Ensure array is always set
+        setOrders(response.data.length > 0 ? response.data : []); 
       } else {
-        setOrders([]); // Handle case where no orders are returned
+        setOrders([]); 
       }
     } catch (err) {
       console.error("Failed to fetch orders:", err);
-      setOrders([]); // Default to empty array on error
+      setOrders([]); 
       setError(err);
     } finally {
       setLoading(false);
     }
   };
 
-  console.log("orders", orders);
+  // Filter orders based on search query
+  const filteredOrders = useMemo(() => {
+    if (!searchQuery) return orders;
+    return orders.filter(order => 
+      order.products[0]?.productId?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      order.status?.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }, [orders, searchQuery]);
+
   const renderItem = ({ item }) => {
-    // Extract first product details
     const firstProduct = item.products[0]?.productId || {};
 
     return (
-      <Card style={styles.itemCard}>
+      <Card style={styles.itemCard} onPress={() => navigation.navigate('OrderStatus', { orderId: item.orderId })}>
         <View style={styles.itemContent}>
           <Image
             source={{
-              uri:
-                firstProduct.images[0]?.url ||
-                "https://via.placeholder.com/150",
+              uri: firstProduct.images[0]?.url || "https://via.placeholder.com/150",
             }}
             style={styles.itemImage}
+            resizeMode="cover"
           />
-          <View style={styles.itemDetails}>
-            <Text style={styles.status}>{item.status}</Text>
-            <Text style={styles.itemName}>
+          <View style={styles.itemDetailsContainer}>
+            <Text style={styles.statusText} numberOfLines={1}>
+              {item.status}
+            </Text>
+            <Text style={styles.itemName} numberOfLines={2}>
               {firstProduct.name || "Unknown Product"}
             </Text>
             <Text style={styles.itemPrice}>
@@ -68,12 +104,16 @@ export default function Orders() {
               Total Amount: R {item.totalAmount?.toLocaleString() || "0"}
             </Text>
           </View>
-          <IconButton
-            icon="chevron-right"
-            color="green"
-            size={30}
-            style={styles.addButton}
-          />
+          <TouchableOpacity 
+            style={styles.chevronContainer}
+            onPress={() => console.log('Order details', item._id)}
+          >
+            <Feather 
+              name="chevron-right" 
+              size={moderateScale(24)} 
+              color="green" 
+            />
+          </TouchableOpacity>
         </View>
       </Card>
     );
@@ -82,7 +122,10 @@ export default function Orders() {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#0000ff" />
+        <ActivityIndicator 
+          size="large" 
+          color="#0000ff" 
+        />
       </View>
     );
   }
@@ -91,8 +134,11 @@ export default function Orders() {
     return (
       <View style={styles.errorContainer}>
         <Text style={styles.errorText}>Failed to load orders</Text>
-        <TouchableOpacity onPress={fetchOrders} style={styles.retryButton}>
-          <Text>Retry</Text>
+        <TouchableOpacity 
+          onPress={fetchOrders} 
+          style={styles.retryButton}
+        >
+          <Text style={styles.retryButtonText}>Retry</Text>
         </TouchableOpacity>
       </View>
     );
@@ -100,139 +146,173 @@ export default function Orders() {
 
   return (
     <View style={styles.container}>
+      {/* Search Container */}
       <View style={styles.searchContainer}>
-        <Ionicons name="search" size={20} color="#888" />
-        <TextInput placeholder="Search" style={styles.searchInput} />
-        <TouchableOpacity onPress={() => console.log("Filter pressed")}>
-          <Feather name="filter" size={24} color="#888" />
+        <Ionicons 
+          name="search" 
+          size={moderateScale(20)} 
+          color="#888" 
+        />
+        <TextInput 
+          placeholder="Search orders" 
+          style={styles.searchInput}
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+          placeholderTextColor="#888"
+        />
+        <TouchableOpacity 
+          onPress={() => console.log("Filter pressed")}
+          style={styles.filterButton}
+        >
+          <Feather 
+            name="filter" 
+            size={moderateScale(24)} 
+            color="#888" 
+          />
         </TouchableOpacity>
       </View>
 
-      {orders.length === 0 ? (
+      {/* Orders List or Empty State */}
+      {filteredOrders.length === 0 ? (
         <View style={styles.emptyContainer}>
-          <Text style={styles.emptyText}>No orders found</Text>
+          <Text style={styles.emptyText}>
+            {searchQuery 
+              ? "No orders match your search" 
+              : "No orders found"
+            }
+          </Text>
         </View>
       ) : (
         <FlatList
-          showsVerticalScrollIndicator={false}
-          data={orders}
+          data={filteredOrders}
           keyExtractor={(item) => item._id}
           renderItem={renderItem}
-          contentContainerStyle={styles.content}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.listContentContainer}
+          refreshing={loading}
+          onRefresh={fetchOrders}
         />
       )}
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#fff",
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  errorContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 20,
-  },
-  errorText: {
-    fontSize: 18,
-    color: "red",
-    marginBottom: 10,
-  },
-  retryButton: {
-    padding: 10,
-    backgroundColor: "#f0f0f0",
-    borderRadius: 5,
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  emptyText: {
-    fontSize: 18,
-    color: "#888",
-  },
-  searchContainer: {
-    marginTop: 20,
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#f2f2f2",
-    borderRadius: 25,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    marginHorizontal: 10,
-    width: "90%",
-    alignSelf: "center",
-  },
-  searchInput: {
-    flex: 1,
-    height: 40,
-    marginLeft: 10,
-    fontSize: 16,
-    color: "#333",
-  },
-  content: {
-    padding: 10,
-  },
-  itemCard: {
-    marginBottom: 15,
-    borderRadius: 12,
-    elevation: 4,
-    backgroundColor: "#fff",
-    marginVertical: 6,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-  },
-  itemContent: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-  },
-  itemImage: {
-    width: 130,
-    height: 130,
-    marginRight: 15,
-  },
-  itemDetails: {
-    padding: 15,
-    flex: 1,
-    justifyContent: "center",
-  },
-  status: {
-    fontSize: 14,
-    fontWeight: "500",
-    marginBottom: 5,
-  },
-  itemName: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginBottom: 5,
-  },
-  itemPrice: {
-    fontSize: 16,
-    color: "#888",
-    marginBottom: 5,
-  },
-  orderDetails: {
-    fontSize: 14,
-    color: "#555",
-    marginBottom: 3,
-  },
-  addButton: {
-    backgroundColor: "#fff",
-    borderRadius: 10,
-    padding: 5,
-    position: "absolute",
-    top: 30,
-    right: 10,
-  },
-});
+// Dynamic Styles Creation
+const createStyles = () => {
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: "#fff",
+      paddingTop: Platform.OS === 'android' 
+        ? StatusBar.currentHeight 
+        : 0,
+    },
+    loadingContainer: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+      backgroundColor: "#fff",
+    },
+    errorContainer: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+      padding: moderateScale(20),
+      backgroundColor: "#fff",
+    },
+    errorText: {
+      fontSize: moderateScale(18),
+      color: "red",
+      marginBottom: verticalScale(10),
+    },
+    retryButton: {
+      padding: moderateScale(12),
+      backgroundColor: "#f0f0f0",
+      borderRadius: 8,
+    },
+    retryButtonText: {
+      fontSize: moderateScale(16),
+    },
+    searchContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: "#f2f2f2",
+      borderRadius: 25,
+      paddingHorizontal: moderateScale(12),
+      paddingVertical: verticalScale(6),
+      marginHorizontal: moderateScale(15),
+      marginTop: verticalScale(10),
+      marginBottom: verticalScale(10),
+    },
+    searchInput: {
+      flex: 1,
+      height: verticalScale(40),
+      marginLeft: scale(10),
+      fontSize: moderateScale(16),
+      color: "#333",
+    },
+    filterButton: {
+      padding: moderateScale(5),
+    },
+    emptyContainer: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    emptyText: {
+      fontSize: moderateScale(18),
+      color: "#888",
+    },
+    listContentContainer: {
+      paddingHorizontal: moderateScale(15),
+      paddingBottom: verticalScale(20),
+    },
+    itemCard: {
+      marginBottom: verticalScale(15),
+      borderRadius: 12,
+      elevation: 3,
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+    },
+    itemContent: {
+      flexDirection: "row",
+      alignItems: "center",
+      padding: moderateScale(10),
+    },
+    itemImage: {
+      width: scale(100),
+      height: scale(100),
+      borderRadius: 10,
+      marginRight: scale(15),
+    },
+    itemDetailsContainer: {
+      flex: 1,
+      justifyContent: "center",
+    },
+    statusText: {
+      fontSize: moderateScale(14),
+      fontWeight: "500",
+      color: "#666",
+      marginBottom: verticalScale(5),
+    },
+    itemName: {
+      fontSize: moderateScale(16),
+      fontWeight: "bold",
+      marginBottom: verticalScale(5),
+    },
+    itemPrice: {
+      fontSize: moderateScale(14),
+      color: "#888",
+      marginBottom: verticalScale(3),
+    },
+    orderDetails: {
+      fontSize: moderateScale(12),
+      color: "#555",
+    },
+    chevronContainer: {
+      padding: moderateScale(10),
+    },
+  });
+};
