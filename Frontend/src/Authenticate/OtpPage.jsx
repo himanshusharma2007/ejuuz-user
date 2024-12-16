@@ -60,6 +60,7 @@ const OtpPage = () => {
       navigation.navigate("Home", { screen: "HomeStack" });
       setError("");
     } catch (error) {
+      console.log('error', error)
       setError(error.message || "Invalid OTP. Please try again.");
     }
   };
