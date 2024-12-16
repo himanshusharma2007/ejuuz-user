@@ -13,9 +13,9 @@ import {
   StatusBar,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import authService from "../service/authService";
-import { useNavigation } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useNavigation } from "@react-navigation/native";
+import authService from "../service/authService";
 
 const { width, height } = Dimensions.get("window");
 
@@ -53,11 +53,9 @@ const OtpPage = () => {
     try {
       const res = await authService.verifyOtp(otpValue);
       console.log(res);
-
-      navigation.navigate("Home",{screen:"HomeStack"});
       setIsVerified(true);
       await AsyncStorage.setItem("isLoggedIn", JSON.stringify(true));
-      navigation.navigate("Home", { screen: "HomeStack" });
+      navigation.replace("Main");
       setError("");
     } catch (error) {
       console.log('error', error)
@@ -136,7 +134,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#F5F5F5",
-    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
+    paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
   },
   safeArea: {
     flex: 1,

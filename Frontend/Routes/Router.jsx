@@ -426,32 +426,29 @@ const AuthStack = () => {
 
 function getTabbarVisibility(route) {
   const routeName = getFocusedRouteNameFromRoute(route) ?? route.name;
-  // Hide tab bar for these screens
-  if (
-    routeName === "ProductDetails" ||
-    routeName === "Checkout" ||
-    routeName === "Payment" ||
-    routeName === "TransactionPin" ||
-    routeName === "OrderStatus" ||
-    routeName === "UniqueQR" ||
-    routeName === "WalletPaymentEnter" ||
-    routeName === "AddContact" ||
-    routeName === "WalletTransfer" ||
-    routeName === "WalletTransferDone" ||
-    routeName === "TransactionDetails" ||
-    routeName === "WalletTransactionPin" ||
-    routeName === "PaymentDone" ||
-    routeName === "Auth" ||
-    routeName === "GetStarted" ||
-    routeName === "OtpPage" ||
-    routeName === "Cart" ||
-    routeName === "Orders" ||
-    routeName === "SearchTab" ||
-    routeName === "TopUp"
-  ) {
-    return "none";
-  }
-  return "flex";
+  const hideOnScreens = [
+    "ProductDetails",
+    "Checkout",
+    "Payment",
+    "TransactionPin",
+    "OrderStatus",
+    "UniqueQR",
+    "WalletPaymentEnter",
+    "AddContact",
+    "WalletTransfer",
+    "WalletTransferDone",
+    "TransactionDetails",
+    "WalletTransactionPin",
+    "PaymentDone",
+    "Auth",
+    "GetStarted",
+    "OtpPage",
+    "Cart",
+    "Orders",
+    "SearchTab",
+    "TopUp",
+  ];
+  return hideOnScreens.includes(routeName) ? "none" : "flex";
 }
 
 // Tab Navigator
