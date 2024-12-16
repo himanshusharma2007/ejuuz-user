@@ -282,9 +282,9 @@ exports.getOrderById = async (req, res) => {
 
     // Find the order and populate related fields
     const order = await Order.findOne({ orderId })
-      .populate("customerId", "name email") // Populate customer details
+      .populate("customerId", "name email ") // Populate customer details
       .populate("merchantId", "name") // Populate merchant details
-      .populate("products.productId", "name price") // Populate product details
+      .populate("products.productId", "name price images") // Populate product details
       .populate("transactionId", "status paymentMethod"); // Populate transaction details
 
     console.log("Order lookup completed");
