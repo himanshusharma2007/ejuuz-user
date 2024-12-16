@@ -34,12 +34,13 @@ class ProfileService {
     }
   }
 
-  async updateProfileImage(image) {
+  async updateProfileImage(formData) {
     try {
       const accessToken = await AsyncStorage.getItem("accesstoken");
-      const response = await api.patch("/api/profile/update-image", image, {
+      const response = await api.patch("/api/profile/update-image", formData, {
         headers: {
           Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "multipart/form-data",
         },
       });
       return response.data;

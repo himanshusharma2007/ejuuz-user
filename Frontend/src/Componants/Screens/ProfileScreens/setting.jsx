@@ -37,7 +37,7 @@ export default function ProfileSettings() {
       setIsLoading(true);
       const userData = await ProfileService.getProfile();
       console.log("userData", userData);
-      console.log("userData.data.profileImage", userData.data.profileImage.url);
+      console.log("userData.data.profileImage", userData.data.profileImage);
       setProfile(userData.data);
 
       setTempProfile({ ...userData });
@@ -82,18 +82,23 @@ export default function ProfileSettings() {
         });
       }
 
-      if (!result.canceled) {
+      if (!result.canceled && result.assets?.[0]?.uri) {
         const formData = new FormData();
         formData.append("profileImage", {
           uri: result.assets[0].uri,
-          type: "image/jpeg",
+          type: "image/jpeg", // or dynamically extract from result.assets[0].type
           name: "profile.jpg",
         });
 
         const updatedProfile = await ProfileService.updateProfileImage(
           formData
         );
-        setProfileImage(updatedProfile.profileImage);
+        if (updatedProfile?.profileImage) {
+          setProfileImage(updatedProfile.profileImage);
+        } else {
+          throw new Error("Failed to get updated profile image");
+        }
+
         setImageModalVisible(false);
       }
     } catch (error) {
