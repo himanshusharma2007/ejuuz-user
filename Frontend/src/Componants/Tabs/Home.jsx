@@ -28,7 +28,7 @@ import React, {
 
 import { Ionicons } from "@expo/vector-icons";
 import { styles } from "../Screens/HomeScreens/Homecss";
-import { useNavigation } from "@react-navigation/native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import {
   getAllDiscountedProducts,
   getAllProducts,
@@ -110,26 +110,30 @@ export default function Home() {
     fetchData();
   }, []);
 
-  // useEffect(() => {
-  //   const backAction = () => {
-  //     Alert.alert("Hold on!", "Are you sure you want to exit?", [
-  //       {
-  //         text: "Cancel",
-  //         onPress: () => null,
-  //         style: "cancel",
-  //       },
-  //       { text: "YES", onPress: () => BackHandler.exitApp() },
-  //     ]);
-  //     return true;
-  //   };
+  const handleBackPress = () => {
+    Alert.alert("Exit App", "Are you sure you want to exit ?", [
+      {
+        text: "Cancel",
+        onPress: () => null,
+        style: "cancel",
+      },
+      {
+        text: "exit",
+        onPress: () => BackHandler.exitApp(),
+      },
+    ]);
+    return true;
+  };
 
-  //   const backHandler = BackHandler.addEventListener(
-  //     "hardwareBackPress",
-  //     backAction
-  //   );
+  useFocusEffect(
+    useCallback(() => {
+      BackHandler.addEventListener("hardwareBackPress", handleBackPress);
 
-  //   return () => backHandler.remove();
-  // }, []);
+      return () => {
+        BackHandler.removeEventListener("hardwareBackPress", handleBackPress);
+      };
+    })
+  );
 
   const categories = useMemo(() => {
     const categoryMap = new Map();
