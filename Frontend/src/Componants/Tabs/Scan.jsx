@@ -26,6 +26,8 @@ export default function Scan() {
   const [scannedData, setScannedData] = useState([]);
   const [searchText, setSearchText] = useState("");
   const [recentContacts, setRecentContacts] = useState([]);
+  const [isScanning, setIsScanning] = useState(true);
+  const [selectedScanData, setSelectedScanData] = useState(null);
   
   // Animated values for corner pop effect
   const [topLeftScale] = useState(new Animated.Value(1));
@@ -105,26 +107,44 @@ export default function Scan() {
   };
 
   const handleBarCodeScanned = ({ type, data }) => {
-    setScannedData([...scannedData, { type, data }]);
+    if (!isScanning) return;
+    
+    setIsScanning(false);
+    const newScanEntry = { 
+      id: Date.now(), 
+      type, 
+      data, 
+      timestamp: new Date().toLocaleString() 
+    };
+    
+    const updatedScannedData = [...scannedData, newScanEntry];
+    setScannedData(updatedScannedData);
+    
+    // Automatically handle payment or link QR
     handlePaymentQR(data);
+    
+    // Show scanned data modal
+    setSelectedScanData(newScanEntry);
   };
 
   const handlePaymentQR = (data) => {
-    if (data.startsWith("upi://pay")) {
-      // Open UPI link
-      Linking.openURL(data).catch(() =>
-        Alert.alert("Error", "Unable to open UPI payment link.")
-      );
-    } else if (data.startsWith("http")) {
-      // Handle regular URLs
-      Linking.openURL(data).catch(() =>
-        Alert.alert("Error", "Unable to open link.")
-      );
-    } else {
-      Alert.alert("Scanned Data", data);
+    try {
+      if (data.startsWith("upi://pay")) {
+        // Open UPI link
+        Linking.openURL(data).catch(() =>
+          Alert.alert("Error", "Unable to open UPI payment link.")
+        );
+      } else if (data.startsWith("http")) {
+        // Handle regular URLs
+        Linking.openURL(data).catch(() =>
+          Alert.alert("Error", "Unable to open link.")
+        );
+      }
+    } catch (error) {
+      console.error("Error processing QR code:", error);
+      Alert.alert("Error", "Unable to process scanned QR code.");
     }
   };
-
   const handleUploadFromGallery = async () => {
     const permissionResult =
       await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -145,7 +165,111 @@ export default function Scan() {
       handlePaymentQR(extractedData);
     }
   };
+  const resetScanner = () => {
+    setIsScanning(true);
+    setSelectedScanData(null);
+  };
 
+  // Render scanned data modal
+  const renderScannedDataModal = () => {
+    if (!selectedScanData) return null;
+
+    return (
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={!!selectedScanData}
+        onRequestClose={resetScanner}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Payment Details</Text>
+              <TouchableOpacity onPress={resetScanner} style={styles.closeButton}>
+                <Ionicons name="close" size={24} color="#002E6E" />
+              </TouchableOpacity>
+            </View>
+            
+            <View style={styles.qrDetailsContainer}>
+              <View style={styles.qrIconContainer}>
+                <Ionicons name="qr-code" size={50} color="#002E6E" />
+              </View>
+              
+              <View style={styles.scanDetailRow}>
+                <Text style={styles.scanDetailLabel}>QR Type:</Text>
+                <Text style={styles.scanDetailValue}>{selectedScanData.type}</Text>
+              </View>
+              
+              <View style={styles.scanDetailRow}>
+                <Text style={styles.scanDetailLabel}>Payment ID:</Text>
+                <Text 
+                  style={styles.scanDetailValue} 
+                  numberOfLines={2} 
+                  ellipsizeMode="middle"
+                >
+                  {extractPaymentId(selectedScanData.data)}
+                </Text>
+              </View>
+              
+              <View style={styles.scanDetailRow}>
+                <Text style={styles.scanDetailLabel}>Timestamp:</Text>
+                <Text style={styles.scanDetailValue}>
+                  {selectedScanData.timestamp}
+                </Text>
+              </View>
+            </View>
+            
+            <View style={styles.modalButtonContainer}>
+              <TouchableOpacity 
+                style={styles.modalButtonCancel} 
+                onPress={resetScanner}
+              >
+                <Text style={styles.modalButtonCancelText}>Cancel</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity 
+                style={styles.modalButtonPrimary} 
+                onPress={handlePayFromQR}
+              >
+                <Text style={styles.modalButtonPrimaryText}>Pay Money</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+    );
+  };
+
+  // Render previously scanned items list
+  const renderScannedItemsList = () => {
+    if (scannedData.length === 0) return null;
+
+    return (
+      <View style={styles.scannedItemsContainer}>
+        <Text style={styles.scannedItemsTitle}>Previous Scans</Text>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+          {scannedData.map((item) => (
+            <TouchableOpacity 
+              key={item.id} 
+              style={styles.scannedItemCard}
+              onPress={() => setSelectedScanData(item)}
+            >
+              <Text 
+                style={styles.scannedItemText} 
+                numberOfLines={1}
+                ellipsizeMode="middle"
+              >
+                {item.data}
+              </Text>
+              <Text style={styles.scannedItemTimestamp}>
+                {item.timestamp}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      </View>
+    );
+  };
   // Handle contact selection
   const handleContactSelect = (contact) => {
     Alert.alert(
@@ -292,6 +416,8 @@ export default function Scan() {
           <View style={styles.emptyContactItem}></View>
         </View>
       </ScrollView>
+      {renderScannedItemsList()}
+      {renderScannedDataModal()}
     </View>
   );
 }
@@ -486,5 +612,103 @@ const styles = StyleSheet.create({
   },
   emptyContactItem: {
     width: 20, // Ensures some extra space at the end of horizontal scroll
-  }
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+  },
+  modalContent: {
+    width: '85%',
+    backgroundColor: 'white',
+    borderRadius: 15,
+    padding: 20,
+    alignItems: 'center',
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 15,
+    color: '#002E6E',
+  },
+  scanDetailRow: {
+    flexDirection: 'row',
+    width: '100%',
+    marginVertical: 5,
+  },
+  scanDetailLabel: {
+    fontWeight: 'bold',
+    marginRight: 10,
+    width: 80,
+  },
+  scanDetailValue: {
+    flex: 1,
+  },
+  modalButtonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+    marginTop: 15,
+  },
+  modalButton: {
+    flex: 1,
+    backgroundColor: '#f0f0f0',
+    padding: 10,
+    borderRadius: 10,
+    marginHorizontal: 5,
+    alignItems: 'center',
+  },
+  modalButtonPrimary: {
+    flex: 1,
+    backgroundColor: '#002E6E',
+    padding: 10,
+    borderRadius: 10,
+    marginHorizontal: 5,
+    alignItems: 'center',
+  },
+  modalButtonText: {
+    color: '#333',
+    fontWeight: 'bold',
+  },
+  modalButtonPrimaryText: {
+    color: 'white',
+    fontWeight: 'bold',
+  },
+  
+  // Scanned items styles
+  scannedItemsContainer: {
+    marginTop: 10,
+    paddingHorizontal: 20,
+  },
+  scannedItemsTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  scannedItemCard: {
+    backgroundColor: 'white',
+    borderRadius: 10,
+    padding: 10,
+    marginRight: 10,
+    width: 200,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  scannedItemText: {
+    fontWeight: 'bold',
+  },
+  scannedItemTimestamp: {
+    fontSize: 12,
+    color: 'gray',
+    marginTop: 5,
+  },
 });
