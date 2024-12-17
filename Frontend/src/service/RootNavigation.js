@@ -10,6 +10,6 @@ export function navigate(name, params) {
 
 export function resetRoot() {
   if (navigationRef.isReady()) {
-    navigationRef.reset({ index: 0, routes: [{ name: "Login" }] });
+    navigationRef.reset({ index: 0, routes: [{ name: "GetStarted" }] });
   }
 }

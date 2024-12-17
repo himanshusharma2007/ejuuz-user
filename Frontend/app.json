@@ -1,27 +1,46 @@
 {
   "expo": {
-    "name": "crm-practice",
-    "slug": "crm-practice",
+    "name": "ejuuzuser",
+    "slug": "ejuuzuser",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
+    "userInterfaceStyle": "dark",
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSCameraUsageDescription": "This app needs access to the camera to scan barcodes and take photos.",
+        "NSPhotoLibraryUsageDescription": "This app needs access to your photo library to select images.",
+        "NSLocationWhenInUseUsageDescription": "This app needs access to your location to show maps and nearby places.",
+        "NSContactsUsageDescription": "This app needs access to your contacts to provide contact-related functionality."
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.navratanprajapat.ejuuz",
+      "permissions": [
+        "CAMERA",
+        "READ_CONTACTS",
+        "WRITE_EXTERNAL_STORAGE",
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "a32c5bfd-06af-4a4e-b6fc-cea57ebb1b7c"
+      }
     }
   }
 }
