@@ -148,61 +148,47 @@ export default function Search() {
 
   const horizontalrenderItem = ({ item }) => {
     const imageUri = item.images?.[0]?.url || "https://via.placeholder.com/150";
-    const discountText = item.discount ? `${item.discount}% OFF` : null;
-    const ratingText = item.avgRating
-      ? `Rating: ${item.avgRating}`
-      : "No rating";
-
+  
     return (
       <TouchableOpacity
-        style={{
-          flexDirection: "row",
-          elevation: 2,
-          borderRadius: 10,
-          shadowColor: "#000",
-          shadowOffset: { width: 0, height: 2 },
-          shadowOpacity: 0.1,
-          shadowRadius: 4,
-          overflow: "hidden",
-          backgroundColor: "#fff",
-          width: "100%",
-        }}
+        onPress={() =>
+          navigation.navigate("ProductDetails", {
+            item: JSON.stringify(item._id),
+          })
+        }
+        style={styles.productCard}
       >
-        <View>
-          <Image
-            style={{ width: 100, height: 120 }}
-            source={{ uri: imageUri }}
-          />
+        <View style={styles.imageContainer}>
+          <Image source={{ uri: imageUri }} style={styles.productImage} />
+          {item.discount > 0 && (
+            <View style={styles.discountBadge}>
+              <Text style={styles.discountText}>{item.discount}% OFF</Text>
+            </View>
+          )}
         </View>
-        <View
-          style={{
-            width: "100%",
-            flexDirection: "row",
-            justifyContent: "space-between",
-            padding: 10,
-          }}
-        >
-          <View>
-            <Text style={{ fontSize: 20, fontWeight: "bold" }}>
-              {item.name}
-            </Text>
-            <Text style={{ fontSize: 16, marginBottom: 7 }}>{item.price} </Text>
-            <Text style={{ fontWeight: "bold" }}>
-              {item.avgRating === 0 ? "No Rating" : item.avgRating}
+        <View style={styles.productInfo}>
+          <Text style={styles.productName} numberOfLines={2}>
+            {item.name}
+          </Text>
+          <Text style={styles.productPrice}>${item.price.toFixed(2)}</Text>
+          <View style={styles.ratingContainer}>
+            <Ionicons name="star" size={16} color="#FFD700" />
+            <Text style={styles.ratingText}>
+              {item.avgRating > 0 ? item.avgRating.toFixed(1) : "N/A"}
             </Text>
           </View>
-          <View>
-            <TouchableOpacity
-              style={styles.addButton}
-              onPress={() => handleaddtocart(item)}
-            >
-              <MaterialCommunityIcons name="plus" size={20} color="#4CAF50" />
-            </TouchableOpacity>
-          </View>
+          <TouchableOpacity
+            style={styles.addToCartButton}
+            onPress={() => handleaddtocart(item)}
+          >
+            <MaterialCommunityIcons name="cart-plus" size={18} color="#FFF" />
+            <Text style={styles.addToCartText}>Add to Cart</Text>
+          </TouchableOpacity>
         </View>
       </TouchableOpacity>
     );
   };
+  
 
   const shoprenderItem = ({ item }) => (
     <Card
@@ -239,33 +225,37 @@ export default function Search() {
       {/* Custom Header */}
       <Appbar.Header style={styles.header}>
         <Appbar.BackAction onPress={() => navigation.goBack()} />
-
         {/* Search Input */}
         <View style={styles.searchContainer}>
-          <Ionicons name="search" size={20} color="#888" />
+          <Ionicons
+            name="search"
+            size={20}
+            color="#666"
+            style={{ marginRight: 8 }}
+          />
           <TextInput
             ref={inputRef}
-            placeholder="Search products"
-            placeholderTextColor="#888"
+            placeholder="Search for products"
+            placeholderTextColor="#aaa"
             style={styles.searchInput}
             value={searchQuery}
             onChangeText={setSearchQuery}
           />
-          <TouchableOpacity onPress={() => console.log("Filter pressed")}>
-            <Feather name="filter" size={24} color="#888" />
-          </TouchableOpacity>
         </View>
 
-        {/* Cart with Red Dot */}
+        {/* Cart with Badge */}
         <TouchableOpacity onPress={() => navigation.navigate("Cart")}>
           <View style={styles.cartContainer}>
             <Ionicons name="cart-outline" size={24} color="#000" />
-            {cartdata.length === 0 ? null : (
-              <Text style={styles.badge}>{cartdata.length}</Text>
+            {cartdata.length > 0 && (
+              <Badge size={18} style={styles.cartBadge}>
+                {cartdata.length}
+              </Badge>
             )}
           </View>
         </TouchableOpacity>
       </Appbar.Header>
+
       <FlatList
         showsVerticalScrollIndicator={false}
         data={[1, 1]}
@@ -356,48 +346,121 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
   },
   header: {
-    backgroundColor: "#fdfdfd",
+    backgroundColor: "#fff",
     elevation: 4,
-    paddingHorizontal: 15,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
-    shadowRadius: 3,
+    shadowRadius: 4,
+    borderBottomWidth: 1,
+    borderBottomColor: "#ddd",
+    alignItems: "center",
+    paddingHorizontal: 10,
+    height: 60,
   },
-  searchContainer: {
+  productCard: {
+    flexDirection: "column",
+    backgroundColor: "red",
+    borderRadius: 12,
+    // overflow: "hidden",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+  },
+  imageContainer: {
+    position: "relative",
+    height: 120,
+    backgroundColor: "#F9F9F9",
+  },
+  productImage: {
+    width: "100%",
+    height: "100%",
+    resizeMode: "contain",
+  },
+  discountBadge: {
+    position: "absolute",
+    top: 8,
+    right: 8,
+    backgroundColor: "#FF4757",
+    borderRadius: "100%",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+  },
+  discountText: {
+    color: "#FFF",
+    fontSize: 8,
+    fontWeight: "bold",
+  },
+  productInfo: {
+    padding: 12,
+  },
+  productName: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#333",
+    marginBottom: 4,
+  },
+  productPrice: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#007AFF",
+    marginBottom: 8,
+  },
+  ratingContainer: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#eef1f7",
-    borderRadius: 25,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    flex: 1,
-    marginHorizontal: 10,
+    marginBottom: 8,
   },
-
+  ratingText: {
+    fontSize: 12,
+    marginLeft: 4,
+    color: "#666",
+  },
+  addToCartButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#007AFF",
+    borderRadius: 8,
+    paddingVertical: 8,
+    marginTop: 8,
+  },
+  addToCartText: {
+    color: "#FFF",
+    fontSize: 14,
+    fontWeight: "600",
+    marginLeft: 6,
+  },
+  searchContainer: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#f6f6f6",
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    marginHorizontal: 10,
+    height: 40,
+  },
   searchInput: {
     flex: 1,
-    height: 40,
-    marginLeft: 10,
     fontSize: 16,
     color: "#333",
+    paddingVertical: 0,
   },
   cartContainer: {
     position: "relative",
-    marginRight: 10,
+    justifyContent: "center",
+    alignItems: "center",
   },
-  badge: {
-    padding: 3,
-    borderRadius: 50,
-    width: 16,
-    height: 16,
-    textAlign: "center",
+  cartBadge: {
     position: "absolute",
-    top: -4,
-    right: -8,
-    backgroundColor: "red",
-    color: "white",
-    fontSize: 10,
+    top: -5,
+    right: -10,
+    backgroundColor: "#007AFF",
+    color: "#fff",
+    fontSize: 12,
+    fontWeight: "bold",
   },
 
   maincontent: {
@@ -405,7 +468,6 @@ const styles = StyleSheet.create({
     paddingBottom: 60,
   },
   searchResultsContainer: {
-    padding: 10,
     alignItems: "center",
     justifyContent: "center",
   },

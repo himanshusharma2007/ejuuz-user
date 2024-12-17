@@ -4,6 +4,7 @@ import {
   TouchableOpacity,
   Animated,
   Easing,
+  ToastAndroid,
 } from "react-native";
 import { Text, Button, ActivityIndicator } from "react-native-paper";
 import { AntDesign } from "@expo/vector-icons";
@@ -49,13 +50,17 @@ export default function TransactionPin() {
       const orderData = {
         items: cartItems,
         pin: pin,
-        totalAmount: cartItems.reduce((total, item) => total + item.totalPrice, 0),
+        totalAmount: cartItems.reduce(
+          (total, item) => total + item.totalPrice,
+          0
+        ),
       };
 
       // Call place order service
       const orderResponse = await orderService.PlaceOrder(orderData);
-
+      console.log("orderResponse in transaction pin", orderResponse);
       setShowSuccess(true);
+
       // Start scale animation for checkmark
       Animated.sequence([
         Animated.timing(fadeValue, {
@@ -70,15 +75,16 @@ export default function TransactionPin() {
           useNativeDriver: true,
         }),
       ]).start(() => {
-        // Wait for animation to complete before navigating
+        // Wait for animation to complete
         setTimeout(() => {
           // Clear cart after successful order
           dispatch(clearCart());
 
-          navigation.navigate("OrderStatus", {
-            pin,
-            orderItemWithPin: orderResponse.order,
-          });
+          // Show toast message
+          ToastAndroid.show("Order placed successfully", ToastAndroid.SHORT);
+
+          // Navigate to Home page
+          navigation.navigate("HomeStack");
         }, 1000);
       });
     } catch (error) {
