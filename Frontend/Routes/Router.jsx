@@ -54,6 +54,7 @@ import {
   fetchWishlistAsync,
 } from "../redux/features/cartSlice";
 import TopUpScreen from "../src/Componants/Screens/WalletScreens/TopUpScreen";
+import AllProducts from "../src/Componants/Screens/HomeScreens/AllProducts";
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -68,6 +69,11 @@ const HomeStack = () => {
         name="ProductDetails"
         component={ProductDetails}
         options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="AllProducts"
+        component={AllProducts}
+        options={{ headerShown: true, headerTitleAlign: "center" }}
       />
       <Stack.Screen
         name="Cart"
@@ -413,17 +419,6 @@ const ProfileStack = () => {
   );
 };
 
-// Authentication Stack
-const AuthStack = () => {
-  return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="GetStarted" component={GetStarted} />
-      <Stack.Screen name="OtpPage" component={OtpPage} />
-      <Stack.Screen name="/" component={TabNavigator} />
-    </Stack.Navigator>
-  );
-};
-
 function getTabbarVisibility(route) {
   const routeName = getFocusedRouteNameFromRoute(route) ?? route.name;
   const hideOnScreens = [
@@ -447,6 +442,8 @@ function getTabbarVisibility(route) {
     "Orders",
     "SearchTab",
     "TopUp",
+    "StoreDetails",
+    "AllProducts",
   ];
   return hideOnScreens.includes(routeName) ? "none" : "flex";
 }

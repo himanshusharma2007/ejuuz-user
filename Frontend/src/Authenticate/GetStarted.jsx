@@ -88,6 +88,7 @@ export default function GetStarted() {
           phoneNumber: selectedCountry.code + phoneNumber,
         });
       } catch (error) {
+        console.log('error', error)
         Toast.show({
           type: "error",
           text1: "Error",
