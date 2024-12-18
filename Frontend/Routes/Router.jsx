@@ -321,7 +321,8 @@ const WalletStack = () => {
         component={WalletHistory}
         options={{
           headerShown: false,
-          headerTitle: "History",
+          headerTitle: "",
+          headerTitleStyle: {color: "red"},
           headerShadowVisible: false,
           headerRight: () => (
             <TouchableOpacity onPress={() => navigation.navigate("Cart")}>
@@ -403,7 +404,7 @@ const ProfileStack = () => {
           headerTitleStyle: {
             fontWeight: "bold",
             fontSize: 24,
-            color: "#007AFF",
+            color: "#000",
           },
         }}
       />

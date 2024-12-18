@@ -1,50 +1,92 @@
 import React, { useState } from "react";
-import { StyleSheet, View, Alert, Linking, ScrollView } from "react-native";
-import { TextInput, Button, Title, Card, Subheading } from "react-native-paper";
-import { MaterialIcons } from "@expo/vector-icons";
+import { StyleSheet, View, Alert, Linking, ScrollView, Text, TouchableOpacity, Dimensions } from "react-native";
+import { TextInput, Card, Surface } from "react-native-paper";
+import { MaterialIcons, Ionicons } from "@expo/vector-icons";
+
+const { width } = Dimensions.get('window');
 
 export default function ContactUs() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Validate email format
+  const validateEmail = (email) => {
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return re.test(String(email).toLowerCase());
+  };
 
   // Handle form submission
   const handleSubmit = () => {
-    if (name && email && message) {
-      Alert.alert("Form Submitted", "Thank you for reaching out!");
-    } else {
-      Alert.alert("Error", "Please fill out all fields.");
+    // Reset submission state
+    setIsSubmitting(true);
+
+    // Comprehensive validation
+    if (!name.trim()) {
+      Alert.alert("Validation Error", "Please enter your name.");
+      setIsSubmitting(false);
+      return;
     }
+
+    if (!validateEmail(email)) {
+      Alert.alert("Validation Error", "Please enter a valid email address.");
+      setIsSubmitting(false);
+      return;
+    }
+
+    if (!message.trim()) {
+      Alert.alert("Validation Error", "Please enter your message.");
+      setIsSubmitting(false);
+      return;
+    }
+
+    // Simulating form submission
+    setTimeout(() => {
+      Alert.alert(
+        "Thank You!", 
+        "Your message has been submitted successfully.",
+        [{ text: "OK", onPress: () => {
+          setName("");
+          setEmail("");
+          setMessage("");
+          setIsSubmitting(false);
+        }}]
+      );
+    }, 1500);
   };
 
   // Handle phone call
   const handleCall = () => {
     Linking.openURL("tel:+1234567890").catch((err) =>
-      alert("Unable to make a call")
+      Alert.alert("Error", "Unable to make a call")
     );
   };
 
   // Handle email
   const handleEmail = () => {
     Linking.openURL("mailto:support@example.com").catch((err) =>
-      alert("Unable to send email")
+      Alert.alert("Error", "Unable to send email")
     );
   };
 
   return (
-    <ScrollView style={styles.container} keyboardShouldPersistTaps="always">
-      <Card style={styles.card}>
-        <Card.Content>
-          <Subheading style={styles.subheading}>
-            We'd love to hear from you!
-          </Subheading>
+    <ScrollView 
+      style={styles.container} 
+      keyboardShouldPersistTaps="always"
+      contentContainerStyle={styles.scrollViewContent}
+    >
+      {/* Contact Form */}
+      <Surface style={styles.card}>
+        <View style={styles.cardContent}>
           <TextInput
             label="Your Name"
             value={name}
             onChangeText={setName}
             style={styles.input}
             mode="outlined"
-            theme={{ colors: { primary: "#007bff" } }}
+            left={<TextInput.Icon icon="account" />}
+            theme={{ colors: { primary: "#0056b3" } }}
           />
           <TextInput
             label="Your Email"
@@ -52,58 +94,50 @@ export default function ContactUs() {
             onChangeText={setEmail}
             style={styles.input}
             mode="outlined"
-            theme={{ colors: { primary: "#007bff" } }}
+            left={<TextInput.Icon icon="email" />}
+            keyboardType="email-address"
+            theme={{ colors: { primary: "#0056b3" } }}
           />
           <TextInput
             label="Your Message"
             value={message}
             onChangeText={setMessage}
-            style={styles.input}
+            style={[styles.input, styles.multilineInput]}
             mode="outlined"
             multiline
             numberOfLines={4}
-            theme={{ colors: { primary: "#007bff" } }}
+            left={<TextInput.Icon icon="message-text" />}
+            theme={{ colors: { primary: "#0056b3" } }}
           />
-          <Button
-            mode="contained"
-            style={styles.submitButton}
+          
+          <TouchableOpacity 
+            style={styles.submitButton} 
             onPress={handleSubmit}
-            buttonColor="#007bff" // Green color for submit button
-            color="#fff" // Text color white for contrast
+            disabled={isSubmitting}
           >
-            Submit
-          </Button>
-        </Card.Content>
-      </Card>
+            {isSubmitting ? (
+              <Text style={styles.buttonText}>Sending...</Text>
+            ) : (
+              <View style={styles.buttonContent}>
+                <Ionicons name="send" size={20} color="#fff" />
+                <Text style={styles.buttonText}>Send Message</Text>
+              </View>
+            )}
+          </TouchableOpacity>
+        </View>
+      </Surface>
 
-      {/* Contact Options Section */}
-      <Card style={styles.card}>
-        <Card.Content>
-          <Subheading style={styles.subheading}>
-            Other Ways to Reach Us:
-          </Subheading>
-          <Button
-            icon={() => <MaterialIcons name="phone" size={20} color="#fff" />}
-            mode="contained"
-            style={styles.contactButton}
-            onPress={handleCall}
-            buttonColor="#007bff" // Light Blue color for call button
-            color="#fff" // Text color white
-          >
-            Call Us
-          </Button>
-          <Button
-            icon={() => <MaterialIcons name="email" size={20} color="#fff" />}
-            mode="contained"
-            style={styles.contactButton}
-            onPress={handleEmail}
-            buttonColor="#007bff" // Yellow color for email button
-            color="#fff" // Text color white
-          >
-            Email Us
-          </Button>
-        </Card.Content>
-      </Card>
+      {/* Contact Options */}
+      <View style={styles.contactOptionsContainer}>
+        <TouchableOpacity style={styles.contactOption} onPress={handleCall}>
+          <MaterialIcons name="phone" size={24} color="#002E6E" />
+          <Text style={styles.contactOptionText}>Call Support</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.contactOption} onPress={handleEmail}>
+          <MaterialIcons name="email" size={24} color="#002E6E" />
+          <Text style={styles.contactOptionText}>Email Support</Text>
+        </TouchableOpacity>
+      </View>
     </ScrollView>
   );
 }
@@ -111,34 +145,76 @@ export default function ContactUs() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f9f9f9",
-    padding: 20,
+    backgroundColor: '#f9f9f9',
   },
-  subheading: {
-    fontSize: 18,
-    fontWeight: "600",
-    marginBottom: 10,
-    color: "#555",
+  scrollViewContent: {
+    flexGrow: 1,
+    padding: 20,
+    justifyContent: 'center',
+  },
+  header: {
+    alignItems: 'center',
+    marginBottom: 30,
+  },
+  headerTitle: {
+    color: '#002E6E',
+    fontSize: 24,
+    fontWeight: '700',
+    marginTop: 10,
   },
   card: {
-    marginBottom: 20,
-    borderRadius: 8,
+    borderRadius: 15,
     elevation: 5,
-    backgroundColor: "#fff",
+    backgroundColor: '#fff',
+    padding: 20,
+    marginBottom: 20,
+  },
+  cardContent: {
+    width: '100%',
   },
   input: {
     marginBottom: 15,
-    backgroundColor: "#fff",
-    borderRadius: 15,
+    backgroundColor: '#fff',
+  },
+  multilineInput: {
+    height: 120,
   },
   submitButton: {
-    marginTop: 15,
-    paddingVertical: 8,
-    borderRadius: 8,
+    backgroundColor: '#002E6E',
+    borderRadius: 10,
+    paddingVertical: 15,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 10,
   },
-  contactButton: {
-    marginBottom: 10,
-    paddingVertical: 10,
-    borderRadius: 8,
+  buttonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
+  buttonText: {
+    color: '#fff',
+    fontWeight: '600',
+    marginLeft: 10,
+    fontSize: 16,
+  },
+  contactOptionsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  contactOption: {
+    flex: 1,
+    backgroundColor: '#e6e6e6',
+    borderRadius: 10,
+    padding: 15,
+    marginHorizontal: 5,
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'center',
+  },
+  contactOptionText: {
+    color: '#002E6E',
+    marginLeft: 10,
+    fontWeight: '600',
+  }
 });

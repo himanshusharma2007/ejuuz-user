@@ -5,19 +5,18 @@ import {
   Modal,
   TouchableOpacity,
   Alert,
-  Image,
+  ScrollView,
+  Platform,
 } from "react-native";
 import {
   Avatar,
-  Card,
   Text,
-  List,
-  Divider,
   Button,
   TextInput,
   ActivityIndicator,
 } from "react-native-paper";
 import * as ImagePicker from "expo-image-picker";
+import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import ProfileService from "../../../service/profileServices";
 
 export default function ProfileSettings() {
@@ -36,14 +35,10 @@ export default function ProfileSettings() {
     try {
       setIsLoading(true);
       const userData = await ProfileService.getProfile();
-      console.log("userData", userData);
-      console.log("userData.data.profileImage", userData.data.profileImage);
       setProfile(userData.data);
-
       setTempProfile({ ...userData });
       setProfileImage(userData.data.profileImage);
     } catch (error) {
-      console.log("error", error);
       Alert.alert("Error", error.message || "Failed to fetch profile");
     } finally {
       setIsLoading(false);
@@ -52,7 +47,6 @@ export default function ProfileSettings() {
 
   const handleSave = async () => {
     try {
-      console.log("tempProfile", tempProfile);
       const updatedProfile = await ProfileService.updateProfile(tempProfile);
       setProfile(updatedProfile);
       setModalVisible(false);
@@ -64,41 +58,33 @@ export default function ProfileSettings() {
   };
 
   const pickImage = async (source) => {
-    let result;
     try {
-      if (source === "camera") {
-        result = await ImagePicker.launchCameraAsync({
-          mediaTypes: ImagePicker.MediaType,
-          allowsEditing: true,
-          aspect: [4, 4],
-          quality: 0.7,
-        });
-      } else {
-        result = await ImagePicker.launchImageLibraryAsync({
-          mediaTypes: ImagePicker.MediaType,
-          allowsEditing: true,
-          aspect: [4, 4],
-          quality: 0.7,
-        });
-      }
+      let result = source === "camera" 
+        ? await ImagePicker.launchCameraAsync({
+            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            allowsEditing: true,
+            aspect: [4, 4],
+            quality: 0.7,
+          })
+        : await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            allowsEditing: true,
+            aspect: [4, 4],
+            quality: 0.7,
+          });
 
       if (!result.canceled && result.assets?.[0]?.uri) {
         const formData = new FormData();
         formData.append("profileImage", {
           uri: result.assets[0].uri,
-          type: "image/jpeg", // or dynamically extract from result.assets[0].type
+          type: "image/jpeg",
           name: "profile.jpg",
         });
 
-        const updatedProfile = await ProfileService.updateProfileImage(
-          formData
-        );
+        const updatedProfile = await ProfileService.updateProfileImage(formData);
         if (updatedProfile?.profileImage) {
           setProfileImage(updatedProfile.profileImage);
-        } else {
-          throw new Error("Failed to get updated profile image");
         }
-
         setImageModalVisible(false);
       }
     } catch (error) {
@@ -106,29 +92,17 @@ export default function ProfileSettings() {
     }
   };
 
-  const isProfileIncomplete = () => {
-    return !profile?.name || !profile?.email;
-  };
-
-  const renderProfileStatus = () => {
-    if (isProfileIncomplete()) {
-      return (
-        <View style={styles.incompleteProfileContainer}>
-          <Text style={styles.incompleteProfileText}>
-            Complete your profile to personalize your experience
-          </Text>
-          <Button
-            mode="contained"
-            onPress={() => setModalVisible(true)}
-            style={styles.completeProfileBtn}
-          >
-            Complete Profile
-          </Button>
-        </View>
-      );
-    }
-    return null;
-  };
+  const ProfileInfoItem = ({ icon, title, subtitle, iconColor }) => (
+    <View style={styles.profileInfoItem}>
+      <View style={styles.profileInfoIconContainer}>
+        <MaterialIcons name={icon} size={24} color={iconColor} />
+      </View>
+      <View style={styles.profileInfoTextContainer}>
+        <Text style={styles.profileInfoTitle}>{title}</Text>
+        <Text style={styles.profileInfoSubtitle}>{subtitle}</Text>
+      </View>
+    </View>
+  );
 
   if (isLoading) {
     return (
@@ -139,87 +113,82 @@ export default function ProfileSettings() {
   }
 
   return (
-    <View style={styles.container}>
-      {/* Avatar Section */}
-      <View style={styles.avatarSection}>
-        <TouchableOpacity onPress={() => setImageModalVisible(true)}>
+    <ScrollView 
+      style={styles.container}
+      contentContainerStyle={styles.scrollViewContent}
+    >
+      {/* Profile Header */}
+      <View style={styles.profileHeader}>
+        <TouchableOpacity 
+          style={styles.avatarContainer}
+          onPress={() => setImageModalVisible(true)}
+        >
           <Avatar.Image
-            size={100}
+            size={120}
             source={
               profileImage
                 ? { uri: profileImage.url }
-                : "https://cdn-icons-png.flaticon.com/512/149/149071.png"
+                : require('../../../images/avatar.webp')
             }
           />
+          
         </TouchableOpacity>
+        <Text style={styles.profileName}>
+          {profile?.name || "User Profile"}
+        </Text>
         {profile?.isVerified && (
-          <List.Icon
-            icon="check-circle"
-            color="#00baf2"
-            size={24}
-            style={styles.verifyIcon}
+          <View style={styles.verifiedBadge}>
+            <Text style={styles.verifiedBadgeText}>Verified</Text>
+          </View>
+        )}
+      </View>
+
+      {/* Profile Information */}
+      <View style={styles.profileInfoContainer}>
+        {profile?.name && (
+          <ProfileInfoItem 
+            icon="person" 
+            title="Full Name" 
+            subtitle={profile.name} 
+            iconColor="#8e44ad" 
           />
         )}
-        <Text style={styles.title}>{profile?.name || "User"}</Text>
-      </View>
-
-      {renderProfileStatus()}
-
-      {/* Details Section */}
-      <View style={styles.detailsContainer}>
-        {profile?.name && (
-          <>
-            <List.Item
-              title="Full name"
-              description={profile.name}
-              left={(props) => (
-                <List.Icon {...props} icon="account" color="#8e44ad" />
-              )}
-            />
-            <Divider bold />
-          </>
-        )}
-
         {profile?.mobile && (
-          <>
-            <List.Item
-              title="Mobile"
-              description={profile.mobile}
-              left={(props) => (
-                <List.Icon {...props} icon="phone" color="#2980b9" />
-              )}
-            />
-            <Divider bold />
-          </>
+          <ProfileInfoItem 
+            icon="phone" 
+            title="Mobile Number" 
+            subtitle={profile.mobile} 
+            iconColor="#2980b9" 
+          />
         )}
-
         {profile?.email && (
-          <>
-            <List.Item
-              title="Email"
-              description={profile.email}
-              left={(props) => (
-                <List.Icon {...props} icon="email" color="#e67e22" />
-              )}
-            />
-            <Divider bold />
-          </>
+          <ProfileInfoItem 
+            icon="email" 
+            title="Email Address" 
+            subtitle={profile.email} 
+            iconColor="#e67e22" 
+          />
         )}
-
-        <List.Item
-          title="Change password"
-          onPress={() => console.log("Change Password Click")}
-          left={(props) => <List.Icon {...props} icon="lock" color="#c0392b" />}
-          right={() => <List.Icon icon="chevron-right" />}
-        />
+        <TouchableOpacity 
+          style={styles.profileInfoItem}
+          onPress={() => console.log("Change Password")}
+        >
+          <View style={styles.profileInfoIconContainer}>
+            <MaterialIcons name="lock" size={24} color="#c0392b" />
+          </View>
+          <View style={styles.profileInfoTextContainer}>
+            <Text style={styles.profileInfoTitle}>Change Password</Text>
+          </View>
+          <MaterialIcons name="chevron-right" size={24} color="#999" />
+        </TouchableOpacity>
       </View>
 
-      {/* Update Profile Button */}
-      <View style={styles.updateButtonContainer}>
-        <Button
-          mode="contained"
+      {/* Action Buttons */}
+      <View style={styles.actionButtonsContainer}>
+        <Button 
+          mode="contained" 
           onPress={() => setModalVisible(true)}
-          disabled={!profile}
+          style={styles.updateProfileButton}
         >
           Update Profile
         </Button>
@@ -236,46 +205,46 @@ export default function ProfileSettings() {
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Update Profile</Text>
             <TextInput
-              mode="flat"
-              style={styles.input}
-              placeholder="Full Name"
+              mode="outlined"
+              label="Full Name"
               value={tempProfile?.name || ""}
               onChangeText={(text) =>
                 setTempProfile((prev) => ({ ...prev, name: text }))
               }
+              style={styles.modalInput}
             />
             <TextInput
-              mode="flat"
-              style={styles.input}
-              placeholder="Mobile Number"
+              mode="outlined"
+              label="Mobile Number"
               value={tempProfile?.mobile || ""}
               keyboardType="phone-pad"
               onChangeText={(text) =>
                 setTempProfile((prev) => ({ ...prev, mobile: text }))
               }
+              style={styles.modalInput}
             />
             <TextInput
-              mode="flat"
-              style={styles.input}
-              placeholder="Email Address"
+              mode="outlined"
+              label="Email Address"
               value={tempProfile?.email || ""}
               keyboardType="email-address"
               onChangeText={(text) =>
                 setTempProfile((prev) => ({ ...prev, email: text }))
               }
+              style={styles.modalInput}
             />
             <View style={styles.modalActions}>
               <Button
                 mode="contained"
                 onPress={handleSave}
-                style={styles.saveButton}
+                style={styles.modalSaveButton}
               >
-                Save
+                Save Changes
               </Button>
               <Button
                 mode="outlined"
                 onPress={() => setModalVisible(false)}
-                style={styles.cancelButton}
+                style={styles.modalCancelButton}
               >
                 Cancel
               </Button>
@@ -299,148 +268,197 @@ export default function ProfileSettings() {
                 style={styles.imagePickerButton}
                 onPress={() => pickImage("camera")}
               >
-                <List.Icon icon="camera" />
-                <Text>Take Photo</Text>
+                <MaterialIcons name="camera-alt" size={50} color="#002E6E" />
+                <Text style={styles.imagePickerButtonText}>Take Photo</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.imagePickerButton}
                 onPress={() => pickImage("library")}
               >
-                <List.Icon icon="image" />
-                <Text>Choose from Library</Text>
+                <MaterialIcons name="photo-library" size={50} color="#002E6E" />
+                <Text style={styles.imagePickerButtonText}>Choose from Library</Text>
               </TouchableOpacity>
             </View>
             <Button
               mode="outlined"
               onPress={() => setImageModalVisible(false)}
-              style={styles.cancelButton}
+              style={styles.modalCancelButton}
             >
               Cancel
             </Button>
           </View>
         </View>
       </Modal>
-    </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
-    paddingTop: 20,
+    backgroundColor: "#f4f6f9",
   },
-  avatarSection: {
-    alignItems: "center",
-    marginBottom: 20,
+  scrollViewContent: {
+    flexGrow: 1,
+    paddingBottom: 20,
   },
-  avatarCard: {
-    borderRadius: 60,
-    borderWidth: 3,
-    borderColor: "#00baf2",
-  },
-  verifyIcon: {
-    position: "absolute",
-    bottom: 60,
-    right: 150,
-    backgroundColor: "white",
-    borderRadius: 12,
-  },
-  title: {
-    marginTop: 10,
-    fontWeight: "bold",
-    fontSize: 20,
-    textAlign: "center",
-  },
-  subtitle: {
-    color: "gray",
-    textAlign: "center",
-  },
-  detailsContainer: {
-    backgroundColor: "white",
-    marginHorizontal: 10,
-    borderRadius: 10,
-    padding: 10,
-    elevation: 2,
-  },
-  updateButtonContainer: {
-    marginTop: 20,
-    alignItems: "center",
-  },
-  modalOverlay: {
+  loadingContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+    backgroundColor: "#f4f6f9",
+  },
+  profileHeader: {
+    alignItems: "center",
+    backgroundColor: "#fff",
+    paddingVertical: 30,
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  avatarContainer: {
+    position: 'relative',
+    marginBottom: 15,
+  },
+  cameraIconOverlay: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    borderRadius: 20,
+    padding: 5,
+  },
+  profileName: {
+    fontSize: 22,
+    fontWeight: "bold",
+    color: "#333",
+    marginTop: 10,
+  },
+  verifiedBadge: {
+    backgroundColor: "#2ecc71",
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 15,
+    marginTop: 10,
+  },
+  verifiedBadgeText: {
+    color: "#fff",
+    fontSize: 12,
+    fontWeight: "600",
+  },
+  profileInfoContainer: {
+    backgroundColor: "#fff",
+    marginHorizontal: 15,
+    marginTop: 20,
+    borderRadius: 15,
+    padding: 15,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  profileInfoItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: "#f0f0f0",
+  },
+  profileInfoIconContainer: {
+    marginRight: 15,
+    width: 40,
+    alignItems: "center",
+  },
+  profileInfoTextContainer: {
+    flex: 1,
+  },
+  profileInfoTitle: {
+    fontSize: 16,
+    color: "#333",
+    fontWeight: "600",
+  },
+  profileInfoSubtitle: {
+    fontSize: 14,
+    color: "#666",
+    marginTop: 5,
+  },
+  actionButtonsContainer: {
+    marginHorizontal: 15,
+    marginTop: 20,
+  },
+  updateProfileButton: {
+    paddingVertical: 5,
+  },
+  modalOverlay: {
+    flex: 1,
     backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "center",
+    alignItems: "center",
   },
   modalContent: {
     width: "90%",
-    backgroundColor: "white",
-    borderRadius: 10,
+    backgroundColor: "#fff",
+    borderRadius: 15,
     padding: 20,
-    elevation: 5,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 4,
+    elevation: 5,
   },
   modalTitle: {
     fontSize: 20,
     fontWeight: "bold",
     textAlign: "center",
     marginBottom: 20,
+    color: "#333",
   },
-  input: {
-    backgroundColor: "#f0f0f0",
-    borderRadius: 8,
-    // padding: 10,
-    // borderWidth: 1,
-    // borderColor: "#ccc",
+  modalInput: {
     marginBottom: 15,
-    fontSize: 16,
   },
   modalActions: {
     flexDirection: "row",
     justifyContent: "space-between",
     marginTop: 15,
   },
-  saveButton: {
+  modalSaveButton: {
     flex: 1,
     marginRight: 5,
-    // backgroundColor: "#4caf50",
   },
-  cancelButton: {
+  modalCancelButton: {
     flex: 1,
     marginLeft: 5,
-    borderColor: "#f44336",
   },
-  incompleteProfileContainer: {
-    backgroundColor: "#f0f0f0",
-    padding: 15,
-    borderRadius: 10,
+  imageModalContent: {
+    width: "90%",
+    backgroundColor: "#fff",
+    borderRadius: 15,
+    padding: 20,
     alignItems: "center",
-    marginHorizontal: 10,
-    marginTop: 10,
-  },
-  incompleteProfileText: {
-    textAlign: "center",
-    marginBottom: 10,
-    color: "#333",
-  },
-  completeProfileBtn: {
-    width: "80%",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
   },
   imagePickerOptions: {
     flexDirection: "row",
     justifyContent: "space-around",
+    width: "100%",
     marginVertical: 20,
   },
   imagePickerButton: {
     alignItems: "center",
+    width: "40%",
   },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
+  imagePickerButtonText: {
+    marginTop: 10,
+    color: "#002E6E",
+    fontWeight: "600",
   },
 });

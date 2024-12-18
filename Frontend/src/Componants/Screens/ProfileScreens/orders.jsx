@@ -275,6 +275,7 @@ const createStyles = () => {
       shadowOffset: { width: 0, height: 2 },
       shadowOpacity: 0.1,
       shadowRadius: 4,
+      backgroundColor:"#fff",
     },
     itemContent: {
       flexDirection: "row",

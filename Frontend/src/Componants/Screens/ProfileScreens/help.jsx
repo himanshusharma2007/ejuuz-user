@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useState } from "react";
 import {
   StyleSheet,
   Text,
@@ -6,29 +6,44 @@ import {
   ScrollView,
   TouchableOpacity,
   Linking,
+  LayoutAnimation,
+  Platform,
+  UIManager,
 } from "react-native";
-import { MaterialIcons } from "@expo/vector-icons";
+import { MaterialIcons, Ionicons } from "@expo/vector-icons";
+
+// Enable layout animations for Android
+if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
 
 export default function Help() {
+  const [expandedIndex, setExpandedIndex] = useState(null);
+
   const faqs = [
     {
       question: "How do I place an order?",
       answer:
-        "Browse products, add them to your cart, and proceed to checkout.",
+        "Browse products, add them to your cart, and proceed to checkout. You can review your order details before final confirmation.",
     },
     {
       question: "What payment methods are supported?",
-      answer: "We support credit/debit cards, UPI, and net banking.",
+      answer: "We support credit/debit cards, UPI, net banking, and digital wallets for your convenience.",
     },
     {
       question: "How can I track my order?",
-      answer: "Go to the 'My Orders' section and select the order to track.",
+      answer: "Go to the 'My Orders' section and select the specific order. You'll see real-time tracking information and estimated delivery date.",
     },
     {
       question: "What is the return policy?",
-      answer: "You can return products within 7 days of delivery.",
+      answer: "You can return products within 7 days of delivery. Items must be unused, in original packaging, and accompanied by the original invoice.",
     },
   ];
+
+  const handleToggleFAQ = (index) => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setExpandedIndex(expandedIndex === index ? null : index);
+  };
 
   const handleCallSupport = () => {
     const phoneNumber = "tel:+1234567890"; // Replace with your support number
@@ -43,19 +58,42 @@ export default function Help() {
   };
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView 
+      style={styles.container}
+      contentContainerStyle={styles.scrollViewContent}
+    >
+      {/* Header */}
+      {/* <View style={styles.header}>
+        <Ionicons name="help-circle-outline" size={50} color="#002E6E" />
+        <Text style={styles.headerTitle}>Help & Support</Text>
+      </View> */}
+
+      {/* FAQs Section */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>FAQs</Text>
+        <Text style={styles.sectionTitle}>Frequently Asked Questions</Text>
         {faqs.map((faq, index) => (
-          <View key={index} style={styles.faqItem}>
-            <Text style={styles.faqQuestion}>{faq.question}</Text>
-            <Text style={styles.faqAnswer}>{faq.answer}</Text>
+          <View key={index} style={styles.faqContainer}>
+            <TouchableOpacity 
+              style={styles.faqHeader}
+              onPress={() => handleToggleFAQ(index)}
+            >
+              <Text style={styles.faqQuestion}>{faq.question}</Text>
+              <MaterialIcons 
+                name={expandedIndex === index ? "keyboard-arrow-up" : "keyboard-arrow-down"} 
+                size={24} 
+                color="#002E6E" 
+              />
+            </TouchableOpacity>
+            {expandedIndex === index && (
+              <Text style={styles.faqAnswer}>{faq.answer}</Text>
+            )}
           </View>
         ))}
       </View>
 
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Contact Us</Text>
+      {/* Contact Options */}
+      <View style={styles.contactSection}>
+        <Text style={styles.sectionTitle}>Need More Help?</Text>
         <TouchableOpacity
           style={styles.contactButton}
           onPress={handleCallSupport}
@@ -80,57 +118,86 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#f9f9f9",
   },
-  header: {
-    backgroundColor: "#007bff",
-    padding: 20,
-    alignItems: "center",
+  scrollViewContent: {
+    flexGrow: 1,
+    paddingBottom: 20,
   },
-  headerText: {
-    color: "#fff",
-    fontSize: 20,
-    fontWeight: "bold",
+  header: {
+    alignItems: "center",
+    paddingVertical: 30,
+  },
+  headerTitle: {
+    fontSize: 24,
+    fontWeight: "700",
+    color: "#002E6E",
+    marginTop: 10,
   },
   section: {
-    marginVertical: 20,
-    marginHorizontal: 15,
+    marginHorizontal: 20,
+    marginBottom: 20,
+    marginTop: 20,
     backgroundColor: "#fff",
-    borderRadius: 8,
-    padding: 15,
+    borderRadius: 15,
+    padding: 20,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.3,
-    shadowRadius: 2,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
     elevation: 5,
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: "bold",
-    marginBottom: 10,
-  },
-  faqItem: {
     marginBottom: 15,
+    color: "#002E6E",
+  },
+  faqContainer: {
+    borderBottomWidth: 1,
+    borderBottomColor: "#e0e0e0",
+    paddingVertical: 15,
+  },
+  faqHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   faqQuestion: {
     fontSize: 16,
     fontWeight: "600",
+    color: "#333",
+    flex: 1,
+    marginRight: 10,
   },
   faqAnswer: {
     fontSize: 14,
     color: "#555",
-    marginTop: 5,
+    marginTop: 10,
+    lineHeight: 22,
+  },
+  contactSection: {
+    marginHorizontal: 20,
+    backgroundColor: "#fff",
+    borderRadius: 15,
+    padding: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 5,
   },
   contactButton: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#007bff",
+    backgroundColor: "#002E6E",
     padding: 15,
-    borderRadius: 8,
+    borderRadius: 10,
     marginTop: 10,
+    justifyContent: "center",
   },
   contactButtonText: {
     color: "#fff",
     fontSize: 16,
     marginLeft: 10,
-    fontWeight: "bold",
+    fontWeight: "600",
   },
 });
