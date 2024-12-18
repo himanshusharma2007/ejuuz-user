@@ -212,12 +212,20 @@ export default function Home() {
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
     try {
-      const response = await getAllDiscountedProducts();
-      setDiscountedProducts(response.products || []);
+      const [discountedResponse, productsResponse, shopsResponse] =
+        await Promise.all([
+          getAllDiscountedProducts(),
+          getAllProducts(),
+          getAllShops(),
+        ]);
+      setDiscountedProducts(discountedResponse.products || []);
+      setAllProducts(productsResponse.products);
+      setShopdata(shopsResponse.data);
     } catch (error) {
       console.error("Error refreshing data", error);
+    } finally {
+      setRefreshing(false);
     }
-    setRefreshing(false);
   }, []);
 
   const handleBannerPress = useCallback((banner) => {
@@ -304,18 +312,9 @@ export default function Home() {
     };
   }, [currentIndex, startAutoScroll]);
 
-  return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar backgroundColor="#002E6E" barStyle="light-content" />
-
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
-        }
-      >
+  const renderHome = () => {
+    return (
+      <>
         <View style={styles.curve}>
           <View style={styles.logoContainer}>
             <Image
@@ -558,9 +557,29 @@ export default function Home() {
                 <Text style={styles.sectionTitle}>Popular Shop</Text>
               </>
             )}
-            <TouchableOpacity>
-              <Text style={styles.seeAllText}>See all</Text>
-            </TouchableOpacity>
+
+            {loading ? (
+              <>
+                <ContentLoader
+                  speed={2}
+                  width={90}
+                  height={20}
+                  viewBox={`0 0 90 20`}
+                  backgroundColor="#f3f3f3"
+                  foregroundColor="#ecebeb"
+                >
+                  <Rect x="0" y="0" rx="10" ry="10" width="90" height="20" />
+                </ContentLoader>
+              </>
+            ) : (
+              <>
+                <TouchableOpacity
+                  onPress={() => navigation.navigate("AllProducts")}
+                >
+                  <Text style={styles.seeAllText}>See all</Text>
+                </TouchableOpacity>
+              </>
+            )}
           </View>
           <ScrollView
             horizontal
@@ -730,6 +749,7 @@ export default function Home() {
                       key={item._id}
                       style={styles.recommendedCard}
                       onPress={() =>
+                        navigation.isFocused() &&
                         navigation.navigate("SearchTab", {
                           screen: "StoreDetails",
                           params: {
@@ -782,9 +802,25 @@ export default function Home() {
                 <Text style={styles.sectionTitle}>Recommended for You</Text>
               </>
             )}
-            <TouchableOpacity>
-              <Text style={styles.seeAllText}>See all</Text>
-            </TouchableOpacity>
+
+            {loading ? (
+              <ContentLoader
+                speed={2}
+                width={90}
+                height={20}
+                viewBox={`0 0 90 20`}
+                backgroundColor="#f3f3f3"
+                foregroundColor="#ecebeb"
+              >
+                <Rect x="0" y="0" rx="10" ry="10" width="90" height="20" />
+              </ContentLoader>
+            ) : (
+              <TouchableOpacity
+                onPress={() => navigation.navigate("AllProducts")}
+              >
+                <Text style={styles.seeAllText}>See all</Text>
+              </TouchableOpacity>
+            )}
           </View>
           <ScrollView
             horizontal
@@ -996,7 +1032,9 @@ export default function Home() {
             <View style={styles.dealsSection}>
               <View style={styles.sectionHeader}>
                 <Text style={styles.sectionTitle}>Weekly Deals</Text>
-                <TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => navigation.navigate("AllProducts")}
+                >
                   <Text style={styles.seeAllText}>See all</Text>
                 </TouchableOpacity>
               </View>
@@ -1035,6 +1073,23 @@ export default function Home() {
             </View>
           </>
         )}
+      </>
+    );
+  };
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <StatusBar backgroundColor="#002E6E" barStyle="light-content" />
+
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+        }
+      >
+        {renderHome()}
       </ScrollView>
     </SafeAreaView>
   );

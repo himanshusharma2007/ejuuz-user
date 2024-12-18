@@ -12,14 +12,15 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response && error.response.status === 401) {
-      // Handle token expiry or unauthorized access
       Alert.alert(
         "Session Expired",
         "Your session has expired. Please log in again.",
         [
           {
             text: "OK",
-            onPress: () => resetRoot(), // Reset to Login Page
+            onPress: () => {
+              resetRoot(); // Navigate to GetStarted
+            },
           },
         ]
       );

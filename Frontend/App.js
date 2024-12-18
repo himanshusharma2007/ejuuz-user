@@ -12,15 +12,24 @@ import Toast from "react-native-toast-message";
 import GetStarted from "./src/Authenticate/GetStarted";
 import OtpPage from "./src/Authenticate/OtpPage";
 import Router from "./Routes/Router";
+import SplashScreen from "./src/Componants/Screens/SpashScreen/SplashScreen";
+import { navigationRef } from "./src/service/RootNavigation";
 
 const Stack = createStackNavigator();
 
 export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [showSplash, setShowSplash] = useState(true);
 
   useEffect(() => {
-    checkLoginStatus();
+    // Show splash screen for 3 seconds
+    const splashTimeout = setTimeout(() => {
+      setShowSplash(false); // Hide Splash Screen after 3 seconds
+      checkLoginStatus();
+    }, 4000);
+
+    return () => clearTimeout(splashTimeout);
   }, []);
 
   const checkLoginStatus = async () => {
@@ -34,14 +43,18 @@ export default function App() {
     }
   };
 
+  if (showSplash) {
+    return <SplashScreen />; // Render Splash Screen for 3 seconds
+  }
+
   if (isLoading) {
-    return null; // or a loading screen
+    return null; // Optional loading state
   }
 
   return (
     <GestureHandlerRootView style={styles.container}>
       <PaperProvider>
-        <NavigationContainer>
+        <NavigationContainer ref={navigationRef}>
           <Provider store={store}>
             <Stack.Navigator screenOptions={{ headerShown: false }}>
               {!isLoggedIn ? (

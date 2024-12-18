@@ -148,66 +148,48 @@ export default function Search() {
 
   const horizontalrenderItem = ({ item }) => {
     const imageUri = item.images?.[0]?.url || "https://via.placeholder.com/150";
-  
+
     return (
       <TouchableOpacity
-      onPress={() =>
-        navigation.navigate("ProductDetails", {
-          item: JSON.stringify(item._id),
-        })
-      }
-      style={styles.productCard}
-    >
-      <View style={styles.imageContainer}>
-        <Image 
-          source={{ uri: imageUri }} 
-          style={styles.productImage} 
-        />
-        {item.discount > 0 && (
-          <View style={styles.discountBadge}>
-            <Text style={styles.discountText}>
-              {item.discount}% OFF
-            </Text>
-          </View>
-        )}
-      </View>
-      <View style={styles.productInfo}>
-        <Text style={styles.productName} numberOfLines={2}>
-          {item.name}
-        </Text>
-        <View style={styles.priceRatingContainer}>
-          <Text style={styles.productPrice}>
-            ${item.price.toFixed(2)}
-          </Text>
-          <View style={styles.ratingContainer}>
-            <Ionicons 
-              name="star" 
-              size={16} 
-              color="#FFD700" 
-            />
-            <Text style={styles.ratingText}>
-              {item.avgRating > 0 ? item.avgRating.toFixed(1) : "N/A"}
-            </Text>
-          </View>
+        onPress={() =>
+          navigation.navigate("ProductDetails", {
+            item: JSON.stringify(item._id),
+          })
+        }
+        style={styles.productCard}
+      >
+        <View style={styles.imageContainer}>
+          <Image source={{ uri: imageUri }} style={styles.productImage} />
+          {item.discount > 0 && (
+            <View style={styles.discountBadge}>
+              <Text style={styles.discountText}>{item.discount}% OFF</Text>
+            </View>
+          )}
         </View>
-        <TouchableOpacity
-          style={styles.addToCartButton}
-          onPress={() => handleaddtocart(item)}
-        >
-          <MaterialCommunityIcons 
-            name="cart-plus" 
-            size={18} 
-            color="#FFF" 
-          />
-          <Text style={styles.addToCartText}>
-            Add to Cart
+        <View style={styles.productInfo}>
+          <Text style={styles.productName} numberOfLines={2}>
+            {item.name}
           </Text>
-        </TouchableOpacity>
-      </View>
-    </TouchableOpacity>
+          <View style={styles.priceRatingContainer}>
+            <Text style={styles.productPrice}>${item.price.toFixed(2)}</Text>
+            <View style={styles.ratingContainer}>
+              <Ionicons name="star" size={16} color="#FFD700" />
+              <Text style={styles.ratingText}>
+                {item.avgRating > 0 ? item.avgRating.toFixed(1) : "N/A"}
+              </Text>
+            </View>
+          </View>
+          <TouchableOpacity
+            style={styles.addToCartButton}
+            onPress={() => handleaddtocart(item)}
+          >
+            <MaterialCommunityIcons name="cart-plus" size={18} color="#FFF" />
+            <Text style={styles.addToCartText}>Add to Cart</Text>
+          </TouchableOpacity>
+        </View>
+      </TouchableOpacity>
     );
   };
-  
 
   const shoprenderItem = ({ item }) => (
     <Card
