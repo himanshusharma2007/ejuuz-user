@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   StatusBar,
   Platform,
+  Linking, // Import Linking here
 } from "react-native";
 import { Button, Badge } from "react-native-paper";
 import { Ionicons } from "@expo/vector-icons";
@@ -81,7 +82,7 @@ const menuOptions = [
         id: "seller",
         title: "Become a Seller",
         icon: "🛍️",
-        navigate: "Seller",
+        navigate: "https://www.google.com/", // Updated to URL
       },
       {
         id: "about",
@@ -92,8 +93,6 @@ const menuOptions = [
     ],
   },
 ];
-
-
 
 const recentActivities = [
   {
@@ -113,66 +112,73 @@ const recentActivities = [
     icon: "star-outline",
   },
 ];
+
 export default function Profile() {
   const navigation = useNavigation();
   const [ordersCount, setOrdersCount] = useState(0);
   const [balance, setBalance] = useState(0);
 
-  const user = useSelector(selectUser)
+  const user = useSelector(selectUser);
 
-  useEffect(()=>{
-    setBalance(user?.walletBalance || 0)
-  }, [])
-  
+  useEffect(() => {
+    setBalance(user?.walletBalance || 0);
+  }, []);
+
   useEffect(() => {
     const fetchOrdersCount = async () => {
       try {
         const response = await getCustomerOrders(); // Call the service
-        // setOrdersCount(response.data.length);
-        console.log("Order count", response.data.length)
+        console.log("Order count", response.data.length);
       } catch (error) {
         console.error("Failed to fetch orders count:", error);
-      } 
+      }
     };
 
     fetchOrdersCount(); // Trigger the fetch
   }, []);
-  
+
   const userStats = [
     { id: "orders", label: "Orders", value: ordersCount },
     { id: "reviews", label: "Reviews", value: "12" },
     { id: "balance", label: "Balance", value: balance },
   ];
+
   function handlelogout() {
     AsyncStorage.setItem("accesstoken", "");
     AsyncStorage.setItem("isLoggedIn", "");
     console.log("user logged out");
     navigation.navigate("GetStarted");
   }
-  const renderMenuItem = (item) => (
-    <TouchableOpacity
-      style={styles.option}
-      onPress={() => {
-        if (item.id === "wallet" || item.id === "transactions") {
-          navigation.navigate("WalletTab", { screen: item.navigate });
-        } else {
-          navigation.navigate(item.navigate);
-        }
-      }}
-      key={item.id}
-    >
-      <View style={styles.optionContainer}>
-        <View style={styles.optionLeft}>
-          <Text style={styles.optionIcon}>{item.icon}</Text>
-          <Text style={styles.optionText}>{item.title}</Text>
+
+  const renderMenuItem = (item) => {
+    return (
+      <TouchableOpacity
+        style={styles.option}
+        onPress={() => {
+          if (item.navigate === "https://www.google.com/") {
+            // Open the URL when it's the seller link
+            Linking.openURL(item.navigate);
+          } else if (item.id === "wallet" || item.id === "transactions") {
+            navigation.navigate("WalletTab", { screen: item.navigate });
+          } else {
+            navigation.navigate(item.navigate);
+          }
+        }}
+        key={item.id}
+      >
+        <View style={styles.optionContainer}>
+          <View style={styles.optionLeft}>
+            <Text style={styles.optionIcon}>{item.icon}</Text>
+            <Text style={styles.optionText}>{item.title}</Text>
+          </View>
+          <View style={styles.optionRight}>
+            {item.badge && <Badge style={styles.badge}>{item.badge}</Badge>}
+            <Ionicons name="chevron-forward" size={20} color="#999" />
+          </View>
         </View>
-        <View style={styles.optionRight}>
-          {item.badge && <Badge style={styles.badge}>{item.badge}</Badge>}
-          <Ionicons name="chevron-forward" size={20} color="#999" />
-        </View>
-      </View>
-    </TouchableOpacity>
-  );
+      </TouchableOpacity>
+    );
+  };
 
   return (
     <ScrollView
@@ -193,16 +199,10 @@ export default function Profile() {
                 }}
                 style={styles.profileImage}
               />
-              {/* <TouchableOpacity style={styles.editProfileButton}>
-                <Ionicons name="camera" size={16} color="#fff" />
-              </TouchableOpacity> */}
             </View>
             <View>
               <Text style={styles.greeting}>Hello,</Text>
               <Text style={styles.userName}>John Doe</Text>
-              {/* <TouchableOpacity style={styles.editProfileLink}>
-                <Text style={styles.editProfileText}>Edit Profile</Text>
-              </TouchableOpacity> */}
             </View>
           </View>
           <TouchableOpacity

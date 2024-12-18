@@ -12,90 +12,114 @@ import {
   Platform,
   StatusBar,
 } from "react-native";
-import { Card, IconButton } from "react-native-paper";
+import { Card } from "react-native-paper";
 import { Feather, Ionicons } from "@expo/vector-icons";
-import { getCustomerOrders } from "../../../service/orderService";
 import { useNavigation } from "@react-navigation/native";
 
-// Responsive utility functions
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
+// Mocking the service function for this example
+const getCustomerOrders = () => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve({
+        status: "successs",
+        data: [
+          {
+            _id: "1",
+            orderId: "ORD001",
+            status: "Delivered",
+            products: [
+              {
+                productId: {
+                  name: "Sample Product",
+                  price: 19.99,
+                  images: [{ url: "https://via.placeholder.com/150" }],
+                },
+              },
+            ],
+            totalAmount: 19.99,
+          },
+        ],
+      });
+    }, 1000);
+  });
+};
+
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 const guidelineBaseWidth = 350;
 const guidelineBaseHeight = 680;
 
 const scale = (size) => (SCREEN_WIDTH / guidelineBaseWidth) * size;
 const verticalScale = (size) => (SCREEN_HEIGHT / guidelineBaseHeight) * size;
-const moderateScale = (size, factor = 0.5) => 
+const moderateScale = (size, factor = 0.5) =>
   size + (scale(size) - size) * factor;
 
 export default function Orders() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
 
-  // Memoized responsive styles
-  const styles = useMemo(() => createStyles(), [SCREEN_WIDTH, SCREEN_HEIGHT]);
-
+  const styles = useMemo(() => createStyles(), []);
   const navigation = useNavigation();
+
   useEffect(() => {
     fetchOrders();
-    
-    // Handle dimension changes
-    const subscription = Dimensions.addEventListener('change', () => {
-      // Force re-render to adjust layout
-      setOrders([...orders]);
-    });
-
-    // Cleanup
-    return () => subscription.remove();
   }, []);
 
   const fetchOrders = async () => {
     try {
       setLoading(true);
       const response = await getCustomerOrders();
-      if (response.status === "success" && response.data) {
-        setOrders(response.data.length > 0 ? response.data : []); 
+      if (response.status === "success" && Array.isArray(response.data)) {
+        setOrders(response.data);
       } else {
-        setOrders([]); 
+        setOrders([]);
       }
     } catch (err) {
       console.error("Failed to fetch orders:", err);
-      setOrders([]); 
       setError(err);
     } finally {
       setLoading(false);
     }
   };
 
-  // Filter orders based on search query
   const filteredOrders = useMemo(() => {
     if (!searchQuery) return orders;
-    return orders.filter(order => 
-      order.products[0]?.productId?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      order.status?.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    return orders.filter((order) => {
+      const productName =
+        order.products[0]?.productId?.name?.toLowerCase() || "";
+      const orderStatus = order.status?.toLowerCase() || "";
+      const query = searchQuery.toLowerCase();
+      return productName.includes(query) || orderStatus.includes(query);
+    });
   }, [orders, searchQuery]);
-
   const renderItem = ({ item }) => {
-    const firstProduct = item.products[0]?.productId || {};
+    // Destructuring product from the first item in the order
+    const firstProduct = item?.products[0]?.productId || {};
 
     return (
-      <Card style={styles.itemCard} onPress={() => navigation.navigate('OrderStatus', { orderId: item.orderId })}>
+      <Card
+        style={styles.itemCard}
+        onPress={() =>
+          navigation.navigate("OrderStatus", { orderId: item.orderId })
+        }
+      >
         <View style={styles.itemContent}>
           <Image
             source={{
-              uri: firstProduct.images[0]?.url || "https://via.placeholder.com/150",
+              uri:
+                firstProduct.images?.[0]?.url ||
+                "https://via.placeholder.com/150",
             }}
             style={styles.itemImage}
             resizeMode="cover"
           />
           <View style={styles.itemDetailsContainer}>
             <Text style={styles.statusText} numberOfLines={1}>
-              {item.status}
+              {item.status || "N/A"}
             </Text>
             <Text style={styles.itemName} numberOfLines={2}>
-              {firstProduct.name || "Unknown Product"}
+              {firstProduct.name ? firstProduct.name : "Not Order Item"}
             </Text>
             <Text style={styles.itemPrice}>
               R {firstProduct.price?.toLocaleString() || "0"} / item
@@ -104,14 +128,14 @@ export default function Orders() {
               Total Amount: R {item.totalAmount?.toLocaleString() || "0"}
             </Text>
           </View>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.chevronContainer}
-            onPress={() => console.log('Order details', item._id)}
+            onPress={() => console.log("Order details", item._id)}
           >
-            <Feather 
-              name="chevron-right" 
-              size={moderateScale(24)} 
-              color="green" 
+            <Feather
+              name="chevron-right"
+              size={moderateScale(24)}
+              color="green"
             />
           </TouchableOpacity>
         </View>
@@ -122,10 +146,7 @@ export default function Orders() {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator 
-          size="large" 
-          color="#0000ff" 
-        />
+        <ActivityIndicator size="large" color="#0000ff" />
       </View>
     );
   }
@@ -134,10 +155,7 @@ export default function Orders() {
     return (
       <View style={styles.errorContainer}>
         <Text style={styles.errorText}>Failed to load orders</Text>
-        <TouchableOpacity 
-          onPress={fetchOrders} 
-          style={styles.retryButton}
-        >
+        <TouchableOpacity onPress={fetchOrders} style={styles.retryButton}>
           <Text style={styles.retryButtonText}>Retry</Text>
         </TouchableOpacity>
       </View>
@@ -146,40 +164,29 @@ export default function Orders() {
 
   return (
     <View style={styles.container}>
-      {/* Search Container */}
       <View style={styles.searchContainer}>
-        <Ionicons 
-          name="search" 
-          size={moderateScale(20)} 
-          color="#888" 
-        />
-        <TextInput 
-          placeholder="Search orders" 
+        <Ionicons name="search" size={moderateScale(20)} color="#888" />
+        <TextInput
+          placeholder="Search orders"
           style={styles.searchInput}
           value={searchQuery}
           onChangeText={setSearchQuery}
           placeholderTextColor="#888"
         />
-        <TouchableOpacity 
+        <TouchableOpacity
           onPress={() => console.log("Filter pressed")}
           style={styles.filterButton}
         >
-          <Feather 
-            name="filter" 
-            size={moderateScale(24)} 
-            color="#888" 
-          />
+          <Feather name="filter" size={moderateScale(24)} color="#888" />
         </TouchableOpacity>
       </View>
 
-      {/* Orders List or Empty State */}
       {filteredOrders.length === 0 ? (
         <View style={styles.emptyContainer}>
           <Text style={styles.emptyText}>
-            {searchQuery 
-              ? "No orders match your search" 
-              : "No orders found"
-            }
+            {searchQuery
+              ? "No orders match your search"
+              : "You have no orders yet. Start shopping to place your first order!"}
           </Text>
         </View>
       ) : (
@@ -197,15 +204,12 @@ export default function Orders() {
   );
 }
 
-// Dynamic Styles Creation
 const createStyles = () => {
   return StyleSheet.create({
     container: {
       flex: 1,
       backgroundColor: "#fff",
-      paddingTop: Platform.OS === 'android' 
-        ? StatusBar.currentHeight 
-        : 0,
+      paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
     },
     loadingContainer: {
       flex: 1,
@@ -258,10 +262,12 @@ const createStyles = () => {
       flex: 1,
       justifyContent: "center",
       alignItems: "center",
+      paddingHorizontal: moderateScale(20),
     },
     emptyText: {
       fontSize: moderateScale(18),
       color: "#888",
+      textAlign: "center",
     },
     listContentContainer: {
       paddingHorizontal: moderateScale(15),
@@ -275,7 +281,7 @@ const createStyles = () => {
       shadowOffset: { width: 0, height: 2 },
       shadowOpacity: 0.1,
       shadowRadius: 4,
-      backgroundColor:"#fff",
+      backgroundColor: "#fff",
     },
     itemContent: {
       flexDirection: "row",

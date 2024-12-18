@@ -322,7 +322,7 @@ const WalletStack = () => {
         options={{
           headerShown: false,
           headerTitle: "",
-          headerTitleStyle: {color: "red"},
+          headerTitleStyle: { color: "red" },
           headerShadowVisible: false,
           headerRight: () => (
             <TouchableOpacity onPress={() => navigation.navigate("Cart")}>
@@ -378,7 +378,8 @@ const ProfileStack = () => {
                 style={styles.cartContainer}
                 onPress={() => navigation.navigate("Cart")}
               >
-                <MaterialIcons name="shopping-cart" size={28} color="#007AFF" />
+                <Ionicons name="cart-outline" size={28} color="#007AFF" />
+
                 <Badge style={styles.cartBadge}>3</Badge>
               </TouchableOpacity>
             );
@@ -583,6 +584,7 @@ const styles = StyleSheet.create({
     top: -5,
     right: -5,
     backgroundColor: "red",
+    color: "white",
   },
 
   scanIconContainer: {
