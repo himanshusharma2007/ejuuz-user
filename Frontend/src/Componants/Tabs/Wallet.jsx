@@ -234,7 +234,9 @@ export default function Wallet() {
             <List.Item
               key={transaction._id}
               title={getTransactionTitle(transaction)}
+              titleStyle={styles.listItemText}
               description={formatDate(transaction.createdAt)}
+              descriptionStyle={styles.listItemText}
               left={(props) => (
                 <List.Icon
                   {...props}
@@ -407,6 +409,9 @@ const styles = StyleSheet.create({
   viewAll: {
     color: "#6B46C1",
   },
+  listItemText : {
+    color: "#000",
+  },
   transaction: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -430,6 +435,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
   },
   transactionName: {
+
     fontWeight: "500",
   },
   transactionTime: {

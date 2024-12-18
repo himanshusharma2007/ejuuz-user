@@ -220,7 +220,7 @@ export default function Search() {
     >
       <View style={styles.itemContent}>
         <Image
-          source={{ uri: "https://via.placeholder.com/150" }}
+          source={{ uri: item.products[0]?.images[0]?.url || "https://via.placeholder.com/150" }}
           style={styles.itemImage}
         />
         <View style={styles.itemDetails}>
@@ -338,6 +338,7 @@ export default function Search() {
                     fontSize: 24,
                     fontWeight: "600",
                     marginVertical: 20,
+                    color: "#000",
                   }}
                 >
                   Shops
@@ -543,6 +544,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "bold",
     marginBottom: 5,
+    color: "#000",
   },
   itemPrice: {
     fontSize: 16,

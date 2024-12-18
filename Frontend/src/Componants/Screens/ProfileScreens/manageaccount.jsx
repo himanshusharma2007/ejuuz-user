@@ -7,7 +7,7 @@ export default function ManageAccount() {
     <View style={styles.container}>
       <Card style={styles.card}>
         <Card.Content>
-          <Title>Manage Your Account</Title>
+          <Title style={styles.ManageAccountTitle}>Manage Your Account</Title>
           <Paragraph>Update your account details and settings.</Paragraph>
         </Card.Content>
         <Card.Actions>
@@ -37,9 +37,14 @@ const styles = StyleSheet.create({
     backgroundColor: "#f4f4f4",
   },
   card: {
+
     marginBottom: 20,
     backgroundColor: "white",
     elevation: 2,
+
+  },
+  ManageAccountTitle: {
+    color: "  "
   },
   button: {
     marginRight: 10,

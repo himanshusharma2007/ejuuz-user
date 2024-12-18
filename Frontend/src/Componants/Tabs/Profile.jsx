@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   StyleSheet,
   View,
@@ -14,6 +14,9 @@ import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import authService from "../../service/authService";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { getCustomerOrders } from "../../service/orderService";
+import { useSelector } from "react-redux";
+import { selectUser } from "../../../redux/features/userSlice";
 
 const menuOptions = [
   {
@@ -90,11 +93,7 @@ const menuOptions = [
   },
 ];
 
-const userStats = [
-  { id: "orders", label: "Orders", value: "28" },
-  { id: "reviews", label: "Reviews", value: "12" },
-  { id: "balance", label: "Balance", value: "2,450" },
-];
+
 
 const recentActivities = [
   {
@@ -114,10 +113,36 @@ const recentActivities = [
     icon: "star-outline",
   },
 ];
-
 export default function Profile() {
   const navigation = useNavigation();
+  const [ordersCount, setOrdersCount] = useState(0);
+  const [balance, setBalance] = useState(0);
 
+  const user = useSelector(selectUser)
+
+  useEffect(()=>{
+    setBalance(user?.walletBalance || 0)
+  }, [])
+  
+  useEffect(() => {
+    const fetchOrdersCount = async () => {
+      try {
+        const response = await getCustomerOrders(); // Call the service
+        // setOrdersCount(response.data.length);
+        console.log("Order count", response.data.length)
+      } catch (error) {
+        console.error("Failed to fetch orders count:", error);
+      } 
+    };
+
+    fetchOrdersCount(); // Trigger the fetch
+  }, []);
+  
+  const userStats = [
+    { id: "orders", label: "Orders", value: ordersCount },
+    { id: "reviews", label: "Reviews", value: "12" },
+    { id: "balance", label: "Balance", value: balance },
+  ];
   function handlelogout() {
     AsyncStorage.setItem("accesstoken", "");
     AsyncStorage.setItem("isLoggedIn", "");
@@ -431,5 +456,6 @@ const styles = StyleSheet.create({
   logoutButtonText: {
     fontSize: 16,
     fontWeight: "600",
+    color: "#fff",
   },
 });
