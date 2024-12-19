@@ -18,7 +18,6 @@ const WalletTransactionPin = () => {
   const route = useRoute();
   const navigation = useNavigation();
   const { amount, isWithdraw, isTopUp, isTransfer, scannedData } = route.params;
-  console.log("amount", amount);
 
   const handleNumberPress = (num) => {
     if (pin.length < maxLength) {
