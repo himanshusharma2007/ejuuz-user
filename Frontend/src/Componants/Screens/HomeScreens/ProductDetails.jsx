@@ -52,14 +52,14 @@ export default function ProductDetails() {
 
   const productdataWithId = JSON.parse(item);
   // console.log("productData", JSON.stringify(item));
-  console.log("productId", productdataWithId);
+  // console.log("productId", productdataWithId);
 
   useEffect(() => {
     const fetchProduct = async () => {
       try {
         setLoading(true);
         const response = await getProductById(productdataWithId);
-        console.log("response", response.product);
+        // console.log("response", response.product);
         setProductData(response.product);
       } catch (error) {
         console.error("Error fetching product data:", error);
@@ -181,9 +181,9 @@ export default function ProductDetails() {
             <Text style={styles.sectionTitle}>Tags</Text>
             <View style={styles.tagChipsContainer}>
               {productData?.tags.map((tag) => (
-                <Chip key={tag} style={styles.tagChip}>
-                  #{tag}
-                </Chip>
+                <View key={tag} style={styles.tagChip}>
+                  <Text style={styles.tagText}>#{tag}</Text>
+                </View>
               ))}
             </View>
           </View>
@@ -557,9 +557,16 @@ const styles = StyleSheet.create({
     flexWrap: "wrap",
   },
   tagChip: {
+    marginTop: 10,
     marginRight: 8,
-    marginBottom: 8,
     backgroundColor: "#E0E0E0",
+    borderRadius: 20,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  tagText: {
+    color: "black",
+    fontSize: 14,
   },
   reviewsContainer: {
     padding: 15,

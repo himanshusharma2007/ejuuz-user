@@ -59,19 +59,20 @@ export default function ProfileSettings() {
 
   const pickImage = async (source) => {
     try {
-      let result = source === "camera" 
-        ? await ImagePicker.launchCameraAsync({
-            mediaTypes: ImagePicker.MediaTypeOptions.Images,
-            allowsEditing: true,
-            aspect: [4, 4],
-            quality: 0.7,
-          })
-        : await ImagePicker.launchImageLibraryAsync({
-            mediaTypes: ImagePicker.MediaTypeOptions.Images,
-            allowsEditing: true,
-            aspect: [4, 4],
-            quality: 0.7,
-          });
+      let result =
+        source === "camera"
+          ? await ImagePicker.launchCameraAsync({
+              mediaTypes: ImagePicker.MediaTypeOptions.Images,
+              allowsEditing: true,
+              aspect: [4, 4],
+              quality: 0.7,
+            })
+          : await ImagePicker.launchImageLibraryAsync({
+              mediaTypes: ImagePicker.MediaTypeOptions.Images,
+              allowsEditing: true,
+              aspect: [4, 4],
+              quality: 0.7,
+            });
 
       if (!result.canceled && result.assets?.[0]?.uri) {
         const formData = new FormData();
@@ -81,7 +82,9 @@ export default function ProfileSettings() {
           name: "profile.jpg",
         });
 
-        const updatedProfile = await ProfileService.updateProfileImage(formData);
+        const updatedProfile = await ProfileService.updateProfileImage(
+          formData
+        );
         if (updatedProfile?.profileImage) {
           setProfileImage(updatedProfile.profileImage);
         }
@@ -113,13 +116,13 @@ export default function ProfileSettings() {
   }
 
   return (
-    <ScrollView 
+    <ScrollView
       style={styles.container}
       contentContainerStyle={styles.scrollViewContent}
     >
       {/* Profile Header */}
       <View style={styles.profileHeader}>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.avatarContainer}
           onPress={() => setImageModalVisible(true)}
         >
@@ -128,10 +131,9 @@ export default function ProfileSettings() {
             source={
               profileImage
                 ? { uri: profileImage.url }
-                : require('../../../images/avatar.webp')
+                : require("../../../images/avatar.webp")
             }
           />
-          
         </TouchableOpacity>
         <Text style={styles.profileName}>
           {profile?.name || "User Profile"}
@@ -146,32 +148,32 @@ export default function ProfileSettings() {
       {/* Profile Information */}
       <View style={styles.profileInfoContainer}>
         {profile?.name && (
-          <ProfileInfoItem 
-            icon="person" 
-            title="Full Name" 
-            subtitle={profile.name} 
-            iconColor="#8e44ad" 
+          <ProfileInfoItem
+            icon="person"
+            title="Full Name"
+            subtitle={profile.name}
+            iconColor="#8e44ad"
           />
         )}
         {profile?.mobile && (
-          <ProfileInfoItem 
-            icon="phone" 
-            title="Mobile Number" 
-            subtitle={profile.mobile} 
-            iconColor="#2980b9" 
+          <ProfileInfoItem
+            icon="phone"
+            title="Mobile Number"
+            subtitle={profile.mobile}
+            iconColor="#2980b9"
           />
         )}
         {profile?.email && (
-          <ProfileInfoItem 
-            icon="email" 
-            title="Email Address" 
-            subtitle={profile.email} 
-            iconColor="#e67e22" 
+          <ProfileInfoItem
+            icon="email"
+            title="Email Address"
+            subtitle={profile.email}
+            iconColor="#e67e22"
           />
         )}
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.profileInfoItem}
-          onPress={() => console.log("Change Password")}
+          // onPress={() => console.log("Change Password")}
         >
           <View style={styles.profileInfoIconContainer}>
             <MaterialIcons name="lock" size={24} color="#c0392b" />
@@ -185,8 +187,8 @@ export default function ProfileSettings() {
 
       {/* Action Buttons */}
       <View style={styles.actionButtonsContainer}>
-        <Button 
-          mode="contained" 
+        <Button
+          mode="contained"
           onPress={() => setModalVisible(true)}
           style={styles.updateProfileButton}
         >
@@ -276,7 +278,9 @@ export default function ProfileSettings() {
                 onPress={() => pickImage("library")}
               >
                 <MaterialIcons name="photo-library" size={50} color="#002E6E" />
-                <Text style={styles.imagePickerButtonText}>Choose from Library</Text>
+                <Text style={styles.imagePickerButtonText}>
+                  Choose from Library
+                </Text>
               </TouchableOpacity>
             </View>
             <Button
@@ -321,14 +325,14 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   avatarContainer: {
-    position: 'relative',
+    position: "relative",
     marginBottom: 15,
   },
   cameraIconOverlay: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 0,
     right: 0,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: "rgba(0,0,0,0.5)",
     borderRadius: 20,
     padding: 5,
   },

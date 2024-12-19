@@ -30,13 +30,13 @@ export default function CategoryDetails() {
 
   // Get wishlist from Redux store
   const wishlist = useSelector((state) => state.cart.wishlist);
-  console.log("wishlist", wishlist);
+  // console.log("wishlist", wishlist);
   const { category } = route.params;
   const categorydata = JSON.parse(category);
   const categoryItem = categorydata.items;
 
   const toggleFavorite = (item) => {
-    console.log("toggleFavorite called", item);
+    // console.log("toggleFavorite called", item);
 
     // Check if item is already in wishlist
     const isInWishlist = wishlist.some(
@@ -87,7 +87,7 @@ export default function CategoryDetails() {
   };
 
   const addToCart = (item) => {
-    console.log("add to cart called ", item);
+    // console.log("add to cart called ", item);
     dispatch(addToCartAsync(item));
     Toast.show({
       type: "success",
@@ -102,7 +102,9 @@ export default function CategoryDetails() {
     const isInWishlist = wishlist.some(
       (wishlistItem) => wishlistItem._id === item._id
     );
-    const imageUri = item.images[0]?.url || "https://via.placeholder.com/150";
+    const imageUri =
+      item.images[0]?.url.replace("http", "https") ||
+      "https://via.placeholder.com/150";
 
     return (
       <TouchableOpacity

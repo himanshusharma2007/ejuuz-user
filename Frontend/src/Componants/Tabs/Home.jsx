@@ -228,10 +228,6 @@ export default function Home() {
     }
   }, []);
 
-  const handleBannerPress = useCallback((banner) => {
-    console.log("Banner pressed:", banner);
-  }, []);
-
   const handleCategoryPress = useCallback((category) => {
     navigation.navigate("CategoryDetails", {
       category: JSON.stringify({
@@ -239,10 +235,6 @@ export default function Home() {
         items: category.items,
       }),
     });
-  }, []);
-
-  const handleStorePress = useCallback((id) => {
-    console.log("Store pressed:", id);
   }, []);
 
   const filteredCategories = useMemo(() => {
@@ -290,7 +282,7 @@ export default function Home() {
               source={{
                 uri:
                   item.images && item.images.length > 0
-                    ? item.images[0].url
+                    ? item.images[0].url.replace("http", "https")
                     : "https://via.placeholder.com/300x200.png?text=No+Image",
               }}
               style={styles.bannerImage}
@@ -760,7 +752,11 @@ export default function Home() {
                     >
                       <Image
                         source={{
-                          uri: item.products[0]?.images[0]?.url || imgageUri,
+                          uri:
+                            item.products[0]?.images[0]?.url.replace(
+                              "http",
+                              "https"
+                            ) || imgageUri,
                         }}
                         style={styles.recommendedImage}
                       />
@@ -985,7 +981,10 @@ export default function Home() {
               <>
                 {discountedProducts.map((product) => {
                   const imgageUri =
-                    product.images[0]?.url || "https://via.placeholder.com/150";
+                    product.images[0]?.url.replace("http", "https") ||
+                    "https://via.placeholder.com/150";
+                  console.log("imgageUri", imgageUri);
+
                   return (
                     <TouchableOpacity
                       key={product._id}
@@ -1048,7 +1047,7 @@ export default function Home() {
                     <Image
                       source={{
                         uri:
-                          deal.images[0]?.url ||
+                          deal.images[0]?.url.replace("http", "https") ||
                           "https://via.placeholder.com/150",
                       }}
                       style={styles.dealImage}

@@ -8,7 +8,8 @@ import {
   TouchableOpacity,
   StatusBar,
   Platform,
-  Linking, // Import Linking here
+  Linking,
+  Alert, // Import Linking here
 } from "react-native";
 import { Button, Badge } from "react-native-paper";
 import { Ionicons } from "@expo/vector-icons";
@@ -82,7 +83,7 @@ const menuOptions = [
         id: "seller",
         title: "Become a Seller",
         icon: "🛍️",
-        navigate: "https://www.google.com/", // Updated to URL
+        navigate: "https://fintecj-merchant.onrender.com/", // Updated to URL
       },
       {
         id: "about",
@@ -128,7 +129,6 @@ export default function Profile() {
     const fetchOrdersCount = async () => {
       try {
         const response = await getCustomerOrders(); // Call the service
-        console.log("Order count", response.data.length);
       } catch (error) {
         console.error("Failed to fetch orders count:", error);
       }
@@ -146,6 +146,10 @@ export default function Profile() {
   function handlelogout() {
     AsyncStorage.setItem("accesstoken", "");
     AsyncStorage.setItem("isLoggedIn", "");
+    Alert.alert(
+      "Logout",
+      "You have been logged out." + "\n" + "Redirecting..."
+    );
     console.log("user logged out");
     navigation.navigate("GetStarted");
   }
@@ -155,7 +159,7 @@ export default function Profile() {
       <TouchableOpacity
         style={styles.option}
         onPress={() => {
-          if (item.navigate === "https://www.google.com/") {
+          if (item.navigate === "https://fintecj-merchant.onrender.com/") {
             // Open the URL when it's the seller link
             Linking.openURL(item.navigate);
           } else if (item.id === "wallet" || item.id === "transactions") {

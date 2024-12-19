@@ -33,8 +33,6 @@ export default function Wallet() {
   const fetchTransactions = async () => {
     try {
       const response = await walletService.getAllWalletTransactions();
-      console.log("response.transactions", response);
-      // Take the 3 most recent transactions
       const recentTransactions = response.slice(0, 3);
 
       setTransactions(recentTransactions);
@@ -409,7 +407,7 @@ const styles = StyleSheet.create({
   viewAll: {
     color: "#6B46C1",
   },
-  listItemText : {
+  listItemText: {
     color: "#000",
   },
   transaction: {
@@ -435,7 +433,6 @@ const styles = StyleSheet.create({
     fontSize: 20,
   },
   transactionName: {
-
     fontWeight: "500",
   },
   transactionTime: {

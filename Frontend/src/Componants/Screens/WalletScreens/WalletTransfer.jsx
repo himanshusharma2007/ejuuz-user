@@ -15,7 +15,6 @@ export default function WalletTransfer() {
   const route = useRoute();
   const { item } = route.params;
   const contact = JSON.parse(item);
-  console.log(contact);
   const [amount, setAmount] = useState("0.00");
   const navigation = useNavigation();
 

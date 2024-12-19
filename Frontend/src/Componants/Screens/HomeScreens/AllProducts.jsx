@@ -44,7 +44,7 @@ export default function AllProducts() {
   }, []);
 
   const addToCart = (item) => {
-    console.log("add to cart called ", item);
+    // console.log("add to cart called ", item);
     dispatch(addToCartAsync(item));
     Toast.show({
       type: "success",
@@ -78,7 +78,8 @@ export default function AllProducts() {
                 <Image
                   source={{
                     uri:
-                      deal.images[0]?.url || "https://via.placeholder.com/150",
+                      deal.images[0]?.url.replace("http", "https") ||
+                      "https://via.placeholder.com/150",
                   }}
                   style={styles.dealImage}
                 />

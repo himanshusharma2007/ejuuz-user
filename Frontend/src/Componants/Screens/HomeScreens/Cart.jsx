@@ -17,7 +17,10 @@ import {
 } from "../../../../redux/features/cartSlice";
 import { useNavigation } from "@react-navigation/native";
 import Toast from "react-native-toast-message";
-import { selectUser , selectUserData } from "../../../../redux/features/userSlice";
+import {
+  selectUser,
+  selectUserData,
+} from "../../../../redux/features/userSlice";
 export default function Cart() {
   const dispatch = useDispatch();
   const [totalItemQuantity, setTotalItemQuantity] = useState(0);
@@ -79,7 +82,9 @@ export default function Cart() {
     <Card style={styles.cartItem} onPress={() => handleItemPress(item)}>
       <View style={styles.itemContainer}>
         <Image
-          source={{ uri: item.productId.images[0]?.url }}
+          source={{
+            uri: item.productId.images[0]?.url.replace("http", "https"),
+          }}
           style={styles.itemImage}
           resizeMode="cover"
         />
@@ -174,7 +179,6 @@ export default function Cart() {
     </SafeAreaView>
   );
 }
-
 
 const styles = StyleSheet.create({
   container: {

@@ -58,7 +58,7 @@ export default function TransactionPin() {
 
       // Call place order service
       const orderResponse = await orderService.PlaceOrder(orderData);
-      console.log("orderResponse in transaction pin", orderResponse);
+      // console.log("orderResponse in transaction pin", orderResponse);
       setShowSuccess(true);
 
       // Start scale animation for checkmark

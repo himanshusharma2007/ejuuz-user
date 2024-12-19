@@ -11,10 +11,10 @@ import {
 import { Appbar, Badge, Card, Text, IconButton } from "react-native-paper";
 import { Ionicons, Feather, MaterialIcons } from "@expo/vector-icons";
 import { useDispatch, useSelector } from "react-redux";
-import { 
-  addToCartAsync, 
-  removeFromWishlistAsync, 
-  fetchWishlistAsync 
+import {
+  addToCartAsync,
+  removeFromWishlistAsync,
+  fetchWishlistAsync,
 } from "../../../../redux/features/cartSlice";
 import { useNavigation } from "@react-navigation/native";
 import Toast from "react-native-toast-message";
@@ -25,10 +25,10 @@ export default function Wishlist() {
   const wishlistData = useSelector((state) => state.cart.wishlist);
   const cartItems = useSelector((state) => state.cart.items);
   const wishlistStatus = useSelector((state) => state.cart.status.wishlist);
-  
+
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-console.log('wishlistData in wishlist page ', wishlistData)
+  // console.log('wishlistData in wishlist page ', wishlistData)
   // Fetch wishlist on component mount
   useEffect(() => {
     dispatch(fetchWishlistAsync());
@@ -39,8 +39,8 @@ console.log('wishlistData in wishlist page ', wishlistData)
     dispatch(addToCartAsync(item));
     dispatch(removeFromWishlistAsync(item));
     Toast.show({
-      type: 'success',
-      text1: 'Item Added to Cart',
+      type: "success",
+      text1: "Item Added to Cart",
       text2: `${item.name} has been added to your cart. 🎉`,
     });
   };
@@ -49,8 +49,8 @@ console.log('wishlistData in wishlist page ', wishlistData)
   const handleRemoveFromWishlist = (item) => {
     dispatch(removeFromWishlistAsync(item));
     Toast.show({
-      type: 'error',
-      text1: 'Item Removed from Wishlist',
+      type: "error",
+      text1: "Item Removed from Wishlist",
       text2: `${item.name} has been removed from your wishlist.`,
     });
   };
@@ -62,7 +62,7 @@ console.log('wishlistData in wishlist page ', wishlistData)
   }, [dispatch]);
 
   // Filter wishlist based on search query
-  const filteredWishlist = wishlistData.filter((item) => 
+  const filteredWishlist = wishlistData.filter((item) =>
     item.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
@@ -70,23 +70,22 @@ console.log('wishlistData in wishlist page ', wishlistData)
   const renderItem = ({ item }) => (
     <Card style={styles.itemCard}>
       <View style={styles.itemContent}>
-        <Image 
-          source={{ uri: item.images[0].url || 'https://via.placeholder.com/150' }} 
-          style={styles.itemImage} 
+        <Image
+          source={{
+            uri: item.images[0].url || "https://via.placeholder.com/150",
+          }}
+          style={styles.itemImage}
         />
         <View style={styles.itemDetails}>
           <Text style={styles.itemName}>{item.name}</Text>
           <Text style={styles.itemPrice}>
-            {typeof item.price === 'number' 
-              ? `R ${item.price.toFixed(2)}` 
+            {typeof item.price === "number"
+              ? `R ${item.price.toFixed(2)}`
               : item.price}
           </Text>
-          <Text style={styles.rating}>
-            {item.rating || '⭐⭐⭐⭐'}
-          </Text>
+          <Text style={styles.rating}>{item.rating || "⭐⭐⭐⭐"}</Text>
         </View>
         <View style={styles.actionButtons}>
-          
           <IconButton
             icon="delete"
             color="red"
@@ -115,13 +114,13 @@ console.log('wishlistData in wishlist page ', wishlistData)
         {/* Search Input */}
         <View style={styles.searchContainer}>
           <Ionicons name="search" size={20} color="#888" />
-          <TextInput 
-            placeholder="Search" 
+          <TextInput
+            placeholder="Search"
             style={styles.searchInput}
             value={searchQuery}
             onChangeText={setSearchQuery}
           />
-          <TouchableOpacity onPress={() => console.log("Filter pressed")}>
+          <TouchableOpacity>
             <Feather name="filter" size={24} color="#888" />
           </TouchableOpacity>
         </View>
@@ -130,15 +129,13 @@ console.log('wishlistData in wishlist page ', wishlistData)
         <TouchableOpacity onPress={() => navigation.navigate("cart")}>
           <View style={styles.cartContainer}>
             <MaterialIcons name="shopping-cart" size={28} color="#007AFF" />
-            <Badge style={styles.cartBadge}>
-              {cartItems.length}
-            </Badge>
+            <Badge style={styles.cartBadge}>{cartItems.length}</Badge>
           </View>
         </TouchableOpacity>
       </Appbar.Header>
 
       {/* Wishlist Content */}
-      {wishlistStatus === 'loading' ? (
+      {wishlistStatus === "loading" ? (
         <View style={styles.centerContent}>
           <Text>Loading wishlist...</Text>
         </View>
@@ -154,10 +151,7 @@ console.log('wishlistData in wishlist page ', wishlistData)
           renderItem={renderItem}
           contentContainerStyle={styles.content}
           refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={onRefresh}
-            />
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
           }
         />
       )}

@@ -54,13 +54,13 @@ const OtpPage = () => {
     try {
       setLoading(true);
       const res = await authService.verifyOtp(otpValue);
-      console.log(res);
+      // console.log(res);
       setIsVerified(true);
       await AsyncStorage.setItem("isLoggedIn", JSON.stringify(true));
       navigation.replace("Main");
       setError("");
     } catch (error) {
-      console.log('error', error)
+      console.log("error", error);
       setError(error.message || "Invalid OTP. Please try again.");
     } finally {
       setLoading(false);

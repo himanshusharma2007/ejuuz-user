@@ -93,7 +93,6 @@ export default function ProductSearch() {
 
   // Add to cart handler
   const handleAddToCart = (item) => {
-    console.log("Adding to cart:", item);
     dispatch(addToCart(item));
     Toast.show({
       type: "success",
@@ -119,7 +118,9 @@ export default function ProductSearch() {
         <View style={styles.imageContainer}>
           <Image
             source={{
-              uri: item.images[0]?.url || "https://via.placeholder.com/150",
+              uri:
+                item.images[0]?.url.replace("http", "https") ||
+                "https://via.placeholder.com/150",
             }}
             style={styles.productImage}
             resizeMode="cover"
@@ -157,8 +158,6 @@ export default function ProductSearch() {
       </View>
     </Card>
   );
-
-  console.log("productResults", productResults);
 
   return (
     <SafeAreaView style={styles.container}>

@@ -130,7 +130,7 @@ export default function Orders() {
           </View>
           <TouchableOpacity
             style={styles.chevronContainer}
-            onPress={() => console.log("Order details", item._id)}
+            // onPress={() => console.log("Order details", item._id)}
           >
             <Feather
               name="chevron-right"
@@ -174,7 +174,7 @@ export default function Orders() {
           placeholderTextColor="#888"
         />
         <TouchableOpacity
-          onPress={() => console.log("Filter pressed")}
+          // onPress={() => console.log("Filter pressed")}
           style={styles.filterButton}
         >
           <Feather name="filter" size={moderateScale(24)} color="#888" />

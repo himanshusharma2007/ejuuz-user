@@ -18,7 +18,7 @@ const WalletTransactionPin = () => {
   const route = useRoute();
   const navigation = useNavigation();
   const { amount, isWithdraw, isTopUp } = route.params;
-  console.log(amount, "amount");
+  // console.log(amount, "amount");
 
   const handleNumberPress = (num) => {
     if (pin.length < maxLength) {
@@ -44,10 +44,12 @@ const WalletTransactionPin = () => {
         console.error("Pin length does not match the required length.");
       }
     } catch (error) {
-      console.error("An error occurred while processing the transaction:", error.message);
+      console.error(
+        "An error occurred while processing the transaction:",
+        error.message
+      );
     }
   };
-  
 
   const renderPinDots = () => {
     const dots = [];

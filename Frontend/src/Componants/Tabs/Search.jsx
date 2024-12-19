@@ -51,8 +51,6 @@ export default function Search() {
     "Smartwatch",
   ]);
 
-  console.log("search project ", productResults.products);
-
   const [shopdata, setShopdata] = useState([]);
   const navigation = useNavigation();
   const dispatch = useDispatch();
@@ -81,7 +79,6 @@ export default function Search() {
     try {
       setLoading(true);
       const products = await searchProducts({ keyword: searchQuery });
-      console.log("Search results:", products); // Debugging
       setProductResults(products);
 
       if (!recentSearches.includes(searchQuery)) {
@@ -137,7 +134,6 @@ export default function Search() {
   };
 
   const cartdata = useSelector((state) => state.cart.items);
-  console.log("cartdata", cartdata);
   const truncateText = (text, wordLimit) => {
     const words = text.split(" ");
     if (words.length > 3) {
@@ -147,7 +143,9 @@ export default function Search() {
   };
 
   const horizontalrenderItem = ({ item }) => {
-    const imageUri = item.images?.[0]?.url || "https://via.placeholder.com/150";
+    const imageUri =
+      item.images?.[0]?.url.replace("http", "https") ||
+      "https://via.placeholder.com/150";
 
     return (
       <TouchableOpacity
@@ -202,7 +200,11 @@ export default function Search() {
     >
       <View style={styles.itemContent}>
         <Image
-          source={{ uri: item.products[0]?.images[0]?.url || "https://via.placeholder.com/150" }}
+          source={{
+            uri:
+              item.products[0]?.images[0]?.url.replace("http", "https") ||
+              "https://via.placeholder.com/150",
+          }}
           style={styles.itemImage}
         />
         <View style={styles.itemDetails}>
