@@ -19,7 +19,7 @@ export default function WalletPaymentEnter() {
   try {
     // Parse the contact data safely
     contactdata = JSON.parse(contact);
-    console.log("Parsed contact data:", contactdata);
+    // console.log("Parsed contact data:", contactdata);
   } catch (error) {
     console.error("Error parsing contact:", error.message);
   }
@@ -31,7 +31,7 @@ export default function WalletPaymentEnter() {
 
   const handleenterpayment = () => {
     if (amount) {
-      console.log("payment enter successfully !!");
+      // console.log("payment enter successfully !!");
       //   navigation.navigate("paymentdone");
       navigation.navigate("WalletTransactionPin");
     } else {
@@ -39,9 +39,9 @@ export default function WalletPaymentEnter() {
     }
   };
 
-  console.log("Name:", contactName);
-  console.log("Phone:", contactPhone);
-  console.log("Amount:", amount);
+  // console.log("Name:", contactName);
+  // console.log("Phone:", contactPhone);
+  // console.log("Amount:", amount);
 
   return (
     <SafeAreaView style={styles.container}>

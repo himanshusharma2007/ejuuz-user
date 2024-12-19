@@ -77,13 +77,11 @@ export const searchProducts = async (keyword) => {
       }
     );
 
-    console.log("search", response.data);
-
     // Return the products array from the response
     return response.data.products || [];
   } catch (error) {
     console.error("Full Search Error:", error);
-    
+
     // More detailed error logging
     if (error.response) {
       console.error("Error Response Data:", error.response.data);

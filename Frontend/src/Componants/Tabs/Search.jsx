@@ -51,8 +51,6 @@ export default function Search() {
     "Smartwatch",
   ]);
 
-  console.log("search project ", productResults.products);
-
   const [shopdata, setShopdata] = useState([]);
   const navigation = useNavigation();
   const dispatch = useDispatch();
@@ -81,7 +79,6 @@ export default function Search() {
     try {
       setLoading(true);
       const products = await searchProducts({ keyword: searchQuery });
-      console.log("Search results:", products); // Debugging
       setProductResults(products);
 
       if (!recentSearches.includes(searchQuery)) {
@@ -137,7 +134,6 @@ export default function Search() {
   };
 
   const cartdata = useSelector((state) => state.cart.items);
-  console.log("cartdata", cartdata);
   const truncateText = (text, wordLimit) => {
     const words = text.split(" ");
     if (words.length > 3) {
@@ -147,8 +143,10 @@ export default function Search() {
   };
 
   const horizontalrenderItem = ({ item }) => {
-    const imageUri = item.images?.[0]?.url || "https://via.placeholder.com/150";
-  
+    const imageUri =
+      item.images?.[0]?.url.replace("http", "https") ||
+      "https://via.placeholder.com/150";
+
     return (
       <TouchableOpacity
         onPress={() =>
@@ -170,12 +168,14 @@ export default function Search() {
           <Text style={styles.productName} numberOfLines={2}>
             {item.name}
           </Text>
-          <Text style={styles.productPrice}>${item.price.toFixed(2)}</Text>
-          <View style={styles.ratingContainer}>
-            <Ionicons name="star" size={16} color="#FFD700" />
-            <Text style={styles.ratingText}>
-              {item.avgRating > 0 ? item.avgRating.toFixed(1) : "N/A"}
-            </Text>
+          <View style={styles.priceRatingContainer}>
+            <Text style={styles.productPrice}>${item.price.toFixed(2)}</Text>
+            <View style={styles.ratingContainer}>
+              <Ionicons name="star" size={16} color="#FFD700" />
+              <Text style={styles.ratingText}>
+                {item.avgRating > 0 ? item.avgRating.toFixed(1) : "N/A"}
+              </Text>
+            </View>
           </View>
           <TouchableOpacity
             style={styles.addToCartButton}
@@ -188,7 +188,6 @@ export default function Search() {
       </TouchableOpacity>
     );
   };
-  
 
   const shoprenderItem = ({ item }) => (
     <Card
@@ -201,7 +200,11 @@ export default function Search() {
     >
       <View style={styles.itemContent}>
         <Image
-          source={{ uri: "https://via.placeholder.com/150" }}
+          source={{
+            uri:
+              item.products[0]?.images[0]?.url.replace("http", "https") ||
+              "https://via.placeholder.com/150",
+          }}
           style={styles.itemImage}
         />
         <View style={styles.itemDetails}>
@@ -319,6 +322,7 @@ export default function Search() {
                     fontSize: 24,
                     fontWeight: "600",
                     marginVertical: 20,
+                    color: "#000",
                   }}
                 >
                   Shops
@@ -359,23 +363,30 @@ const styles = StyleSheet.create({
     height: 60,
   },
   productCard: {
-    flexDirection: "column",
-    backgroundColor: "red",
-    borderRadius: 12,
-    // overflow: "hidden",
+    flexDirection: "row", // Changed to row layout
+    backgroundColor: "#FFFFFF",
+    borderRadius: 15,
+    width: "100%", // Full width of container
+    elevation: 5,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
+    shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.2,
-    shadowRadius: 6,
+    shadowRadius: 4,
+    marginBottom: 10,
+    overflow: "hidden",
+    alignItems: "center",
   },
   imageContainer: {
     position: "relative",
+    width: 120,
     height: 120,
-    backgroundColor: "#F9F9F9",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 12,
   },
   productImage: {
-    width: "100%",
-    height: "100%",
+    width: "90%",
+    height: "90%",
     resizeMode: "contain",
   },
   discountBadge: {
@@ -383,34 +394,44 @@ const styles = StyleSheet.create({
     top: 8,
     right: 8,
     backgroundColor: "#FF4757",
-    borderRadius: "100%",
+    borderRadius: 20,
     paddingHorizontal: 8,
     paddingVertical: 4,
+    alignItems: "center",
+    justifyContent: "center",
   },
   discountText: {
     color: "#FFF",
-    fontSize: 8,
+    fontSize: 10,
     fontWeight: "bold",
   },
   productInfo: {
-    padding: 12,
+    flex: 1, // Take remaining space
+    justifyContent: "center",
+    paddingVertical: 10,
+    paddingRight: 12,
   },
   productName: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: "600",
     color: "#333",
-    marginBottom: 4,
+    marginBottom: 6,
+    flexWrap: "wrap",
+  },
+  priceRatingContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 8,
   },
   productPrice: {
     fontSize: 16,
     fontWeight: "700",
     color: "#007AFF",
-    marginBottom: 8,
   },
   ratingContainer: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 8,
   },
   ratingText: {
     fontSize: 12,
@@ -422,9 +443,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: "#007AFF",
-    borderRadius: 8,
+    borderRadius: 10,
     paddingVertical: 8,
-    marginTop: 8,
+    paddingHorizontal: 12,
+    marginTop: 4,
+    alignSelf: "flex-start", // Align button to start of container
   },
   addToCartText: {
     color: "#FFF",
@@ -505,6 +528,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "bold",
     marginBottom: 5,
+    color: "#000",
   },
   itemPrice: {
     fontSize: 16,
@@ -548,15 +572,6 @@ const styles = StyleSheet.create({
   },
   productFooter: {
     flexDirection: "row",
-  },
-  productCard: {
-    flexDirection: "row",
-    borderRadius: 8,
-    marginVertical: 8,
-    marginHorizontal: 16,
-    backgroundColor: "#fff",
-    elevation: 2,
-    overflow: "hidden",
   },
   cardContainer: {
     flexDirection: "row",

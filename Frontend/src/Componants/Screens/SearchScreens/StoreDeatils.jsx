@@ -358,6 +358,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "#fff",
     marginBottom: 8,
+    color: "#000",
   },
   storeMetrics: {
     flexDirection: "row",
@@ -437,6 +438,7 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     marginBottom: 4,
     flex: 1,
+    color: "#000",
   },
   productPrice: {
     fontSize: 16,

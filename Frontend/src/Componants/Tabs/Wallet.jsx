@@ -33,8 +33,6 @@ export default function Wallet() {
   const fetchTransactions = async () => {
     try {
       const response = await walletService.getAllWalletTransactions();
-      console.log("response.transactions", response);
-      // Take the 3 most recent transactions
       const recentTransactions = response.slice(0, 3);
 
       setTransactions(recentTransactions);
@@ -234,7 +232,9 @@ export default function Wallet() {
             <List.Item
               key={transaction._id}
               title={getTransactionTitle(transaction)}
+              titleStyle={styles.listItemText}
               description={formatDate(transaction.createdAt)}
+              descriptionStyle={styles.listItemText}
               left={(props) => (
                 <List.Icon
                   {...props}
@@ -406,6 +406,9 @@ const styles = StyleSheet.create({
   },
   viewAll: {
     color: "#6B46C1",
+  },
+  listItemText: {
+    color: "#000",
   },
   transaction: {
     flexDirection: "row",

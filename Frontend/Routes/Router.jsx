@@ -54,6 +54,7 @@ import {
   fetchWishlistAsync,
 } from "../redux/features/cartSlice";
 import TopUpScreen from "../src/Componants/Screens/WalletScreens/TopUpScreen";
+import AllProducts from "../src/Componants/Screens/HomeScreens/AllProducts";
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -68,6 +69,11 @@ const HomeStack = () => {
         name="ProductDetails"
         component={ProductDetails}
         options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="AllProducts"
+        component={AllProducts}
+        options={{ headerShown: true, headerTitleAlign: "center" }}
       />
       <Stack.Screen
         name="Cart"
@@ -315,7 +321,8 @@ const WalletStack = () => {
         component={WalletHistory}
         options={{
           headerShown: false,
-          headerTitle: "History",
+          headerTitle: "",
+          headerTitleStyle: { color: "red" },
           headerShadowVisible: false,
           headerRight: () => (
             <TouchableOpacity onPress={() => navigation.navigate("Cart")}>
@@ -371,7 +378,8 @@ const ProfileStack = () => {
                 style={styles.cartContainer}
                 onPress={() => navigation.navigate("Cart")}
               >
-                <MaterialIcons name="shopping-cart" size={28} color="#007AFF" />
+                <Ionicons name="cart-outline" size={28} color="#007AFF" />
+
                 <Badge style={styles.cartBadge}>3</Badge>
               </TouchableOpacity>
             );
@@ -397,7 +405,7 @@ const ProfileStack = () => {
           headerTitleStyle: {
             fontWeight: "bold",
             fontSize: 24,
-            color: "#007AFF",
+            color: "#000",
           },
         }}
       />
@@ -409,17 +417,6 @@ const ProfileStack = () => {
           headerTitle: "",
         }}
       />
-    </Stack.Navigator>
-  );
-};
-
-// Authentication Stack
-const AuthStack = () => {
-  return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="GetStarted" component={GetStarted} />
-      <Stack.Screen name="OtpPage" component={OtpPage} />
-      <Stack.Screen name="/" component={TabNavigator} />
     </Stack.Navigator>
   );
 };
@@ -447,6 +444,8 @@ function getTabbarVisibility(route) {
     "Orders",
     "SearchTab",
     "TopUp",
+    "StoreDetails",
+    "AllProducts",
   ];
   return hideOnScreens.includes(routeName) ? "none" : "flex";
 }
@@ -585,6 +584,7 @@ const styles = StyleSheet.create({
     top: -5,
     right: -5,
     backgroundColor: "red",
+    color: "white",
   },
 
   scanIconContainer: {

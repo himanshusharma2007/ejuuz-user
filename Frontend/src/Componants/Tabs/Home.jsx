@@ -212,16 +212,20 @@ export default function Home() {
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
     try {
-      const response = await getAllDiscountedProducts();
-      setDiscountedProducts(response.products || []);
+      const [discountedResponse, productsResponse, shopsResponse] =
+        await Promise.all([
+          getAllDiscountedProducts(),
+          getAllProducts(),
+          getAllShops(),
+        ]);
+      setDiscountedProducts(discountedResponse.products || []);
+      setAllProducts(productsResponse.products);
+      setShopdata(shopsResponse.data);
     } catch (error) {
       console.error("Error refreshing data", error);
+    } finally {
+      setRefreshing(false);
     }
-    setRefreshing(false);
-  }, []);
-
-  const handleBannerPress = useCallback((banner) => {
-    console.log("Banner pressed:", banner);
   }, []);
 
   const handleCategoryPress = useCallback((category) => {
@@ -231,10 +235,6 @@ export default function Home() {
         items: category.items,
       }),
     });
-  }, []);
-
-  const handleStorePress = useCallback((id) => {
-    console.log("Store pressed:", id);
   }, []);
 
   const filteredCategories = useMemo(() => {
@@ -282,7 +282,7 @@ export default function Home() {
               source={{
                 uri:
                   item.images && item.images.length > 0
-                    ? item.images[0].url
+                    ? item.images[0].url.replace("http", "https")
                     : "https://via.placeholder.com/300x200.png?text=No+Image",
               }}
               style={styles.bannerImage}
@@ -304,18 +304,9 @@ export default function Home() {
     };
   }, [currentIndex, startAutoScroll]);
 
-  return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar backgroundColor="#002E6E" barStyle="light-content" />
-
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
-        }
-      >
+  const renderHome = () => {
+    return (
+      <>
         <View style={styles.curve}>
           <View style={styles.logoContainer}>
             <Image
@@ -558,9 +549,29 @@ export default function Home() {
                 <Text style={styles.sectionTitle}>Popular Shop</Text>
               </>
             )}
-            <TouchableOpacity>
-              <Text style={styles.seeAllText}>See all</Text>
-            </TouchableOpacity>
+
+            {loading ? (
+              <>
+                <ContentLoader
+                  speed={2}
+                  width={90}
+                  height={20}
+                  viewBox={`0 0 90 20`}
+                  backgroundColor="#f3f3f3"
+                  foregroundColor="#ecebeb"
+                >
+                  <Rect x="0" y="0" rx="10" ry="10" width="90" height="20" />
+                </ContentLoader>
+              </>
+            ) : (
+              <>
+                <TouchableOpacity
+                  onPress={() => navigation.navigate("AllProducts")}
+                >
+                  <Text style={styles.seeAllText}>See all</Text>
+                </TouchableOpacity>
+              </>
+            )}
           </View>
           <ScrollView
             horizontal
@@ -730,6 +741,7 @@ export default function Home() {
                       key={item._id}
                       style={styles.recommendedCard}
                       onPress={() =>
+                        navigation.isFocused() &&
                         navigation.navigate("SearchTab", {
                           screen: "StoreDetails",
                           params: {
@@ -740,7 +752,11 @@ export default function Home() {
                     >
                       <Image
                         source={{
-                          uri: item.products[0]?.images[0]?.url || imgageUri,
+                          uri:
+                            item.products[0]?.images[0]?.url.replace(
+                              "http",
+                              "https"
+                            ) || imgageUri,
                         }}
                         style={styles.recommendedImage}
                       />
@@ -782,9 +798,25 @@ export default function Home() {
                 <Text style={styles.sectionTitle}>Recommended for You</Text>
               </>
             )}
-            <TouchableOpacity>
-              <Text style={styles.seeAllText}>See all</Text>
-            </TouchableOpacity>
+
+            {loading ? (
+              <ContentLoader
+                speed={2}
+                width={90}
+                height={20}
+                viewBox={`0 0 90 20`}
+                backgroundColor="#f3f3f3"
+                foregroundColor="#ecebeb"
+              >
+                <Rect x="0" y="0" rx="10" ry="10" width="90" height="20" />
+              </ContentLoader>
+            ) : (
+              <TouchableOpacity
+                onPress={() => navigation.navigate("AllProducts")}
+              >
+                <Text style={styles.seeAllText}>See all</Text>
+              </TouchableOpacity>
+            )}
           </View>
           <ScrollView
             horizontal
@@ -949,7 +981,10 @@ export default function Home() {
               <>
                 {discountedProducts.map((product) => {
                   const imgageUri =
-                    product.images[0]?.url || "https://via.placeholder.com/150";
+                    product.images[0]?.url.replace("http", "https") ||
+                    "https://via.placeholder.com/150";
+                  console.log("imgageUri", imgageUri);
+
                   return (
                     <TouchableOpacity
                       key={product._id}
@@ -996,7 +1031,9 @@ export default function Home() {
             <View style={styles.dealsSection}>
               <View style={styles.sectionHeader}>
                 <Text style={styles.sectionTitle}>Weekly Deals</Text>
-                <TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => navigation.navigate("AllProducts")}
+                >
                   <Text style={styles.seeAllText}>See all</Text>
                 </TouchableOpacity>
               </View>
@@ -1010,7 +1047,7 @@ export default function Home() {
                     <Image
                       source={{
                         uri:
-                          deal.images[0]?.url ||
+                          deal.images[0]?.url.replace("http", "https") ||
                           "https://via.placeholder.com/150",
                       }}
                       style={styles.dealImage}
@@ -1035,6 +1072,23 @@ export default function Home() {
             </View>
           </>
         )}
+      </>
+    );
+  };
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <StatusBar backgroundColor="#002E6E" barStyle="light-content" />
+
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+        }
+      >
+        {renderHome()}
       </ScrollView>
     </SafeAreaView>
   );

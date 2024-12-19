@@ -37,7 +37,6 @@ export const removeFromWishlist = async (productId) => {
 
 export const getWishlist = async () => {
   try {
-    console.log("get wishlist function called");
     const accessToken = await AsyncStorage.getItem("accesstoken");
 
     const response = await api.get("/wishlist", {
@@ -45,7 +44,6 @@ export const getWishlist = async () => {
         Authorization: `Bearer ${accessToken}`,
       },
     });
-    // console.log('response in get wishlist ', response.data)
 
     return response.data.wishlist;
   } catch (error) {

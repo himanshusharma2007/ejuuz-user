@@ -1,35 +1,35 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { 
-  View, 
-  StyleSheet, 
-  ScrollView, 
-  Image, 
-  Dimensions, 
-  Platform, 
-  StatusBar, 
-  ActivityIndicator
+import {
+  View,
+  StyleSheet,
+  ScrollView,
+  Image,
+  Dimensions,
+  Platform,
+  StatusBar,
+  ActivityIndicator,
 } from "react-native";
-import { 
-  Card, 
-  Title, 
-  Text, 
-  Button, 
-  Chip, 
-  List, 
-  Appbar 
+import {
+  Card,
+  Title,
+  Text,
+  Button,
+  Chip,
+  List,
+  Appbar,
 } from "react-native-paper";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { getOrderById } from "../../../service/orderService"; // Modify this import as needed
 
 // Responsive utility functions
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 const guidelineBaseWidth = 350;
 const guidelineBaseHeight = 680;
 
 const scale = (size) => (SCREEN_WIDTH / guidelineBaseWidth) * size;
 const verticalScale = (size) => (SCREEN_HEIGHT / guidelineBaseHeight) * size;
-const moderateScale = (size, factor = 0.5) => 
+const moderateScale = (size, factor = 0.5) =>
   size + (scale(size) - size) * factor;
 
 export default function OrderStatus() {
@@ -46,9 +46,9 @@ export default function OrderStatus() {
 
   useEffect(() => {
     fetchOrderDetails();
-    
+
     // Handle dimension changes
-    const subscription = Dimensions.addEventListener('change', () => {
+    const subscription = Dimensions.addEventListener("change", () => {
       // Force re-render to adjust layout
       fetchOrderDetails();
     });
@@ -61,7 +61,7 @@ export default function OrderStatus() {
     try {
       setLoading(true);
       const response = await getOrderById(orderId);
-      
+
       if (response.status === "success" && response.data) {
         setOrder(response.data);
       } else {
@@ -80,23 +80,25 @@ export default function OrderStatus() {
     {
       title: "Order Confirmed",
       completed: order?.status !== "Pending",
-      time: order ? new Date(order.orderDate).toLocaleTimeString() : null
+      time: order ? new Date(order.orderDate).toLocaleTimeString() : null,
     },
     {
       title: "Processing",
-      completed: ["Processing", "Shipped", "Delivered", "Picked Up"].includes(order?.status),
-      time: order ? new Date(order.updatedAt).toLocaleTimeString() : null
+      completed: ["Processing", "Shipped", "Delivered", "Picked Up"].includes(
+        order?.status
+      ),
+      time: order ? new Date(order.updatedAt).toLocaleTimeString() : null,
     },
     {
       title: "Shipped",
       completed: ["Shipped", "Delivered", "Picked Up"].includes(order?.status),
-      time: order ? new Date(order.updatedAt).toLocaleTimeString() : null
+      time: order ? new Date(order.updatedAt).toLocaleTimeString() : null,
     },
     {
       title: "Delivered",
       completed: ["Delivered", "Picked Up"].includes(order?.status),
-      time: order ? new Date(order.updatedAt).toLocaleTimeString() : null
-    }
+      time: order ? new Date(order.updatedAt).toLocaleTimeString() : null,
+    },
   ];
 
   // Loading State
@@ -113,10 +115,7 @@ export default function OrderStatus() {
     return (
       <View style={styles.errorContainer}>
         <Text style={styles.errorText}>Failed to load order details</Text>
-        <Button 
-          mode="contained" 
-          onPress={fetchOrderDetails}
-        >
+        <Button mode="contained" onPress={fetchOrderDetails}>
           Retry
         </Button>
       </View>
@@ -127,13 +126,13 @@ export default function OrderStatus() {
     <View style={styles.container}>
       <Appbar.Header style={styles.header}>
         <Appbar.BackAction onPress={() => navigation.goBack()} />
-        <Appbar.Content 
-          title={`Order #${order.orderId}`} 
-          titleStyle={styles.headerTitle} 
+        <Appbar.Content
+          title={`Order #${order.orderId}`}
+          titleStyle={styles.headerTitle}
         />
       </Appbar.Header>
 
-      <ScrollView 
+      <ScrollView
         style={styles.scrollContainer}
         showsVerticalScrollIndicator={false}
       >
@@ -144,9 +143,10 @@ export default function OrderStatus() {
               <View style={styles.productRow}>
                 <Image
                   style={styles.productImage}
-                  source={{ 
-                    uri: item.productId.images[0]?.url || 
-                    "https://via.placeholder.com/150" 
+                  source={{
+                    uri:
+                      item.productId.images[0]?.url.replace("http", "https") ||
+                      "https://via.placeholder.com/150",
                   }}
                   resizeMode="cover"
                 />
@@ -185,16 +185,18 @@ export default function OrderStatus() {
             </View>
             <View style={styles.summaryRow}>
               <Text style={styles.summaryLabel}>Status</Text>
-              <Chip 
-                mode="outlined" 
+              <Chip
+                mode="outlined"
                 style={[
-                  styles.statusChip, 
-                  { 
-                    backgroundColor: 
-                      order.status === "Picked Up" ? "#E8F5E9" : 
-                      order.status === "Processing" ? "#FFF3E0" : 
-                      "#F3E5F5" 
-                  }
+                  styles.statusChip,
+                  {
+                    backgroundColor:
+                      order.status === "Picked Up"
+                        ? "#E8F5E9"
+                        : order.status === "Processing"
+                        ? "#FFF3E0"
+                        : "#F3E5F5",
+                  },
                 ]}
               >
                 {order.status}
@@ -250,7 +252,9 @@ export default function OrderStatus() {
           mode="contained"
           style={styles.pickupButton}
           icon="qrcode"
-          onPress={() => navigation.navigate("UniqueQR", { orderId: order._id })}
+          onPress={() =>
+            navigation.navigate("UniqueQR", { orderId: order._id })
+          }
         >
           Pickup by QR
         </Button>
@@ -260,118 +264,119 @@ export default function OrderStatus() {
 }
 
 // Responsive Styles
-const createStyles = () => StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F5F5F5',
-    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0
-  },
-  header: {
-    backgroundColor: 'white',
-    elevation: 2
-  },
-  headerTitle: {
-    fontSize: moderateScale(16),
-    fontWeight: 'bold'
-  },
-  scrollContainer: {
-    padding: moderateScale(10)
-  },
-  productCard: {
-    marginBottom: verticalScale(10),
-    borderRadius: moderateScale(10)
-  },
-  productContent: {
-    padding: moderateScale(10)
-  },
-  productRow: {
-    flexDirection: 'row',
-    alignItems: 'center'
-  },
-  productImage: {
-    width: moderateScale(100),
-    height: moderateScale(100),
-    borderRadius: moderateScale(10),
-    marginRight: moderateScale(10)
-  },
-  productDetails: {
-    flex: 1
-  },
-  productName: {
-    fontSize: moderateScale(14),
-    fontWeight: 'bold'
-  },
-  priceContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: verticalScale(5)
-  },
-  priceText: {
-    fontSize: moderateScale(12),
-    color: '#333'
-  },
-  quantityText: {
-    fontSize: moderateScale(12),
-    color: '#666'
-  },
-  summaryCard: {
-    marginBottom: verticalScale(10),
-    borderRadius: moderateScale(10)
-  },
-  summaryRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginVertical: verticalScale(5)
-  },
-  summaryLabel: {
-    fontSize: moderateScale(12),
-    color: '#666'
-  },
-  summaryValue: {
-    fontSize: moderateScale(12),
-    fontWeight: 'bold'
-  },
-  statusChip: {
-    alignSelf: 'flex-end'
-  },
-  trackingCard: {
-    marginBottom: verticalScale(10),
-    borderRadius: moderateScale(10)
-  },
-  trackingTitle: {
-    marginBottom: verticalScale(10)
-  },
-  statusDot: {
-    alignItems: 'center',
-    marginRight: moderateScale(10)
-  },
-  dot: {
-    width: moderateScale(12),
-    height: moderateScale(12),
-    borderRadius: moderateScale(6)
-  },
-  line: {
-    width: moderateScale(2),
-    height: verticalScale(30)
-  },
-  pickupButton: {
-    margin: moderateScale(15),
-    borderRadius: moderateScale(10)
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center'
-  },
-  errorContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: moderateScale(20)
-  },
-  errorText: {
-    fontSize: moderateScale(16),
-    marginBottom: verticalScale(10),
-    textAlign: 'center'
-  }
-});
+const createStyles = () =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: "#F5F5F5",
+      paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
+    },
+    header: {
+      backgroundColor: "white",
+      elevation: 2,
+    },
+    headerTitle: {
+      fontSize: moderateScale(16),
+      fontWeight: "bold",
+    },
+    scrollContainer: {
+      padding: moderateScale(10),
+    },
+    productCard: {
+      marginBottom: verticalScale(10),
+      borderRadius: moderateScale(10),
+    },
+    productContent: {
+      padding: moderateScale(10),
+    },
+    productRow: {
+      flexDirection: "row",
+      alignItems: "center",
+    },
+    productImage: {
+      width: moderateScale(100),
+      height: moderateScale(100),
+      borderRadius: moderateScale(10),
+      marginRight: moderateScale(10),
+    },
+    productDetails: {
+      flex: 1,
+    },
+    productName: {
+      fontSize: moderateScale(14),
+      fontWeight: "bold",
+    },
+    priceContainer: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      marginTop: verticalScale(5),
+    },
+    priceText: {
+      fontSize: moderateScale(12),
+      color: "#333",
+    },
+    quantityText: {
+      fontSize: moderateScale(12),
+      color: "#666",
+    },
+    summaryCard: {
+      marginBottom: verticalScale(10),
+      borderRadius: moderateScale(10),
+    },
+    summaryRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      marginVertical: verticalScale(5),
+    },
+    summaryLabel: {
+      fontSize: moderateScale(12),
+      color: "#666",
+    },
+    summaryValue: {
+      fontSize: moderateScale(12),
+      fontWeight: "bold",
+    },
+    statusChip: {
+      alignSelf: "flex-end",
+    },
+    trackingCard: {
+      marginBottom: verticalScale(10),
+      borderRadius: moderateScale(10),
+    },
+    trackingTitle: {
+      marginBottom: verticalScale(10),
+    },
+    statusDot: {
+      alignItems: "center",
+      marginRight: moderateScale(10),
+    },
+    dot: {
+      width: moderateScale(12),
+      height: moderateScale(12),
+      borderRadius: moderateScale(6),
+    },
+    line: {
+      width: moderateScale(2),
+      height: verticalScale(30),
+    },
+    pickupButton: {
+      margin: moderateScale(15),
+      borderRadius: moderateScale(10),
+    },
+    loadingContainer: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    errorContainer: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+      padding: moderateScale(20),
+    },
+    errorText: {
+      fontSize: moderateScale(16),
+      marginBottom: verticalScale(10),
+      textAlign: "center",
+    },
+  });

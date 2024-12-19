@@ -22,40 +22,52 @@ const walletService = {
   withdrawMoney: async (amount) => {
     try {
       showToast("Withdrawing money...", ToastAndroid.LONG);
-      const response = await api.post(`/wallet/Customer/withdraw-money`, { amount });
+      const response = await api.post(`/wallet/Customer/withdraw-money`, {
+        amount,
+      });
       showToast("Money withdrawn successfully!");
       return response.data;
     } catch (error) {
       showToast("Failed to withdraw money!", ToastAndroid.LONG);
-      throw new Error(error.response?.data?.error || "Error withdrawing money.");
+      throw new Error(
+        error.response?.data?.error || "Error withdrawing money."
+      );
     }
   },
 
-  transferMoney: async (toUserPaymentId, amount) => {
+  transferMoney: async (amount, scannedData) => {
     try {
+      console.log("amount and scan data", scannedData, amount);
       showToast("Transferring money...", ToastAndroid.LONG);
-      const response = await api.post(`/wallet/Customer/transfer-money`, { toUserPaymentId, amount });
+      const response = await api.post(`/wallet/Customer/transfer-money`, {
+        toUserPaymentId: scannedData, // Send scannedData with the backend's expected parameter name
+        amount,
+      });
+
       showToast("Money transferred successfully!");
       return response.data;
     } catch (error) {
       showToast("Failed to transfer money!", ToastAndroid.LONG);
-      throw new Error(error.response?.data?.error || "Error transferring money.");
+      throw new Error(
+        error.response?.data?.error || "Error transferring money."
+      );
     }
   },
 
   getAllWalletTransactions: async (transactionType) => {
     try {
-        console.log("get all wallet transactions function called");
-      const query = transactionType ? `?transactionType=${transactionType}` : "";
+      const query = transactionType
+        ? `?transactionType=${transactionType}`
+        : "";
       const response = await api.get(`/wallet/Customer/transactions${query}`);
-      console.log('response.data', response.data)
       return response.data.transactions;
     } catch (error) {
-        console.log('error in get all wallet transactions', error)
       showToast("Failed to fetch transactions!", ToastAndroid.LONG);
-      throw new Error(error.response?.data?.error || "Error fetching transactions.");
+      throw new Error(
+        error.response?.data?.error || "Error fetching transactions."
+      );
     }
-  }
+  },
 };
 
 export default walletService;

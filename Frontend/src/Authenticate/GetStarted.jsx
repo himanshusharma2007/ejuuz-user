@@ -9,6 +9,7 @@ import {
   Image,
   StatusBar,
   ScrollView,
+  ActivityIndicator,
 } from "react-native";
 import {
   TextInput,
@@ -32,7 +33,6 @@ const countryCodes = [
   { code: "+1", country: "United States", flag: "🇺🇸" },
   { code: "+44", country: "United Kingdom", flag: "🇬🇧" },
   { code: "+91", country: "India", flag: "🇮🇳" },
-  // Add more country codes as needed
 ];
 
 export default function GetStarted() {
@@ -41,6 +41,7 @@ export default function GetStarted() {
   const [visible, setVisible] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const navigation = useNavigation();
+  const [loading, setLoading] = useState(false);
 
   const validatePhoneNumber = () => {
     if (!phoneNumber) {
@@ -51,7 +52,6 @@ export default function GetStarted() {
       });
       return false;
     }
-
     if (!/^\d+$/.test(phoneNumber)) {
       Toast.show({
         type: "error",
@@ -60,7 +60,6 @@ export default function GetStarted() {
       });
       return false;
     }
-
     if (phoneNumber.length !== 10) {
       Toast.show({
         type: "error",
@@ -69,17 +68,17 @@ export default function GetStarted() {
       });
       return false;
     }
-
     return true;
   };
 
   const handleSubmit = async () => {
     if (validatePhoneNumber()) {
       try {
+        setLoading(true);
         const res = await authService.sendOtp(
           selectedCountry.code + phoneNumber
         );
-        console.log(res);
+
         Toast.show({
           type: "success",
           text1: "Success",
@@ -89,12 +88,14 @@ export default function GetStarted() {
           phoneNumber: selectedCountry.code + phoneNumber,
         });
       } catch (error) {
-        console.log('error', error)
+        console.log("error", error);
         Toast.show({
           type: "error",
           text1: "Error",
           text2: "Failed to send OTP. Please try again.",
         });
+      } finally {
+        setLoading(false);
       }
     }
   };
@@ -144,20 +145,35 @@ export default function GetStarted() {
             </TouchableOpacity>
 
             <TextInput
-              style={styles.phoneInput}
+              style={styles.phoneInput} // Using the updated phoneInput style
               mode="outlined"
               value={phoneNumber}
               onChangeText={setPhoneNumber}
               keyboardType="number-pad"
               outlineColor="#E0E0E0"
               activeOutlineColor="#002E6E"
-              theme={{ colors: { primary: "#002E6E" } }}
+              theme={{
+                colors: {
+                  primary: "#002E6E", // Outline color for the input field
+                  text: "#000", // Ensure text color is black
+                },
+              }}
+              placeholder="Enter phone number"
+              placeholderTextColor="#A9A9A9" // Slightly gray placeholder
             />
           </View>
           <TouchableOpacity style={styles.btn} onPress={handleSubmit}>
             <Text style={styles.btnText}>SEND VIA SMS</Text>
           </TouchableOpacity>
         </View>
+
+        {/* Loader with Blur Background */}
+        {loading && (
+          <View style={styles.loadingOverlay}>
+            <ActivityIndicator size="large" color="#ffffff" />
+            <Text style={styles.loadingText}>Sending OTP...</Text>
+          </View>
+        )}
 
         <Portal>
           <Modal
@@ -177,6 +193,8 @@ export default function GetStarted() {
                   key={country.code}
                   title={`${country.flag} ${country.country}`}
                   description={country.code}
+                  titleStyle={{ color: "#000" }}
+                  descriptionStyle={{ color: "#000" }}
                   onPress={() => {
                     setSelectedCountry(country);
                     hideModal();
@@ -202,28 +220,55 @@ const styles = StyleSheet.create({
     height: height * 0.55,
     borderBottomRightRadius: 120,
   },
+  modal: {
+    padding: 20,
+    backgroundColor: "#fff",
+    // backgroundColor: "rgba(0, 0, 0, 0.5)", // Semi-transparent black background
+  },
+  searchbar: {
+    marginBottom: 10,
+  },
+  countryItem: {
+    paddingVertical: 10,
+  },
   header: {
     paddingTop: Platform.OS === "android" ? StatusBar.currentHeight + 15 : 40,
     paddingHorizontal: 20,
     alignItems: "center",
     justifyContent: "center",
-    height: height * 0.15, // Added fixed height for the header
+    height: height * 0.15,
   },
   logo: {
-    width: 200, // Increased from 0.4 to 0.6 (60% of screen width)
-    height: 210, // Increased height to 10% of screen height
+    width: 200,
+    height: 210,
     alignSelf: "center",
     marginTop: 70,
   },
   content: {
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 10, // Reduced from 20 to accommodate larger logo
+    marginTop: 10,
   },
   cartoon: {
     width: 300,
     height: 250,
     marginTop: 50,
+  },
+  loadingOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    // backgroundColor: "rgba(0, 0, 0, 0.5)", // Semi-transparent black background
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 10, // Ensures it appears above other content
+  },
+  loadingText: {
+    color: "#fff",
+    fontSize: 16,
+    marginTop: 10,
   },
   formSection: {
     paddingHorizontal: 20,
@@ -233,6 +278,14 @@ const styles = StyleSheet.create({
     color: "#666",
     fontSize: 14,
     marginBottom: 8,
+  },
+  phoneInput: {
+    flex: 1,
+    backgroundColor: "#fff",
+    height: 48,
+    fontSize: 16, // Font size for the input text
+    color: "#000", // Ensure text color is black
+    paddingHorizontal: 12, // Optional: Add padding for better text positioning
   },
   phoneInputContainer: {
     flexDirection: "row",
@@ -250,20 +303,6 @@ const styles = StyleSheet.create({
     marginRight: 8,
     backgroundColor: "#fff",
   },
-  countryFlag: {
-    fontSize: 16,
-    marginRight: 4,
-  },
-  countryCode: {
-    fontSize: 14,
-    color: "#002E6E",
-    marginRight: 4,
-  },
-  phoneInput: {
-    flex: 1,
-    backgroundColor: "#fff",
-    height: 48,
-  },
   btn: {
     backgroundColor: "#002E6E",
     borderRadius: 4,
@@ -275,20 +314,5 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 14,
     fontWeight: "600",
-  },
-
-  modal: {
-    backgroundColor: "#fff",
-    margin: 20,
-    borderRadius: 8,
-    padding: 20,
-    maxHeight: height * 0.7,
-  },
-  searchbar: {
-    marginBottom: 10,
-  },
-  countryItem: {
-    borderBottomWidth: 1,
-    borderBottomColor: "#eee",
   },
 });

@@ -25,6 +25,7 @@ const OtpPage = () => {
   const [isVerified, setIsVerified] = useState(false);
   const inputRefs = useRef([]);
   const navigation = useNavigation();
+  const [loading, setLoading] = useState(false);
 
   const handleOTPChange = (text, index) => {
     if (/^\d*$/.test(text)) {
@@ -51,17 +52,30 @@ const OtpPage = () => {
     }
 
     try {
+      setLoading(true);
       const res = await authService.verifyOtp(otpValue);
-      console.log(res);
+      // console.log(res);
       setIsVerified(true);
       await AsyncStorage.setItem("isLoggedIn", JSON.stringify(true));
       navigation.replace("Main");
       setError("");
     } catch (error) {
-      console.log('error', error)
+      console.log("error", error);
       setError(error.message || "Invalid OTP. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <Text style={{ color: "#000", fontSize: 20, fontWeight: "bold" }}>
+          Loading...
+        </Text>
+      </View>
+    );
+  }
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
@@ -137,6 +151,11 @@ const styles = StyleSheet.create({
     paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
   },
   safeArea: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  loadingContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",

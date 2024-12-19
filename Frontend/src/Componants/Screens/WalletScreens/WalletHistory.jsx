@@ -19,7 +19,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
-import walletService  from "../../../service/walletService ";
+import walletService from "../../../service/walletService ";
 
 export default function WalletHistory() {
   const theme = useTheme();
@@ -44,9 +44,9 @@ export default function WalletHistory() {
 
   const fetchTransactions = async () => {
     try {
-      console.log("Fetching transactions...");
+      // console.log("Fetching transactions...");
       const response = await walletService.getAllWalletTransactions();
-      console.log("Fetched transactions:", response);
+      // console.log("Fetched transactions:", response);
       setTransactions(response);
     } catch (error) {
       console.error("Failed to fetch transactions", error);
@@ -60,10 +60,12 @@ export default function WalletHistory() {
     if (searchhistory) {
       result = result.filter((transaction) => {
         // Search across from and to names
-        const fromName = transaction.from?.name?.toLowerCase() || '';
-        const toName = transaction.to?.name?.toLowerCase() || '';
-        return fromName.includes(searchhistory.toLowerCase()) || 
-               toName.includes(searchhistory.toLowerCase());
+        const fromName = transaction.from?.name?.toLowerCase() || "";
+        const toName = transaction.to?.name?.toLowerCase() || "";
+        return (
+          fromName.includes(searchhistory.toLowerCase()) ||
+          toName.includes(searchhistory.toLowerCase())
+        );
       });
     }
 
@@ -107,8 +109,11 @@ export default function WalletHistory() {
     let prefix = "+";
 
     // Determine color and prefix based on transaction type
-    if (transaction.transactionType === "WITHDRAW" || 
-        (transaction.fromModel === "Customer" && transaction.transactionType === "TRANSFER")) {
+    if (
+      transaction.transactionType === "WITHDRAW" ||
+      (transaction.fromModel === "Customer" &&
+        transaction.transactionType === "TRANSFER")
+    ) {
       color = "#FF5252"; // red for outgoing
       prefix = "-";
     }
@@ -134,7 +139,7 @@ export default function WalletHistory() {
   const getTransactionTitle = (transaction) => {
     switch (transaction.transactionType) {
       case "TRANSFER":
-        return `Transfer to ${transaction.to?.name || 'Unknown'}`;
+        return `Transfer to ${transaction.to?.name || "Unknown"}`;
       case "ADD":
         return `Wallet Top-up`;
       case "WITHDRAW":
@@ -157,8 +162,11 @@ export default function WalletHistory() {
   return (
     <SafeAreaView style={styles.container}>
       <Appbar.Header style={styles.appbar}>
-        <Appbar.BackAction onPress={() => navigation.navigate("Wallet")} />
-        <Appbar.Content title="History" />
+        <Appbar.BackAction
+          onPress={() => navigation.navigate("Wallet")}
+          color="black"
+        />
+        <Appbar.Content title="History" titleStyle={{ color: "black" }} />
         <TouchableOpacity onPress={() => navigation.navigate("Cart")}>
           <Ionicons name="cart-outline" size={24} color="black" />
         </TouchableOpacity>
@@ -177,7 +185,7 @@ export default function WalletHistory() {
       <ScrollView>
         <List.Section>
           <View style={styles.actionButtons}>
-            <List.Subheader>
+            <List.Subheader style={{ color: "#000" }}>
               {currentFilter === "all"
                 ? "All Transactions"
                 : currentFilter === "thisWeek"
@@ -258,19 +266,23 @@ export default function WalletHistory() {
             <List.Item
               key={transaction._id}
               title={getTransactionTitle(transaction)}
+              titleStyle={styles.listItemText} // Apply black color to title
               description={formatDate(transaction.createdAt)}
+              descriptionStyle={styles.listItemText} // Apply black color to description
               left={(props) => (
                 <List.Icon
                   {...props}
-                  icon={transaction.transactionType === "ADD" || 
-                        (transaction.toModel === "Customer" && transaction.transactionType === "TRANSFER") 
-                        ? "arrow-down" 
-                        : "arrow-up"}
+                  icon={
+                    transaction.transactionType === "ADD" ||
+                    (transaction.toModel === "Customer" &&
+                      transaction.transactionType === "TRANSFER")
+                      ? "arrow-down"
+                      : "arrow-up"
+                  }
                 />
               )}
               right={() => renderAmount(transaction)}
               style={styles.listItem}
-              onPress={() => openTransactionDetails(transaction)}
             />
           ))}
         </List.Section>
@@ -327,7 +339,6 @@ export default function WalletHistory() {
   );
 }
 
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -336,6 +347,7 @@ const styles = StyleSheet.create({
   appbar: {
     backgroundColor: "#fff",
     paddingRight: 16,
+    color: "000",
   },
   searchContainer: {
     flexDirection: "row",
@@ -345,6 +357,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
   },
   searchBar: {
+    color: "000",
     flex: 1,
     marginRight: 8,
     backgroundColor: "#f5f5f5",
@@ -353,11 +366,15 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-
     backgroundColor: "#f5f5f5",
+    color: "#000",
   },
   listItem: {
     backgroundColor: "#fff",
+    color: "#000",
+  },
+  listItemText: {
+    color: "#000",
   },
   amount: {
     fontWeight: "bold",
@@ -378,6 +395,7 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     fontSize: 18,
+    color: "000",
     fontWeight: "bold",
     marginBottom: 8,
   },
