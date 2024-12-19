@@ -21,7 +21,7 @@ const getCustomerOrders = () => {
   return new Promise((resolve) => {
     setTimeout(() => {
       resolve({
-        status: "successs",
+        status: "success",
         data: [
           {
             _id: "1",
