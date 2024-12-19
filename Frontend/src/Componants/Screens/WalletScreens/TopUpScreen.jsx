@@ -15,8 +15,8 @@ const TopUpScreen = () => {
   const [loading, setLoading] = useState(false); // Added loading state
   const navigation = useNavigation();
   const route = useRoute();
-
-  const { title, subtitle, isTopUp, isWithdraw } = route.params;
+  console.log("Param", route.params);
+  const { title, subtitle, isTopUp, isWithdraw, isTransfer, scannedData } = route.params;
 
   const handleNext = async () => {
     if (amount) {
@@ -28,6 +28,8 @@ const TopUpScreen = () => {
           amount: amount,
           isTopUp,
           isWithdraw,
+          isTransfer,
+          scannedData,
         });
       } catch (error) {
         console.error("Error navigating:", error);

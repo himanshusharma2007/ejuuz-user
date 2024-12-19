@@ -88,7 +88,7 @@ export default function GetStarted() {
           phoneNumber: selectedCountry.code + phoneNumber,
         });
       } catch (error) {
-        console.log('error', error)
+        console.log("error", error);
         Toast.show({
           type: "error",
           text1: "Error",
@@ -145,16 +145,21 @@ export default function GetStarted() {
             </TouchableOpacity>
 
             <TextInput
-              style={styles.phoneInput}
+              style={styles.phoneInput} // Using the updated phoneInput style
               mode="outlined"
               value={phoneNumber}
               onChangeText={setPhoneNumber}
               keyboardType="number-pad"
               outlineColor="#E0E0E0"
               activeOutlineColor="#002E6E"
-              theme={{ colors: { primary: "#002E6E" } }}
+              theme={{
+                colors: {
+                  primary: "#002E6E", // Outline color for the input field
+                  text: "#000", // Ensure text color is black
+                },
+              }}
               placeholder="Enter phone number"
-              placeholderTextColor={"#000"}
+              placeholderTextColor="#A9A9A9" // Slightly gray placeholder
             />
           </View>
           <TouchableOpacity style={styles.btn} onPress={handleSubmit}>
@@ -278,7 +283,9 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#fff",
     height: 48,
-    color: "#000",
+    fontSize: 16, // Font size for the input text
+    color: "#000", // Ensure text color is black
+    paddingHorizontal: 12, // Optional: Add padding for better text positioning
   },
   phoneInputContainer: {
     flexDirection: "row",

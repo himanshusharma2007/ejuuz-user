@@ -31,10 +31,15 @@ const walletService = {
     }
   },
 
-  transferMoney: async (toUserPaymentId, amount) => {
+  transferMoney: async (amount, scannedData) => {
     try {
+      console.log("amount and scan data", scannedData, amount);
       showToast("Transferring money...", ToastAndroid.LONG);
-      const response = await api.post(`/wallet/Customer/transfer-money`, { toUserPaymentId, amount });
+      const response = await api.post(`/wallet/Customer/transfer-money`, { 
+        toUserPaymentId: scannedData, // Send scannedData with the backend's expected parameter name
+        amount 
+      });
+
       showToast("Money transferred successfully!");
       return response.data;
     } catch (error) {

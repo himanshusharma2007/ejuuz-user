@@ -1,6 +1,6 @@
 const Customer = require("../model/customerModel");
 const WalletTransaction = require("../model/walletTransactionModel");
-
+const Merchant = require("../model/merchantModel")
 // Add Money to Wallet
 exports.addMoney = async (req, res) => {
     const { amount } = req.body;
@@ -82,6 +82,7 @@ const findToUser = async (paymentId) => {
 
 // Transfer Money
 exports.transferMoney = async (req, res) => {
+    console.log("req.body", req.body)
     const { toUserPaymentId, amount } = req.body;
     const fromId = req.user._id;
     const fromType = req.params.userType;

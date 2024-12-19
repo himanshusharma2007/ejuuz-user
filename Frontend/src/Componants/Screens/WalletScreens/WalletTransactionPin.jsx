@@ -17,8 +17,8 @@ const WalletTransactionPin = () => {
   const dispatch = useDispatch();
   const route = useRoute();
   const navigation = useNavigation();
-  const { amount, isWithdraw, isTopUp } = route.params;
-  console.log(amount, "amount");
+  const { amount, isWithdraw, isTopUp, isTransfer, scannedData } = route.params;
+  console.log("amount", amount);
 
   const handleNumberPress = (num) => {
     if (pin.length < maxLength) {
@@ -37,6 +37,10 @@ const WalletTransactionPin = () => {
           await walletService.addMoney(amount);
         } else if (amount && isWithdraw) {
           await walletService.withdrawMoney(amount);
+        }
+        else if (amount && isTransfer) {
+          console.log('amount', amount)
+          await walletService.transferMoney(amount, scannedData);
         }
         dispatch(fetchUser());
         navigation.navigate("PaymentDone", { pin, amount });
