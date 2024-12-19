@@ -13,6 +13,7 @@ import {
   Animated,
   Platform,
   StatusBar,
+  Modal,
 } from "react-native";
 import { BarCodeScanner } from "expo-barcode-scanner";
 import * as ImagePicker from "expo-image-picker";
@@ -26,6 +27,13 @@ export default function Scan() {
   const [scannedData, setScannedData] = useState([]);
   const [searchText, setSearchText] = useState("");
   const [recentContacts, setRecentContacts] = useState([]);
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [currentScan, setCurrentScan] = useState({
+    title: "Transfer money",
+    subtitle: "asghjk",
+    data: "",
+  });
+  const [scanning, setScanning] = useState(true);
   
   // Animated values for corner pop effect
   const [topLeftScale] = useState(new Animated.Value(1));
@@ -105,23 +113,45 @@ export default function Scan() {
   };
 
   const handleBarCodeScanned = ({ type, data }) => {
+    setScanning(false);
     setScannedData([...scannedData, { type, data }]);
-    handlePaymentQR(data);
+    
+    // Parse the scanned data to extract title and subtitle
+    // You might need to adjust this based on your QR code format
+    let title = "Payment Request";
+    let subtitle = "Please verify the payment details";
+    
+    setCurrentScan({
+      title,
+      subtitle,
+      data,
+    });
+    setIsModalVisible(true);
   };
 
   const handlePaymentQR = (data) => {
     if (data.startsWith("upi://pay")) {
-      // Open UPI link
-      Linking.openURL(data).catch(() =>
-        Alert.alert("Error", "Unable to open UPI payment link.")
-      );
+      // Show modal instead of immediately opening UPI link
+      setCurrentScan({
+        title: "UPI Payment",
+        subtitle: "Verify and proceed with payment",
+        data,
+      });
+      setIsModalVisible(true);
     } else if (data.startsWith("http")) {
-      // Handle regular URLs
-      Linking.openURL(data).catch(() =>
-        Alert.alert("Error", "Unable to open link.")
-      );
+      setCurrentScan({
+        title: "Web Link",
+        subtitle: "External link detected",
+        data,
+      });
+      setIsModalVisible(true);
     } else {
-      Alert.alert("Scanned Data", data);
+      setCurrentScan({
+        title: "Scanned Content",
+        subtitle: "Please verify the details",
+        data,
+      });
+      setIsModalVisible(true);
     }
   };
 
@@ -144,6 +174,30 @@ export default function Scan() {
       setScannedData([...scannedData, { type: "image", data: extractedData }]);
       handlePaymentQR(extractedData);
     }
+  };
+
+  const handlePayNow = () => {
+    setIsModalVisible(false);
+    console.log("current scan", currentScan);
+    navigation.navigate('WalletTab', {
+      screen: 'TopUp',
+      params: {
+        title: currentScan.title,
+        subtitle: currentScan.subtitle,
+        isTransfer: true,
+        scannedData: currentScan.data,
+      },
+    });
+  };
+
+  const handleCancel = () => {
+    setIsModalVisible(false);
+    setScanning(true);
+    setCurrentScan({
+      title: "",
+      subtitle: "",
+      data: "",
+    });
   };
 
   // Handle contact selection
@@ -188,48 +242,51 @@ export default function Scan() {
         contentContainerStyle={styles.scrollViewContent}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.scannerContainer}>
-          <BarCodeScanner
-            onBarCodeScanned={handleBarCodeScanned}
-            style={[StyleSheet.absoluteFillObject, styles.scanner]}
-          />
-          <View style={styles.scanOverlay}>
-            <View style={styles.scannerFrame}>
-              <Animated.View 
-                style={[
-                  styles.corner, 
-                  styles.topLeftCorner,
-                  { transform: [{ scale: topLeftScale }] }
-                ]}
-                onTouchEnd={() => animateCorner(topLeftScale)}
-              />
-              <Animated.View 
-                style={[
-                  styles.corner, 
-                  styles.topRightCorner,
-                  { transform: [{ scale: topRightScale }] }
-                ]}
-                onTouchEnd={() => animateCorner(topRightScale)}
-              />
-              <Animated.View 
-                style={[
-                  styles.corner, 
-                  styles.bottomLeftCorner,
-                  { transform: [{ scale: bottomLeftScale }] }
-                ]}
-                onTouchEnd={() => animateCorner(bottomLeftScale)}
-              />
-              <Animated.View 
-                style={[
-                  styles.corner, 
-                  styles.bottomRightCorner,
-                  { transform: [{ scale: bottomRightScale }] }
-                ]}
-                onTouchEnd={() => animateCorner(bottomRightScale)}
-              />
+{scanning && (
+          <View style={styles.scannerContainer}>
+            <BarCodeScanner
+              onBarCodeScanned={handleBarCodeScanned}
+              style={[StyleSheet.absoluteFillObject, styles.scanner]}
+            />
+            <View style={styles.scanOverlay}>
+              <View style={styles.scannerFrame}>
+                {/* Keep your existing corner animations */}
+                <Animated.View 
+                  style={[
+                    styles.corner, 
+                    styles.topLeftCorner,
+                    { transform: [{ scale: topLeftScale }] }
+                  ]}
+                  onTouchEnd={() => animateCorner(topLeftScale)}
+                />
+                <Animated.View 
+                  style={[
+                    styles.corner, 
+                    styles.topRightCorner,
+                    { transform: [{ scale: topRightScale }] }
+                  ]}
+                  onTouchEnd={() => animateCorner(topRightScale)}
+                />
+                <Animated.View 
+                  style={[
+                    styles.corner, 
+                    styles.bottomLeftCorner,
+                    { transform: [{ scale: bottomLeftScale }] }
+                  ]}
+                  onTouchEnd={() => animateCorner(bottomLeftScale)}
+                />
+                <Animated.View 
+                  style={[
+                    styles.corner, 
+                    styles.bottomRightCorner,
+                    { transform: [{ scale: bottomRightScale }] }
+                  ]}
+                  onTouchEnd={() => animateCorner(bottomRightScale)}
+                />
+              </View>
             </View>
           </View>
-        </View>
+        )}
 
         <View style={styles.buttonContainer}>
           <TouchableOpacity
@@ -240,6 +297,55 @@ export default function Scan() {
             <Text style={styles.uploadButtonText}>Upload from gallery</Text>
           </TouchableOpacity>
         </View>
+
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={isModalVisible}
+          onRequestClose={handleCancel}
+        >
+          <View style={modalStyles.centeredView}>
+            <View style={modalStyles.modalView}>
+              {/* Header Section */}
+              <View style={modalStyles.modalHeader}>
+                <View style={modalStyles.modalHeaderIcon}>
+                  <Ionicons name="qr-code-outline" size={32} color="#002E6E" />
+                </View>
+                <Text style={modalStyles.modalTitle}>{currentScan.title}</Text>
+                <Text style={modalStyles.modalSubtitle}>{currentScan.subtitle}</Text>
+              </View>
+
+              {/* Content Section */}
+              <View style={modalStyles.modalContent}>
+                <View style={modalStyles.dataContainer}>
+                  <Text style={modalStyles.dataLabel}>Payment ID</Text>
+                  <View style={modalStyles.dataBox}>
+                    <Text style={modalStyles.dataText}>{currentScan.data}</Text>
+                  </View>
+                </View>
+
+              </View>
+
+              {/* Button Section */}
+              <View style={modalStyles.buttonSection}>
+                <TouchableOpacity
+                  style={[modalStyles.button, modalStyles.cancelButton]}
+                  onPress={handleCancel}
+                >
+                  <Text style={modalStyles.cancelButtonText}>Cancel Payment</Text>
+                </TouchableOpacity>
+                
+                <TouchableOpacity
+                  style={[modalStyles.button, modalStyles.payButton]}
+                  onPress={handlePayNow}
+                >
+                  <Ionicons name="wallet-outline" size={20} color="white" style={modalStyles.buttonIcon} />
+                  <Text style={modalStyles.payButtonText}>Pay Now</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
 
         <View style={styles.inputContainer}>
           <Ionicons name="search" size={20} color="gray" style={styles.searchIcon} />
@@ -297,7 +403,133 @@ export default function Scan() {
 }
 
 const { width, height } = Dimensions.get('window');
+const modalStyles = StyleSheet.create({
+  centeredView: {
+    flex: 1,
+    justifyContent: "flex-end", // Changed to flex-end to slide from bottom
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+  },
+  modalView: {
+    width: "100%",
+    backgroundColor: "white",
+    borderTopLeftRadius: 25,
+    borderTopRightRadius: 25,
+    paddingTop: 20,
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: -4,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  modalHeader: {
+    width: "100%",
+    alignItems: "center",
+    paddingHorizontal: 20,
+    marginBottom: 20,
+  },
+  modalHeaderIcon: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: "rgba(0, 46, 110, 0.1)",
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 15,
+  },
+  modalTitle: {
+    fontSize: 24,
+    fontWeight: "bold",
+    color: "#002E6E",
+    marginBottom: 8,
+    textAlign: "center",
+  },
+  modalSubtitle: {
+    fontSize: 16,
+    color: "#666",
+    textAlign: "center",
+    paddingHorizontal: 20,
+  },
+  modalContent: {
+    width: "100%",
+    paddingHorizontal: 20,
+    marginBottom: 20,
+  },
+  dataContainer: {
+    width: "100%",
+    marginBottom: 20,
+  },
+  dataLabel: {
+    fontSize: 14,
+    color: "#666",
+    marginBottom: 8,
+  },
+  dataBox: {
+    backgroundColor: "#F5F7FA",
+    borderRadius: 12,
+    padding: 15,
+    borderWidth: 1,
+    borderColor: "#E0E7FF",
+  },
+  dataText: {
+    fontSize: 14,
+    color: "#333",
+    lineHeight: 20,
+  },
 
+  buttonSection: {
+    width: "100%",
+    paddingHorizontal: 20,
+    paddingBottom: Platform.OS === 'ios' ? 40 : 20,
+    backgroundColor: "#F5F7FA",
+    borderTopWidth: 1,
+    borderTopColor: "#E0E7FF",
+    paddingTop: 20,
+  },
+  button: {
+    borderRadius: 15,
+    padding: 16,
+    elevation: 2,
+    width: "100%",
+    marginBottom: 12,
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  buttonIcon: {
+    marginRight: 8,
+  },
+  cancelButton: {
+    backgroundColor: "#F5F7FA",
+    borderWidth: 1,
+    borderColor: "#002E6E",
+  },
+  payButton: {
+    backgroundColor: "#002E6E",
+    shadowColor: "#002E6E",
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 4.65,
+    elevation: 8,
+  },
+  cancelButtonText: {
+    color: "#002E6E",
+    fontWeight: "600",
+    fontSize: 16,
+  },
+  payButtonText: {
+    color: "white",
+    fontWeight: "600",
+    fontSize: 16,
+  },
+});
 const styles = StyleSheet.create({
   container: {
     flex: 1,
