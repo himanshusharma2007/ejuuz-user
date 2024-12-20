@@ -18,20 +18,20 @@ import { getCustomerOrders } from "../../../service/orderService";
 import { useNavigation } from "@react-navigation/native";
 
 // Responsive utility functions
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 const guidelineBaseWidth = 350;
 const guidelineBaseHeight = 680;
 
 const scale = (size) => (SCREEN_WIDTH / guidelineBaseWidth) * size;
 const verticalScale = (size) => (SCREEN_HEIGHT / guidelineBaseHeight) * size;
-const moderateScale = (size, factor = 0.5) => 
+const moderateScale = (size, factor = 0.5) =>
   size + (scale(size) - size) * factor;
 
 export default function Orders() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
 
   // Memoized responsive styles
   const styles = useMemo(() => createStyles(), [SCREEN_WIDTH, SCREEN_HEIGHT]);
@@ -39,9 +39,9 @@ export default function Orders() {
   const navigation = useNavigation();
   useEffect(() => {
     fetchOrders();
-    
+
     // Handle dimension changes
-    const subscription = Dimensions.addEventListener('change', () => {
+    const subscription = Dimensions.addEventListener("change", () => {
       // Force re-render to adjust layout
       setOrders([...orders]);
     });
@@ -55,13 +55,14 @@ export default function Orders() {
       setLoading(true);
       const response = await getCustomerOrders();
       if (response.status === "success" && response.data) {
-        setOrders(response.data.length > 0 ? response.data : []); 
+        console.log("response in orders", response.data);
+        setOrders(response.data.length > 0 ? response.data : []);
       } else {
-        setOrders([]); 
+        setOrders([]);
       }
     } catch (err) {
       console.error("Failed to fetch orders:", err);
-      setOrders([]); 
+      setOrders([]);
       setError(err);
     } finally {
       setLoading(false);
@@ -71,28 +72,40 @@ export default function Orders() {
   // Filter orders based on search query
   const filteredOrders = useMemo(() => {
     if (!searchQuery) return orders;
-    return orders.filter(order => 
-      order.products[0]?.productId?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      order.status?.toLowerCase().includes(searchQuery.toLowerCase())
+    return orders.filter(
+      (order) =>
+        order.products[0]?.productId?.name
+          ?.toLowerCase()
+          .includes(searchQuery.toLowerCase()) ||
+        order.status?.toLowerCase().includes(searchQuery.toLowerCase())
     );
   }, [orders, searchQuery]);
 
   const renderItem = ({ item }) => {
     const firstProduct = item.products[0]?.productId || {};
+    const imageUrl =
+      firstProduct.images && firstProduct.images.length > 0
+        ? firstProduct.images[0]?.url
+        : "https://via.placeholder.com/150";
 
     return (
-      <Card style={styles.itemCard} onPress={() => navigation.navigate('OrderStatus', { orderId: item.orderId })}>
+      <Card
+        style={styles.itemCard}
+        onPress={() =>
+          navigation.navigate("OrderStatus", { orderId: item.orderId })
+        }
+      >
         <View style={styles.itemContent}>
           <Image
             source={{
-              uri: firstProduct.images[0]?.url || "https://via.placeholder.com/150",
+              uri: imageUrl,
             }}
             style={styles.itemImage}
             resizeMode="cover"
           />
           <View style={styles.itemDetailsContainer}>
             <Text style={styles.statusText} numberOfLines={1}>
-              {item.status}
+              {item.status || "Unknown Status"}
             </Text>
             <Text style={styles.itemName} numberOfLines={2}>
               {firstProduct.name || "Unknown Product"}
@@ -104,14 +117,14 @@ export default function Orders() {
               Total Amount: R {item.totalAmount?.toLocaleString() || "0"}
             </Text>
           </View>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.chevronContainer}
-            onPress={() => console.log('Order details', item._id)}
+            onPress={() => console.log("Order details", item._id)}
           >
-            <Feather 
-              name="chevron-right" 
-              size={moderateScale(24)} 
-              color="green" 
+            <Feather
+              name="chevron-right"
+              size={moderateScale(24)}
+              color="green"
             />
           </TouchableOpacity>
         </View>
@@ -122,10 +135,7 @@ export default function Orders() {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator 
-          size="large" 
-          color="#0000ff" 
-        />
+        <ActivityIndicator size="large" color="#0000ff" />
       </View>
     );
   }
@@ -134,10 +144,7 @@ export default function Orders() {
     return (
       <View style={styles.errorContainer}>
         <Text style={styles.errorText}>Failed to load orders</Text>
-        <TouchableOpacity 
-          onPress={fetchOrders} 
-          style={styles.retryButton}
-        >
+        <TouchableOpacity onPress={fetchOrders} style={styles.retryButton}>
           <Text style={styles.retryButtonText}>Retry</Text>
         </TouchableOpacity>
       </View>
@@ -148,27 +155,19 @@ export default function Orders() {
     <View style={styles.container}>
       {/* Search Container */}
       <View style={styles.searchContainer}>
-        <Ionicons 
-          name="search" 
-          size={moderateScale(20)} 
-          color="#888" 
-        />
-        <TextInput 
-          placeholder="Search orders" 
+        <Ionicons name="search" size={moderateScale(20)} color="#888" />
+        <TextInput
+          placeholder="Search orders"
           style={styles.searchInput}
           value={searchQuery}
           onChangeText={setSearchQuery}
           placeholderTextColor="#888"
         />
-        <TouchableOpacity 
+        <TouchableOpacity
           onPress={() => console.log("Filter pressed")}
           style={styles.filterButton}
         >
-          <Feather 
-            name="filter" 
-            size={moderateScale(24)} 
-            color="#888" 
-          />
+          <Feather name="filter" size={moderateScale(24)} color="#888" />
         </TouchableOpacity>
       </View>
 
@@ -176,10 +175,7 @@ export default function Orders() {
       {filteredOrders.length === 0 ? (
         <View style={styles.emptyContainer}>
           <Text style={styles.emptyText}>
-            {searchQuery 
-              ? "No orders match your search" 
-              : "No orders found"
-            }
+            {searchQuery ? "No orders match your search" : "No orders found"}
           </Text>
         </View>
       ) : (
@@ -203,9 +199,7 @@ const createStyles = () => {
     container: {
       flex: 1,
       backgroundColor: "#fff",
-      paddingTop: Platform.OS === 'android' 
-        ? StatusBar.currentHeight 
-        : 0,
+      paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
     },
     loadingContainer: {
       flex: 1,
@@ -275,7 +269,7 @@ const createStyles = () => {
       shadowOffset: { width: 0, height: 2 },
       shadowOpacity: 0.1,
       shadowRadius: 4,
-      backgroundColor:"#fff",
+      backgroundColor: "#fff",
     },
     itemContent: {
       flexDirection: "row",

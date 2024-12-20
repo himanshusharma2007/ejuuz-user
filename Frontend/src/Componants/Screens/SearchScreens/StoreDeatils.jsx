@@ -172,7 +172,9 @@ export default function StoreDeatils() {
   );
 
   const renderProducts = ({ item }) => {
-    const imageUri = item.images?.[0]?.url || "https://via.placeholder.com/150";
+    const imageUri =
+      item.images?.[0]?.url.replace("http", "https") ||
+      "https://via.placeholder.com/150";
     const discountText = item.discount ? `${item.discount}% OFF` : null;
     const ratingText = item.avgRating ? `Rating: ${item.avgRating}` : "";
 

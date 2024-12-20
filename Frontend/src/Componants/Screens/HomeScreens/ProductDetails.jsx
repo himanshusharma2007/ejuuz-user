@@ -120,7 +120,7 @@ export default function ProductDetails() {
   const carouselImages = Array.isArray(productData?.images)
     ? productData?.images.map((img) => ({
         id: String(img._id),
-        image: img.url || img,
+        image: img.url.replace("http", "https") || img,
       }))
     : [];
 
