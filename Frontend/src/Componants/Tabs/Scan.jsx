@@ -70,7 +70,39 @@ export default function Scan() {
       }
     })();
   }, []);
+  const renderScannedDataModal = () => {
+    // This function is actually redundant since you already have
+    // the Modal component in your main return statement.
+    // You can safely remove this function call from the return statement
+    return null;
+  };
+  const renderScannedItemsList = () => {
+    if (scannedData.length === 0) return null;
 
+    return (
+      <View style={styles.scannedListContainer}>
+        <Text style={styles.scannedListTitle}>Recent Scans</Text>
+        {scannedData.map((item, index) => (
+          <TouchableOpacity
+            key={index}
+            style={styles.scannedItem}
+            onPress={() => handlePaymentQR(item.data)}
+          >
+            <Ionicons name="qr-code-outline" size={24} color="#002E6E" />
+            <View style={styles.scannedItemContent}>
+              <Text style={styles.scannedItemTitle}>
+                {item.type === 'image' ? 'Gallery Upload' : 'QR Scan'}
+              </Text>
+              <Text style={styles.scannedItemData} numberOfLines={1}>
+                {item.data}
+              </Text>
+            </View>
+            <Ionicons name="chevron-forward" size={24} color="#888" />
+          </TouchableOpacity>
+        ))}
+      </View>
+    );
+  };
   // Fetch recent contacts from phone
   const fetchRecentContacts = async () => {
     try {
@@ -398,7 +430,7 @@ export default function Scan() {
         </View>
       </ScrollView>
       {renderScannedItemsList()}
-      {renderScannedDataModal()}
+      {/* {renderScannedDataModal()} */}
     </View>
   );
 }
