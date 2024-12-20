@@ -34,7 +34,7 @@ export default function Scan() {
     data: "",
   });
   const [scanning, setScanning] = useState(true);
-  
+
   // Animated values for corner pop effect
   const [topLeftScale] = useState(new Animated.Value(1));
   const [topRightScale] = useState(new Animated.Value(1));
@@ -53,7 +53,7 @@ export default function Scan() {
         toValue: 1,
         duration: 300,
         useNativeDriver: true,
-      })
+      }),
     ]).start();
   };
 
@@ -64,7 +64,8 @@ export default function Scan() {
       setHasPermission(status === "granted");
 
       // Contacts Permission
-      const { status: contactStatus } = await Contacts.requestPermissionsAsync();
+      const { status: contactStatus } =
+        await Contacts.requestPermissionsAsync();
       if (contactStatus === "granted") {
         await fetchRecentContacts();
       }
@@ -76,9 +77,9 @@ export default function Scan() {
     try {
       const { data } = await Contacts.getContactsAsync({
         fields: [
-          Contacts.Fields.Name, 
-          Contacts.Fields.Image, 
-          Contacts.Fields.PhoneNumbers
+          Contacts.Fields.Name,
+          Contacts.Fields.Image,
+          Contacts.Fields.PhoneNumbers,
         ],
         pageSize: 10, // Limit to 10 contacts
       });
@@ -87,10 +88,8 @@ export default function Scan() {
       const formattedContacts = data.map((contact, index) => ({
         id: contact.id || index,
         name: contact.name,
-        avatar: contact.image 
-          ? { uri: contact.image.uri } 
-          : getRandomEmoji(),
-        phoneNumber: contact.phoneNumbers?.[0]?.number || ''
+        avatar: contact.image ? { uri: contact.image.uri } : getRandomEmoji(),
+        phoneNumber: contact.phoneNumbers?.[0]?.number || "",
       }));
 
       setRecentContacts(formattedContacts);
@@ -102,7 +101,7 @@ export default function Scan() {
 
   // Function to get a random emoji as a fallback
   const getRandomEmoji = () => {
-    const emojis = ['🤠', '👨', '👩', '👧', '👦', '👴', '👵'];
+    const emojis = ["🤠", "👨", "👩", "👧", "👦", "👴", "👵"];
     return emojis[Math.floor(Math.random() * emojis.length)];
   };
 
@@ -115,12 +114,12 @@ export default function Scan() {
   const handleBarCodeScanned = ({ type, data }) => {
     setScanning(false);
     setScannedData([...scannedData, { type, data }]);
-    
+
     // Parse the scanned data to extract title and subtitle
     // You might need to adjust this based on your QR code format
     let title = "Payment Request";
     let subtitle = "Please verify the payment details";
-    
+
     setCurrentScan({
       title,
       subtitle,
@@ -178,8 +177,8 @@ export default function Scan() {
   const handlePayNow = () => {
     setIsModalVisible(false);
     console.log("current scan", currentScan);
-    navigation.navigate('WalletTab', {
-      screen: 'TopUp',
+    navigation.navigate("WalletTab", {
+      screen: "TopUp",
       params: {
         title: currentScan.title,
         subtitle: currentScan.subtitle,
@@ -202,7 +201,7 @@ export default function Scan() {
   // Handle contact selection
   const handleContactSelect = (contact) => {
     Alert.alert(
-      "Contact Selected", 
+      "Contact Selected",
       `Name: ${contact.name}\nPhone: ${contact.phoneNumber}`
     );
   };
@@ -227,8 +226,8 @@ export default function Scan() {
       <StatusBar barStyle="dark-content" />
       {/* Navigation Header */}
       <View style={styles.header}>
-        <TouchableOpacity 
-          style={styles.backButton} 
+        <TouchableOpacity
+          style={styles.backButton}
           onPress={() => navigation.goBack()}
         >
           <Ionicons name="arrow-back" size={24} color="black" />
@@ -236,12 +235,12 @@ export default function Scan() {
         <Text style={styles.headerTitle}>Scan QR</Text>
       </View>
 
-      <ScrollView 
+      <ScrollView
         style={styles.scrollContainer}
         contentContainerStyle={styles.scrollViewContent}
         showsVerticalScrollIndicator={false}
       >
-{scanning && (
+        {scanning && (
           <View style={styles.scannerContainer}>
             <BarCodeScanner
               onBarCodeScanned={handleBarCodeScanned}
@@ -250,35 +249,35 @@ export default function Scan() {
             <View style={styles.scanOverlay}>
               <View style={styles.scannerFrame}>
                 {/* Keep your existing corner animations */}
-                <Animated.View 
+                <Animated.View
                   style={[
-                    styles.corner, 
+                    styles.corner,
                     styles.topLeftCorner,
-                    { transform: [{ scale: topLeftScale }] }
+                    { transform: [{ scale: topLeftScale }] },
                   ]}
                   onTouchEnd={() => animateCorner(topLeftScale)}
                 />
-                <Animated.View 
+                <Animated.View
                   style={[
-                    styles.corner, 
+                    styles.corner,
                     styles.topRightCorner,
-                    { transform: [{ scale: topRightScale }] }
+                    { transform: [{ scale: topRightScale }] },
                   ]}
                   onTouchEnd={() => animateCorner(topRightScale)}
                 />
-                <Animated.View 
+                <Animated.View
                   style={[
-                    styles.corner, 
+                    styles.corner,
                     styles.bottomLeftCorner,
-                    { transform: [{ scale: bottomLeftScale }] }
+                    { transform: [{ scale: bottomLeftScale }] },
                   ]}
                   onTouchEnd={() => animateCorner(bottomLeftScale)}
                 />
-                <Animated.View 
+                <Animated.View
                   style={[
-                    styles.corner, 
+                    styles.corner,
                     styles.bottomRightCorner,
-                    { transform: [{ scale: bottomRightScale }] }
+                    { transform: [{ scale: bottomRightScale }] },
                   ]}
                   onTouchEnd={() => animateCorner(bottomRightScale)}
                 />
@@ -311,7 +310,9 @@ export default function Scan() {
                   <Ionicons name="qr-code-outline" size={32} color="#002E6E" />
                 </View>
                 <Text style={modalStyles.modalTitle}>{currentScan.title}</Text>
-                <Text style={modalStyles.modalSubtitle}>{currentScan.subtitle}</Text>
+                <Text style={modalStyles.modalSubtitle}>
+                  {currentScan.subtitle}
+                </Text>
               </View>
 
               {/* Content Section */}
@@ -322,7 +323,6 @@ export default function Scan() {
                     <Text style={modalStyles.dataText}>{currentScan.data}</Text>
                   </View>
                 </View>
-
               </View>
 
               {/* Button Section */}
@@ -331,14 +331,21 @@ export default function Scan() {
                   style={[modalStyles.button, modalStyles.cancelButton]}
                   onPress={handleCancel}
                 >
-                  <Text style={modalStyles.cancelButtonText}>Cancel Payment</Text>
+                  <Text style={modalStyles.cancelButtonText}>
+                    Cancel Payment
+                  </Text>
                 </TouchableOpacity>
-                
+
                 <TouchableOpacity
                   style={[modalStyles.button, modalStyles.payButton]}
                   onPress={handlePayNow}
                 >
-                  <Ionicons name="wallet-outline" size={20} color="white" style={modalStyles.buttonIcon} />
+                  <Ionicons
+                    name="wallet-outline"
+                    size={20}
+                    color="white"
+                    style={modalStyles.buttonIcon}
+                  />
                   <Text style={modalStyles.payButtonText}>Pay Now</Text>
                 </TouchableOpacity>
               </View>
@@ -347,7 +354,12 @@ export default function Scan() {
         </Modal>
 
         <View style={styles.inputContainer}>
-          <Ionicons name="search" size={20} color="gray" style={styles.searchIcon} />
+          <Ionicons
+            name="search"
+            size={20}
+            color="gray"
+            style={styles.searchIcon}
+          />
           <TextInput
             placeholder="Enter mobile number or name"
             style={styles.searchInput}
@@ -358,32 +370,29 @@ export default function Scan() {
 
         <View style={styles.recentContainer}>
           <Text style={styles.recentText}>Recent Contacts</Text>
-          <ScrollView 
-            horizontal 
+          <ScrollView
+            horizontal
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.contactScrollContainer}
           >
             {recentContacts.map((contact) => (
-              <TouchableOpacity 
-                key={contact.id} 
+              <TouchableOpacity
+                key={contact.id}
                 style={styles.contactItem}
                 onPress={() => handleContactSelect(contact)}
               >
-                <View 
+                <View
                   style={[
-                    styles.avatar, 
-                    { 
-                      backgroundColor: contact.avatar.uri 
-                        ? 'transparent' 
-                        : getRandomPastelColor() 
-                    }
+                    styles.avatar,
+                    {
+                      backgroundColor: contact.avatar.uri
+                        ? "transparent"
+                        : getRandomPastelColor(),
+                    },
                   ]}
                 >
                   {contact.avatar.uri ? (
-                    <Image 
-                      source={contact.avatar} 
-                      style={styles.avatarImage} 
-                    />
+                    <Image source={contact.avatar} style={styles.avatarImage} />
                   ) : (
                     <Text style={styles.avatarText}>{contact.avatar}</Text>
                   )}
@@ -403,7 +412,7 @@ export default function Scan() {
   );
 }
 
-const { width, height } = Dimensions.get('window');
+const { width, height } = Dimensions.get("window");
 const modalStyles = StyleSheet.create({
   centeredView: {
     flex: 1,
@@ -485,7 +494,7 @@ const modalStyles = StyleSheet.create({
   buttonSection: {
     width: "100%",
     paddingHorizontal: 20,
-    paddingBottom: Platform.OS === 'ios' ? 40 : 20,
+    paddingBottom: Platform.OS === "ios" ? 40 : 20,
     backgroundColor: "#F5F7FA",
     borderTopWidth: 1,
     borderTopColor: "#E0E7FF",
@@ -537,11 +546,11 @@ const styles = StyleSheet.create({
     backgroundColor: "#F5F5F5",
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingTop: Platform.OS === 'ios' ? 50 : 20,
+    flexDirection: "row",
+    alignItems: "center",
+    paddingTop: Platform.OS === "ios" ? 50 : 20,
     paddingHorizontal: 20,
-    backgroundColor: 'transparent',
+    backgroundColor: "transparent",
     paddingBottom: 10,
   },
   backButton: {
@@ -549,8 +558,8 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 20,
-    fontWeight: 'bold',
-    color: '#333',
+    fontWeight: "bold",
+    color: "#333",
   },
   scrollContainer: {
     flex: 1,
@@ -561,21 +570,21 @@ const styles = StyleSheet.create({
   },
   loadingContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#F5F5F5',
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#F5F5F5",
   },
   loadingText: {
     fontSize: 18,
-    color: '#333',
+    color: "#333",
   },
   scannerContainer: {
-    height: height * 0.6, 
+    height: height * 0.6,
     width: "100%",
     borderBottomLeftRadius: 20,
     borderBottomRightRadius: 20,
-    overflow: 'hidden',
-    position: 'relative',
+    overflow: "hidden",
+    position: "relative",
   },
   scanner: {
     width: "100%",
@@ -583,21 +592,21 @@ const styles = StyleSheet.create({
   },
   scanOverlay: {
     ...StyleSheet.absoluteFillObject,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'transparent',
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "transparent",
   },
   scannerFrame: {
     width: width * 0.7,
     height: width * 0.7,
-    position: 'relative',
-    backgroundColor: 'transparent',
+    position: "relative",
+    backgroundColor: "transparent",
   },
   corner: {
-    position: 'absolute',
+    position: "absolute",
     width: 30,
     height: 30,
-    borderColor: 'white',
+    borderColor: "white",
     borderWidth: 3,
   },
   topLeftCorner: {
@@ -635,8 +644,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 24,
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
@@ -652,9 +661,9 @@ const styles = StyleSheet.create({
   inputContainer: {
     alignSelf: "center",
     width: "90%",
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'white',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "white",
     borderRadius: 10,
     paddingHorizontal: 15,
     height: 50,
@@ -674,14 +683,14 @@ const styles = StyleSheet.create({
   recentContainer: {
     width: "100%",
     paddingVertical: 20,
-    marginBottom: 30
+    marginBottom: 30,
   },
   recentText: {
     fontSize: 20,
     fontWeight: "bold",
     marginLeft: 20,
     marginBottom: 10,
-    color: '#333',
+    color: "#333",
   },
   contactScrollContainer: {
     paddingHorizontal: 15,
@@ -714,24 +723,24 @@ const styles = StyleSheet.create({
   contactName: {
     marginTop: 5,
     fontSize: 12,
-    color: '#666',
-    textAlign: 'center',
+    color: "#666",
+    textAlign: "center",
   },
   emptyContactItem: {
     width: 20, // Ensures some extra space at the end of horizontal scroll
   },
   modalContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0,0,0,0.5)",
   },
   modalContent: {
-    width: '85%',
-    backgroundColor: 'white',
+    width: "85%",
+    backgroundColor: "white",
     borderRadius: 15,
     padding: 20,
-    alignItems: 'center',
+    alignItems: "center",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
@@ -740,17 +749,17 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     fontSize: 20,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 15,
-    color: '#002E6E',
+    color: "#002E6E",
   },
   scanDetailRow: {
-    flexDirection: 'row',
-    width: '100%',
+    flexDirection: "row",
+    width: "100%",
     marginVertical: 5,
   },
   scanDetailLabel: {
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginRight: 10,
     width: 80,
   },
@@ -758,36 +767,36 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   modalButtonContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    width: '100%',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    width: "100%",
     marginTop: 15,
   },
   modalButton: {
     flex: 1,
-    backgroundColor: '#f0f0f0',
+    backgroundColor: "#f0f0f0",
     padding: 10,
     borderRadius: 10,
     marginHorizontal: 5,
-    alignItems: 'center',
+    alignItems: "center",
   },
   modalButtonPrimary: {
     flex: 1,
-    backgroundColor: '#002E6E',
+    backgroundColor: "#002E6E",
     padding: 10,
     borderRadius: 10,
     marginHorizontal: 5,
-    alignItems: 'center',
+    alignItems: "center",
   },
   modalButtonText: {
-    color: '#333',
-    fontWeight: 'bold',
+    color: "#333",
+    fontWeight: "bold",
   },
   modalButtonPrimaryText: {
-    color: 'white',
-    fontWeight: 'bold',
+    color: "white",
+    fontWeight: "bold",
   },
-  
+
   // Scanned items styles
   scannedItemsContainer: {
     marginTop: 10,
@@ -795,11 +804,11 @@ const styles = StyleSheet.create({
   },
   scannedItemsTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 10,
   },
   scannedItemCard: {
-    backgroundColor: 'white',
+    backgroundColor: "white",
     borderRadius: 10,
     padding: 10,
     marginRight: 10,
@@ -811,11 +820,11 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   scannedItemText: {
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   scannedItemTimestamp: {
     fontSize: 12,
-    color: 'gray',
+    color: "gray",
     marginTop: 5,
   },
 });

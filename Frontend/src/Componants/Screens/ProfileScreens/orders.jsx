@@ -55,7 +55,6 @@ export default function Orders() {
       setLoading(true);
       const response = await getCustomerOrders();
       if (response.status === "success" && response.data) {
-        console.log("response in orders", response.data);
         setOrders(response.data.length > 0 ? response.data : []);
       } else {
         setOrders([]);

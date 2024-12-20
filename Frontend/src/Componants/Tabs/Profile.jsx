@@ -14,7 +14,7 @@ import {
 import { Button, Badge } from "react-native-paper";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
-import authService from  "../../service/authService";     
+import authService from "../../service/authService";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { getCustomerOrders } from "../../service/orderService";
 import { useSelector } from "react-redux";
@@ -107,12 +107,14 @@ export default function Profile() {
       try {
         const response = await getCustomerOrders(); // Call the service
         setOrdersCount(response.data.length);
-        console.log('response', response)
 
-         // Calculate the total expense
-         const totalAmount = response.data.reduce((sum, order) => sum + order.totalAmount, 0);
-         setTotalExpense(totalAmount);
-         console.log('totalAmount', totalAmount)
+        // Calculate the total expense
+        const totalAmount = response.data.reduce(
+          (sum, order) => sum + order.totalAmount,
+          0
+        );
+        setTotalExpense(totalAmount);
+        console.log("totalAmount", totalAmount);
       } catch (error) {
         console.error("Failed to fetch orders count:", error);
       }
@@ -155,7 +157,6 @@ export default function Profile() {
       { cancelable: false } // Prevent dismissing alert by tapping outside
     );
   }
-  
 
   const renderMenuItem = (item) => {
     return (

@@ -1,5 +1,13 @@
-import { Image, Pressable, StyleSheet, Text, View } from "react-native";
-import React, { useEffect, useState } from "react";
+import {
+  Image,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+  Animated,
+  Easing,
+} from "react-native";
+import React, { useEffect, useRef, useState } from "react";
 
 import {
   Ionicons,
@@ -13,7 +21,10 @@ import {
   NavigationContainer,
   useNavigation,
 } from "@react-navigation/native";
-import { createStackNavigator } from "@react-navigation/stack";
+import {
+  createStackNavigator,
+  CardStyleInterpolators,
+} from "@react-navigation/stack";
 
 import Home from "../src/Componants/Tabs/Home";
 import Search from "../src/Componants/Tabs/Search";
@@ -59,16 +70,166 @@ import AllProducts from "../src/Componants/Screens/HomeScreens/AllProducts";
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
 
+const horizontalAnimation = {
+  gestureDirection: "horizontal",
+  cardStyleInterpolator: ({ current, layouts }) => {
+    return {
+      cardStyle: {
+        transform: [
+          {
+            translateX: current.progress.interpolate({
+              inputRange: [0, 1],
+              outputRange: [layouts.screen.width, 0],
+            }),
+          },
+        ],
+      },
+      overlayStyle: {
+        opacity: current.progress.interpolate({
+          inputRange: [0, 1],
+          outputRange: [0, 0.5],
+        }),
+      },
+    };
+  },
+  transitionSpec: {
+    open: {
+      animation: "spring",
+      config: {
+        damping: 25,
+        mass: 1,
+        stiffness: 100,
+        overshootClamping: false,
+        restDisplacementThreshold: 0.001,
+        restSpeedThreshold: 0.001,
+      },
+    },
+    close: {
+      animation: "spring",
+      config: {
+        damping: 25,
+        mass: 1,
+        stiffness: 100,
+        overshootClamping: false,
+        restDisplacementThreshold: 0.001,
+        restSpeedThreshold: 0.001,
+      },
+    },
+  },
+};
+
+const verticalAnimation = {
+  gestureDirection: "vertical",
+  cardStyleInterpolator: ({ current, layouts }) => {
+    return {
+      cardStyle: {
+        transform: [
+          {
+            translateY: current.progress.interpolate({
+              inputRange: [0, 1],
+              outputRange: [layouts.screen.height, 0],
+            }),
+          },
+        ],
+      },
+      overlayStyle: {
+        opacity: current.progress.interpolate({
+          inputRange: [0, 1],
+          outputRange: [0, 0.5],
+        }),
+      },
+    };
+  },
+  transitionSpec: {
+    open: {
+      animation: "spring",
+      config: {
+        damping: 30,
+        mass: 1,
+        stiffness: 100,
+        overshootClamping: false,
+        restDisplacementThreshold: 0.001,
+        restSpeedThreshold: 0.001,
+      },
+    },
+    close: {
+      animation: "spring",
+      config: {
+        damping: 30,
+        mass: 1,
+        stiffness: 100,
+        overshootClamping: false,
+        restDisplacementThreshold: 0.001,
+        restSpeedThreshold: 0.001,
+      },
+    },
+  },
+};
+
+const modalAnimation = {
+  gestureDirection: "vertical",
+  cardStyleInterpolator: ({ current, layouts }) => {
+    return {
+      cardStyle: {
+        transform: [
+          {
+            translateY: current.progress.interpolate({
+              inputRange: [0, 1],
+              outputRange: [layouts.screen.height, 0],
+            }),
+          },
+        ],
+        opacity: current.progress.interpolate({
+          inputRange: [0, 1],
+          outputRange: [0.5, 1],
+        }),
+      },
+      overlayStyle: {
+        opacity: current.progress.interpolate({
+          inputRange: [0, 1],
+          outputRange: [0, 0.7],
+        }),
+      },
+    };
+  },
+  transitionSpec: {
+    open: {
+      animation: "spring",
+      config: {
+        damping: 35,
+        mass: 1,
+        stiffness: 100,
+        overshootClamping: false,
+        restDisplacementThreshold: 0.001,
+        restSpeedThreshold: 0.001,
+      },
+    },
+    close: {
+      animation: "spring",
+      config: {
+        damping: 35,
+        mass: 1,
+        stiffness: 100,
+        overshootClamping: false,
+        restDisplacementThreshold: 0.001,
+        restSpeedThreshold: 0.001,
+      },
+    },
+  },
+};
+
 // Home Stack
 const HomeStack = () => {
   const navigation = useNavigation();
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Navigator
+      screenOptions={{ headerShown: false, ...horizontalAnimation }}
+    >
       <Stack.Screen name="HomeStack" component={Home} />
       <Stack.Screen
         name="ProductDetails"
         component={ProductDetails}
-        options={{ headerShown: false }}
+        options={{ headerShown: false, ...modalAnimation }}
       />
       <Stack.Screen
         name="AllProducts"
@@ -215,13 +376,14 @@ const SearchStack = () => {
   return (
     <Stack.Navigator
       initialRouteName="Search" // Explicitly set default screen
-      screenOptions={{ headerShown: false }}
+      screenOptions={{ headerShown: false, ...horizontalAnimation }}
     >
       <Stack.Screen name="Search" component={Search} />
       <Stack.Screen
         name="StoreDetails"
         component={StoreDeatils}
         options={{
+          ...modalAnimation,
           headerShown: false,
           headerTitle: "",
           headerShadowVisible: false,
@@ -244,7 +406,7 @@ const WalletStack = () => {
   const navigation = useNavigation();
   const cartdata = useSelector((state) => state.cart.items);
   return (
-    <Stack.Navigator>
+    <Stack.Navigator screenOptions={{ ...horizontalAnimation }}>
       <Stack.Screen
         name="Wallet"
         component={Wallet}
@@ -343,6 +505,7 @@ const ProfileStack = () => {
     <Stack.Navigator
       screenOptions={{
         headerShadowVisible: false,
+        ...horizontalAnimation,
       }}
     >
       <Stack.Screen
@@ -453,17 +616,20 @@ function getTabbarVisibility(route) {
 // Tab Navigator
 export default function Router() {
   const dispatch = useDispatch();
+  const tabAnimatedValue = useRef(new Animated.Value(1)).current;
+
   useEffect(() => {
     dispatch(fetchUser());
     dispatch(fetchCartAsync());
     dispatch(fetchWishlistAsync());
   }, [dispatch]);
+
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
         tabBarStyle: {
-          height: 70, // Set the height of the tab bar
+          height: 70,
           backgroundColor: "#fff",
           borderTopLeftRadius: 40,
           borderTopRightRadius: 40,
@@ -477,6 +643,58 @@ export default function Router() {
           paddingHorizontal: 20,
           display: getTabbarVisibility(route),
         },
+        tabBarButton: (props) => {
+          const { accessibilityState, onPress, ...restProps } = props;
+          const focused = accessibilityState?.selected;
+
+          const animateTab = () => {
+            Animated.sequence([
+              Animated.timing(tabAnimatedValue, {
+                toValue: 0.9,
+                duration: 150,
+                useNativeDriver: true,
+              }),
+              Animated.timing(tabAnimatedValue, {
+                toValue: 1.1,
+                duration: 300,
+                useNativeDriver: true,
+              }),
+              Animated.timing(tabAnimatedValue, {
+                toValue: 1,
+                duration: 200,
+                useNativeDriver: true,
+              }),
+            ]).start();
+          };
+
+          return (
+            <Animated.View
+              style={{
+                flex: 1,
+                transform: [
+                  {
+                    scale: focused ? tabAnimatedValue : 1,
+                  },
+                ],
+              }}
+            >
+              <Pressable
+                {...restProps}
+                onPress={(e) => {
+                  animateTab();
+                  onPress(e);
+                }}
+                style={{
+                  flex: 1,
+                  justifyContent: "center",
+                  alignItems: "center",
+                }}
+              >
+                {props.children}
+              </Pressable>
+            </Animated.View>
+          );
+        },
       })}
     >
       <Tab.Screen
@@ -486,9 +704,9 @@ export default function Router() {
           tabBarLabel: "",
           tabBarIcon: ({ focused }) =>
             focused ? (
-              <Ionicons name="home" size={30} color="#002e6e" />
+              <Ionicons name="home" size={26} color="#002e6e" />
             ) : (
-              <Ionicons name="home-outline" size={30} color="black" />
+              <Ionicons name="home-outline" size={26} color="black" />
             ),
         }}
       />
@@ -499,9 +717,9 @@ export default function Router() {
           tabBarLabel: "",
           tabBarIcon: ({ focused }) =>
             focused ? (
-              <Ionicons name="search" size={30} color="#002e6e" />
+              <Ionicons name="search" size={26} color="#002e6e" />
             ) : (
-              <Ionicons name="search-outline" size={30} color="black" />
+              <Ionicons name="search-outline" size={26} color="black" />
             ),
         }}
       />
@@ -528,9 +746,9 @@ export default function Router() {
           tabBarLabel: "",
           tabBarIcon: ({ focused }) =>
             focused ? (
-              <Ionicons name="wallet" size={30} color="#002e6e" />
+              <Ionicons name="wallet" size={26} color="#002e6e" />
             ) : (
-              <Ionicons name="wallet-outline" size={30} color="black" />
+              <Ionicons name="wallet-outline" size={26} color="black" />
             ),
         }}
       />
@@ -541,19 +759,15 @@ export default function Router() {
           tabBarLabel: "",
           tabBarIcon: ({ focused }) =>
             focused ? (
-              <Ionicons name="person" size={30} color="#002e6e" />
+              <Ionicons name="person" size={26} color="#002e6e" />
             ) : (
-              <Ionicons name="person-outline" size={30} color="black" />
+              <Ionicons name="person-outline" size={26} color="black" />
             ),
-          // tabBarStyle: {
-          //   display: "none",
-          // },
         }}
       />
     </Tab.Navigator>
   );
 }
-
 // Root Navigator
 
 const styles = StyleSheet.create({
