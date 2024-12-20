@@ -983,7 +983,6 @@ export default function Home() {
                   const imgageUri =
                     product.images[0]?.url.replace("http", "https") ||
                     "https://via.placeholder.com/150";
-                  console.log("imgageUri", imgageUri);
 
                   return (
                     <TouchableOpacity

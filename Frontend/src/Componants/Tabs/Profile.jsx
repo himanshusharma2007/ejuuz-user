@@ -118,6 +118,7 @@ export default function Profile() {
   const navigation = useNavigation();
   const [ordersCount, setOrdersCount] = useState(0);
   const [balance, setBalance] = useState(0);
+  const [totalExpense, setTotalExpense] = useState(0);
 
   const user = useSelector(selectUser);
 
@@ -129,6 +130,13 @@ export default function Profile() {
     const fetchOrdersCount = async () => {
       try {
         const response = await getCustomerOrders(); // Call the service
+        setOrdersCount(response.data.length);
+        console.log('response', response)
+
+         // Calculate the total expense
+         const totalAmount = response.data.reduce((sum, order) => sum + order.totalAmount, 0);
+         setTotalExpense(totalAmount);
+         console.log('totalAmount', totalAmount)
       } catch (error) {
         console.error("Failed to fetch orders count:", error);
       }
@@ -140,7 +148,7 @@ export default function Profile() {
   const userStats = [
     { id: "orders", label: "Orders", value: ordersCount },
     { id: "reviews", label: "Reviews", value: "12" },
-    { id: "balance", label: "Balance", value: balance },
+    { id: "expense", label: "Order Expense", value: `R ${totalExpense}` },
   ];
 
   function handlelogout() {
@@ -206,7 +214,7 @@ export default function Profile() {
             </View>
             <View>
               <Text style={styles.greeting}>Hello,</Text>
-              <Text style={styles.userName}>John Doe</Text>
+              <Text style={styles.userName}>{user.name}</Text>
             </View>
           </View>
           <TouchableOpacity
