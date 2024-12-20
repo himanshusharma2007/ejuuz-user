@@ -14,7 +14,7 @@ import {
 import { Button, Badge } from "react-native-paper";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
-import authService from "../../service/authService";
+import authService from  "../../service/authService";     
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { getCustomerOrders } from "../../service/orderService";
 import { useSelector } from "react-redux";
@@ -95,40 +95,24 @@ const menuOptions = [
   },
 ];
 
-const recentActivities = [
-  {
-    id: "activity1",
-    type: "order",
-    title: "Order Delivered",
-    description: "Your order #12345 has been delivered",
-    time: "2 hours ago",
-    icon: "checkmark-circle-outline",
-  },
-  {
-    id: "activity2",
-    type: "points",
-    title: "Points Earned",
-    description: "Earned 100 points from your last purchase",
-    time: "1 day ago",
-    icon: "star-outline",
-  },
-];
-
 export default function Profile() {
   const navigation = useNavigation();
   const [ordersCount, setOrdersCount] = useState(0);
-  const [balance, setBalance] = useState(0);
+  const [totalExpense, setTotalExpense] = useState(0);
 
   const user = useSelector(selectUser);
-
-  useEffect(() => {
-    setBalance(user?.walletBalance || 0);
-  }, []);
 
   useEffect(() => {
     const fetchOrdersCount = async () => {
       try {
         const response = await getCustomerOrders(); // Call the service
+        setOrdersCount(response.data.length);
+        console.log('response', response)
+
+         // Calculate the total expense
+         const totalAmount = response.data.reduce((sum, order) => sum + order.totalAmount, 0);
+         setTotalExpense(totalAmount);
+         console.log('totalAmount', totalAmount)
       } catch (error) {
         console.error("Failed to fetch orders count:", error);
       }
@@ -140,19 +124,38 @@ export default function Profile() {
   const userStats = [
     { id: "orders", label: "Orders", value: ordersCount },
     { id: "reviews", label: "Reviews", value: "12" },
-    { id: "balance", label: "Balance", value: balance },
+    { id: "expense", label: "Order Expense", value: `R ${totalExpense}` },
   ];
 
   function handlelogout() {
-    AsyncStorage.setItem("accesstoken", "");
-    AsyncStorage.setItem("isLoggedIn", "");
     Alert.alert(
-      "Logout",
-      "You have been logged out." + "\n" + "Redirecting..."
+      "Logout", // Title
+      "Are you sure you want to log out?", // Message
+      [
+        {
+          text: "Cancel", // Cancel button
+          onPress: () => console.log("Logout canceled"), // Dismiss alert on Cancel
+          style: "cancel", // Optional styling for the Cancel button
+        },
+        {
+          text: "OK", // OK button
+          onPress: async () => {
+            // Perform logout actions
+            try {
+              await AsyncStorage.setItem("accesstoken", "");
+              await AsyncStorage.setItem("isLoggedIn", "");
+              console.log("User logged out");
+              navigation.navigate("GetStarted"); // Navigate to GetStarted screen
+            } catch (error) {
+              console.error("Failed to log out:", error);
+            }
+          },
+        },
+      ],
+      { cancelable: false } // Prevent dismissing alert by tapping outside
     );
-    console.log("user logged out");
-    navigation.navigate("GetStarted");
   }
+  
 
   const renderMenuItem = (item) => {
     return (
@@ -206,7 +209,7 @@ export default function Profile() {
             </View>
             <View>
               <Text style={styles.greeting}>Hello,</Text>
-              <Text style={styles.userName}>John Doe</Text>
+              <Text style={styles.userName}>{user.name}</Text>
             </View>
           </View>
           <TouchableOpacity
@@ -226,25 +229,6 @@ export default function Profile() {
             </View>
           ))}
         </View>
-      </View>
-
-      {/* Recent Activities */}
-      <View style={styles.activitiesSection}>
-        <Text style={styles.sectionTitle}>Recent Activities</Text>
-        {recentActivities.map((activity) => (
-          <View key={activity.id} style={styles.activityItem}>
-            <View style={styles.activityIcon}>
-              <Ionicons name={activity.icon} size={24} color="#007AFF" />
-            </View>
-            <View style={styles.activityContent}>
-              <Text style={styles.activityTitle}>{activity.title}</Text>
-              <Text style={styles.activityDescription}>
-                {activity.description}
-              </Text>
-              <Text style={styles.activityTime}>{activity.time}</Text>
-            </View>
-          </View>
-        ))}
       </View>
 
       {/* Menu Options */}
@@ -411,6 +395,7 @@ const styles = StyleSheet.create({
   categorySection: {
     marginHorizontal: 20,
     marginBottom: 20,
+    marginTop: 20,
   },
   categoryTitle: {
     fontSize: 16,

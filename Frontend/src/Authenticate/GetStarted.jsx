@@ -10,9 +10,9 @@ import {
   StatusBar,
   ScrollView,
   ActivityIndicator,
+  TextInput,
 } from "react-native";
 import {
-  TextInput,
   Surface,
   Provider as PaperProvider,
   Portal,
@@ -146,18 +146,9 @@ export default function GetStarted() {
 
             <TextInput
               style={styles.phoneInput} // Using the updated phoneInput style
-              mode="outlined"
               value={phoneNumber}
               onChangeText={setPhoneNumber}
               keyboardType="number-pad"
-              outlineColor="#E0E0E0"
-              activeOutlineColor="#002E6E"
-              theme={{
-                colors: {
-                  primary: "#002E6E", // Outline color for the input field
-                  text: "#000", // Ensure text color is black
-                },
-              }}
               placeholder="Enter phone number"
               placeholderTextColor="#A9A9A9" // Slightly gray placeholder
             />
@@ -286,6 +277,9 @@ const styles = StyleSheet.create({
     fontSize: 16, // Font size for the input text
     color: "#000", // Ensure text color is black
     paddingHorizontal: 12, // Optional: Add padding for better text positioning
+    borderWidth: 1,
+    borderColor: "#002E6E",
+    borderRadius: 4,
   },
   phoneInputContainer: {
     flexDirection: "row",
