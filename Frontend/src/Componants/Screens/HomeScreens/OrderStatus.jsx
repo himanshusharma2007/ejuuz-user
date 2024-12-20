@@ -62,6 +62,7 @@ export default function OrderStatus() {
       setLoading(true);
       const response = await getOrderById(orderId);
 
+      console.log("order details", response.data);
       if (response.status === "success" && response.data) {
         setOrder(response.data);
       } else {
@@ -125,7 +126,7 @@ export default function OrderStatus() {
   return (
     <View style={styles.container}>
       <Appbar.Header style={styles.header}>
-        <Appbar.BackAction onPress={() => navigation.goBack()} />
+        <Appbar.BackAction onPress={() => navigation.goBack()} color="#000" />
         <Appbar.Content
           title={`Order #${order.orderId}`}
           titleStyle={styles.headerTitle}
@@ -198,6 +199,14 @@ export default function OrderStatus() {
                         : "#F3E5F5",
                   },
                 ]}
+                textStyle={{
+                  color:
+                    order.status === "Picked Up"
+                      ? "#4CAF50"
+                      : order.status === "Processing"
+                      ? "#FFA000"
+                      : "#9C27B0",
+                }}
               >
                 {order.status}
               </Chip>
@@ -213,7 +222,17 @@ export default function OrderStatus() {
               <List.Item
                 key={index}
                 title={status.title}
+                titleStyle={[
+                  {
+                    color: status.completed ? "#4CAF50" : "#333",
+                  },
+                ]}
                 description={status.time || "Pending"}
+                descriptionStyle={[
+                  {
+                    color: status.completed ? "#4CAF50" : "gray",
+                  },
+                ]}
                 left={() => (
                   <View style={styles.statusDot}>
                     <View
@@ -269,7 +288,7 @@ const createStyles = () =>
     container: {
       flex: 1,
       backgroundColor: "#F5F5F5",
-      paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
+      // paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
     },
     header: {
       backgroundColor: "white",
@@ -278,13 +297,16 @@ const createStyles = () =>
     headerTitle: {
       fontSize: moderateScale(16),
       fontWeight: "bold",
+      color: "#333",
     },
     scrollContainer: {
+      marginTop: 20,
       padding: moderateScale(10),
     },
     productCard: {
       marginBottom: verticalScale(10),
       borderRadius: moderateScale(10),
+      backgroundColor: "white",
     },
     productContent: {
       padding: moderateScale(10),
@@ -305,6 +327,7 @@ const createStyles = () =>
     productName: {
       fontSize: moderateScale(14),
       fontWeight: "bold",
+      color: "#333",
     },
     priceContainer: {
       flexDirection: "row",
@@ -322,6 +345,7 @@ const createStyles = () =>
     summaryCard: {
       marginBottom: verticalScale(10),
       borderRadius: moderateScale(10),
+      backgroundColor: "white",
     },
     summaryRow: {
       flexDirection: "row",
@@ -335,6 +359,7 @@ const createStyles = () =>
     summaryValue: {
       fontSize: moderateScale(12),
       fontWeight: "bold",
+      color: "#333",
     },
     statusChip: {
       alignSelf: "flex-end",
@@ -342,9 +367,11 @@ const createStyles = () =>
     trackingCard: {
       marginBottom: verticalScale(10),
       borderRadius: moderateScale(10),
+      backgroundColor: "white",
     },
     trackingTitle: {
       marginBottom: verticalScale(10),
+      color: "#333",
     },
     statusDot: {
       alignItems: "center",

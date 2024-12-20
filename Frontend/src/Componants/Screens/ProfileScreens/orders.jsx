@@ -12,38 +12,12 @@ import {
   Platform,
   StatusBar,
 } from "react-native";
-import { Card } from "react-native-paper";
+import { Card, IconButton } from "react-native-paper";
 import { Feather, Ionicons } from "@expo/vector-icons";
+import { getCustomerOrders } from "../../../service/orderService";
 import { useNavigation } from "@react-navigation/native";
 
-// Mocking the service function for this example
-const getCustomerOrders = () => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve({
-        status: "successs",
-        data: [
-          {
-            _id: "1",
-            orderId: "ORD001",
-            status: "Delivered",
-            products: [
-              {
-                productId: {
-                  name: "Sample Product",
-                  price: 19.99,
-                  images: [{ url: "https://via.placeholder.com/150" }],
-                },
-              },
-            ],
-            totalAmount: 19.99,
-          },
-        ],
-      });
-    }, 1000);
-  });
-};
-
+// Responsive utility functions
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 const guidelineBaseWidth = 350;
 const guidelineBaseHeight = 680;
@@ -59,43 +33,60 @@ export default function Orders() {
   const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
 
-  const styles = useMemo(() => createStyles(), []);
-  const navigation = useNavigation();
+  // Memoized responsive styles
+  const styles = useMemo(() => createStyles(), [SCREEN_WIDTH, SCREEN_HEIGHT]);
 
+  const navigation = useNavigation();
   useEffect(() => {
     fetchOrders();
+
+    // Handle dimension changes
+    const subscription = Dimensions.addEventListener("change", () => {
+      // Force re-render to adjust layout
+      setOrders([...orders]);
+    });
+
+    // Cleanup
+    return () => subscription.remove();
   }, []);
 
   const fetchOrders = async () => {
     try {
       setLoading(true);
       const response = await getCustomerOrders();
-      if (response.status === "success" && Array.isArray(response.data)) {
-        setOrders(response.data);
+      if (response.status === "success" && response.data) {
+        console.log("response in orders", response.data);
+        setOrders(response.data.length > 0 ? response.data : []);
       } else {
         setOrders([]);
       }
     } catch (err) {
       console.error("Failed to fetch orders:", err);
+      setOrders([]);
       setError(err);
     } finally {
       setLoading(false);
     }
   };
 
+  // Filter orders based on search query
   const filteredOrders = useMemo(() => {
     if (!searchQuery) return orders;
-    return orders.filter((order) => {
-      const productName =
-        order.products[0]?.productId?.name?.toLowerCase() || "";
-      const orderStatus = order.status?.toLowerCase() || "";
-      const query = searchQuery.toLowerCase();
-      return productName.includes(query) || orderStatus.includes(query);
-    });
+    return orders.filter(
+      (order) =>
+        order.products[0]?.productId?.name
+          ?.toLowerCase()
+          .includes(searchQuery.toLowerCase()) ||
+        order.status?.toLowerCase().includes(searchQuery.toLowerCase())
+    );
   }, [orders, searchQuery]);
+
   const renderItem = ({ item }) => {
-    // Destructuring product from the first item in the order
-    const firstProduct = item?.products[0]?.productId || {};
+    const firstProduct = item.products[0]?.productId || {};
+    const imageUrl =
+      firstProduct.images && firstProduct.images.length > 0
+        ? firstProduct.images[0]?.url
+        : "https://via.placeholder.com/150";
 
     return (
       <Card
@@ -107,19 +98,17 @@ export default function Orders() {
         <View style={styles.itemContent}>
           <Image
             source={{
-              uri:
-                firstProduct.images?.[0]?.url ||
-                "https://via.placeholder.com/150",
+              uri: imageUrl,
             }}
             style={styles.itemImage}
             resizeMode="cover"
           />
           <View style={styles.itemDetailsContainer}>
             <Text style={styles.statusText} numberOfLines={1}>
-              {item.status || "N/A"}
+              {item.status || "Unknown Status"}
             </Text>
             <Text style={styles.itemName} numberOfLines={2}>
-              {firstProduct.name ? firstProduct.name : "Not Order Item"}
+              {firstProduct.name || "Unknown Product"}
             </Text>
             <Text style={styles.itemPrice}>
               R {firstProduct.price?.toLocaleString() || "0"} / item
@@ -130,7 +119,7 @@ export default function Orders() {
           </View>
           <TouchableOpacity
             style={styles.chevronContainer}
-            // onPress={() => console.log("Order details", item._id)}
+            onPress={() => console.log("Order details", item._id)}
           >
             <Feather
               name="chevron-right"
@@ -164,6 +153,7 @@ export default function Orders() {
 
   return (
     <View style={styles.container}>
+      {/* Search Container */}
       <View style={styles.searchContainer}>
         <Ionicons name="search" size={moderateScale(20)} color="#888" />
         <TextInput
@@ -174,19 +164,18 @@ export default function Orders() {
           placeholderTextColor="#888"
         />
         <TouchableOpacity
-          // onPress={() => console.log("Filter pressed")}
+          onPress={() => console.log("Filter pressed")}
           style={styles.filterButton}
         >
           <Feather name="filter" size={moderateScale(24)} color="#888" />
         </TouchableOpacity>
       </View>
 
+      {/* Orders List or Empty State */}
       {filteredOrders.length === 0 ? (
         <View style={styles.emptyContainer}>
           <Text style={styles.emptyText}>
-            {searchQuery
-              ? "No orders match your search"
-              : "You have no orders yet. Start shopping to place your first order!"}
+            {searchQuery ? "No orders match your search" : "No orders found"}
           </Text>
         </View>
       ) : (
@@ -204,6 +193,7 @@ export default function Orders() {
   );
 }
 
+// Dynamic Styles Creation
 const createStyles = () => {
   return StyleSheet.create({
     container: {
@@ -262,12 +252,10 @@ const createStyles = () => {
       flex: 1,
       justifyContent: "center",
       alignItems: "center",
-      paddingHorizontal: moderateScale(20),
     },
     emptyText: {
       fontSize: moderateScale(18),
       color: "#888",
-      textAlign: "center",
     },
     listContentContainer: {
       paddingHorizontal: moderateScale(15),

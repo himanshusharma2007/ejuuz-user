@@ -442,7 +442,6 @@ function getTabbarVisibility(route) {
     "OtpPage",
     "Cart",
     "Orders",
-    "SearchTab",
     "TopUp",
     "StoreDetails",
     "AllProducts",

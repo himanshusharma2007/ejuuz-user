@@ -25,17 +25,21 @@ export default function Checkout() {
       try {
         const cartData = await getCart();
         setCartItems(cartData);
-        
+
         // Calculate total price
-        const totalPrice = cartData.reduce((total, item) => 
-          total + item.price, 0);
+        const totalPrice = cartData.reduce(
+          (total, item) => total + item.price,
+          0
+        );
         setTotalitemPrice(totalPrice);
-        
+
         // Calculate total quantity
-        const quantity = cartData.reduce((total, item) => 
-          total + item.quantity, 0);
+        const quantity = cartData.reduce(
+          (total, item) => total + item.quantity,
+          0
+        );
         setTotalQuantity(quantity);
-        
+
         setLoading(false);
       } catch (err) {
         console.error("Failed to fetch cart", err);
@@ -75,9 +79,11 @@ export default function Checkout() {
           <Surface key={item._id} style={styles.itemCard}>
             <View style={styles.itemContainer}>
               <View style={styles.imageContainer}>
-                <Image 
-                  source={{ uri: item.productId.images[0].url }} 
-                  style={styles.itemImage} 
+                <Image
+                  source={{
+                    uri: item.productId.images[0].url.replace("http", "https"),
+                  }}
+                  style={styles.itemImage}
                 />
               </View>
               <View style={styles.itemDetails}>
@@ -104,9 +110,7 @@ export default function Checkout() {
 
           <View style={styles.paymentRow}>
             <Text style={styles.paymentLabel}>Total Quantity</Text>
-            <Text style={styles.paymentAmount}>
-              {totalQuantity} Items
-            </Text>
+            <Text style={styles.paymentAmount}>{totalQuantity} Items</Text>
           </View>
 
           <View style={styles.paymentRow}>
@@ -328,12 +332,12 @@ const styles = StyleSheet.create({
   },
   loadingContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   errorContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
 });

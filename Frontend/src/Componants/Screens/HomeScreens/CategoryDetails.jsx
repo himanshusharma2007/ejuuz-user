@@ -157,10 +157,11 @@ export default function CategoryDetails() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Appbar.Header>
-        <Appbar.BackAction onPress={() => navigation.goBack()} />
-        <Appbar.Content title={categorydata.category} />
+      <Appbar.Header style={{ backgroundColor: "white" }}>
+        <Appbar.BackAction onPress={() => navigation.goBack()} color="black" />
+        <Appbar.Content title={categorydata.category} color="black" />
         <Appbar.Action
+          color="black"
           icon="cart"
           onPress={() => navigation.navigate("Cart")}
         />
