@@ -177,8 +177,9 @@ export default function WalletHistory() {
           value={searchhistory}
           onChangeText={setSearchhistory}
           placeholder="Search transactions"
+          placeholderTextColor={theme.colors.background}
           style={styles.searchBar}
-          iconColor={theme.colors.primary}
+          iconColor={theme.colors.background}
         />
       </Surface>
 
@@ -201,6 +202,7 @@ export default function WalletHistory() {
                   <IconButton
                     icon="filter-variant"
                     size={24}
+                    iconColor="#000"
                     onPress={() => setFilterMenuVisible(true)}
                   />
                 }
@@ -238,6 +240,7 @@ export default function WalletHistory() {
                 anchor={
                   <IconButton
                     icon="sort"
+                    iconColor="#000"
                     size={24}
                     onPress={() => setSortMenuVisible(true)}
                   />

@@ -3,13 +3,13 @@ import { View, StyleSheet, TouchableOpacity, ScrollView } from "react-native";
 import { Text, Surface, Button } from "react-native-paper";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import { useNavigation, useRoute } from "@react-navigation/native";
-import { useSelector } from 'react-redux';
-import AuthService from '../../../service/authService'; // Adjust the import path as needed
+import { useSelector } from "react-redux";
+import AuthService from "../../../service/authService"; // Adjust the import path as needed
 
 export default function Payment() {
   const navigation = useNavigation();
   const route = useRoute();
-  
+
   // Fetch cart items from Redux store
   const cartItems = useSelector((state) => state.cart.items);
 
@@ -26,7 +26,7 @@ export default function Payment() {
           setWalletBalance(response.user.walletBalance || 0);
         }
       } catch (error) {
-        console.error('Error fetching user data:', error);
+        console.error("Error fetching user data:", error);
         // Optionally set a default balance or show an error
         setWalletBalance(0);
       }
@@ -37,7 +37,7 @@ export default function Payment() {
 
   // Calculate order total from cart items
   const orderTotal = cartItems.reduce((total, item) => {
-    return total + (item.price * item.quantity);
+    return total + item.price * item.quantity;
   }, 0);
 
   const [selectedPayment, setSelectedPayment] = useState("wallet");
@@ -60,7 +60,11 @@ export default function Payment() {
   ];
 
   const handletransitionPin = () => {
-    if (paymentMethods && totalPaymentWithPacking && walletBalance >= totalPaymentWithPacking) {
+    if (
+      paymentMethods &&
+      totalPaymentWithPacking &&
+      walletBalance >= totalPaymentWithPacking
+    ) {
       navigation.navigate("TransactionPin", {
         orderItem: totalPaymentWithPacking,
       });
@@ -134,6 +138,7 @@ export default function Payment() {
             style={styles.continueButton}
             labelStyle={styles.continueButtonText}
             onPress={handletransitionPin}
+            textColor="#fff"
           >
             Continue
           </Button>
@@ -146,7 +151,7 @@ export default function Payment() {
               mode="outlined"
               style={styles.addMoneyButton}
               labelStyle={styles.addMoneyButtonText}
-              onPress={() => navigation.navigate('AddMoney')}
+              onPress={() => navigation.navigate("AddMoney")}
             >
               Add Money
             </Button>
@@ -259,22 +264,22 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   insufficientBalanceContainer: {
-    backgroundColor: '#ffebee', // Light red background
+    backgroundColor: "#ffebee", // Light red background
     padding: 16,
     borderRadius: 8,
-    alignItems: 'center',
+    alignItems: "center",
   },
   insufficientBalanceText: {
-    color: '#d32f2f', // Dark red text
+    color: "#d32f2f", // Dark red text
     fontSize: 16,
-    textAlign: 'center',
+    textAlign: "center",
     marginBottom: 12,
   },
   addMoneyButton: {
-    borderColor: '#d32f2f',
+    borderColor: "#d32f2f",
     borderWidth: 1,
   },
   addMoneyButtonText: {
-    color: '#d32f2f',
+    color: "#d32f2f",
   },
 });

@@ -304,6 +304,7 @@ const styles = StyleSheet.create({
   bottomBar: {
     padding: 16,
     elevation: 8,
+    backgroundColor: "white",
   },
   bottomContent: {
     flexDirection: "row",

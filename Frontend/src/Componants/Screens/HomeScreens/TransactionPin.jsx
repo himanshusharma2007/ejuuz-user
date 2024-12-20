@@ -13,6 +13,7 @@ import { useDispatch, useSelector } from "react-redux";
 import * as orderService from "../../../service/orderService"; // Assume you'll create this service
 import { clearCart } from "../../../../redux/features/cartSlice"; // Import the clearCart action
 import { useRef, useState } from "react";
+import Toast from "react-native-toast-message";
 
 export default function TransactionPin() {
   const [pin, setPin] = useState("");
@@ -36,6 +37,12 @@ export default function TransactionPin() {
   const handleNumberPress = (num) => {
     if (pin.length < maxLength) {
       setPin(pin + num);
+    } else {
+      Toast.show({
+        type: "error",
+        text1: "Error",
+        text2: "Pin length must be 6 digits",
+      });
     }
   };
 
@@ -188,6 +195,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginTop: 40,
     marginBottom: 30,
+    color: "#002E6E",
   },
   pinContainer: {
     flexDirection: "row",
@@ -224,6 +232,7 @@ const styles = StyleSheet.create({
     marginVertical: 10,
   },
   keypadText: {
+    color: "#002E6E",
     fontSize: 24,
   },
   doneButton: {
@@ -245,5 +254,6 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: "bold",
     marginTop: 20,
+    color: "#4CAF50",
   },
 });

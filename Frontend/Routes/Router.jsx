@@ -260,8 +260,9 @@ const WalletStack = () => {
             >
               <View style={styles.cartContainer}>
                 <Ionicons name="cart-outline" size={24} color="#000" />
-
-                <Text style={styles.badge}>{cartdata.length}</Text>
+                {cartdata.length > 0 && (
+                  <Text style={styles.badge}>{cartdata.length}</Text>
+                )}
               </View>
             </TouchableOpacity>
           ),
